@@ -207,7 +207,7 @@ int main(){
     ctello::Tello tello;
     tello.SendCommandWithResponse("streamon");
     std::string yamlCalibrationPath = data["yamlCalibrationPath"];
-    bool isCameraString = data["isCameraString"];
+	bool isCameraString = data["isCameraString"];
     float currentMarkerSize = data["currentMarkerSize"];
     
     tello.SendCommandWithResponse("takeoff");
@@ -222,7 +222,9 @@ int main(){
  	std::thread movementThread([&] { updateMovement(d1, detector,tello); } );        
         runAruco(detector,d1, tello);       
         movementThread.join(); 
-    }else{
+    }
+	
+	else{
         int cameraPort = data["cameraPort"];
         aruco detector(yamlCalibrationPath,cameraPort,currentMarkerSize);
 	std::thread movementThread([&] { updateMovement(d1, detector,tello); } );        

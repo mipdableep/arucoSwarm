@@ -6,10 +6,14 @@ find_package(Threads REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 find_package(OpenCV 3.0 QUIET)
+
 include_directories(include)
+
 add_library(aruco src/aruco.cpp)
 add_library(drone src/drone.cpp)
+
 target_link_libraries(drone -lctello -lpthread ${OpenCV_LIBS})
-add_executable(runAruco
-        runAruco.cpp)
+
+add_executable(runAruco runAruco.cpp)
+
 target_link_libraries(runAruco aruco drone -lctello -lpthread nlohmann_json::nlohmann_json )
