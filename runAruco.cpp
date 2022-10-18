@@ -18,7 +18,7 @@
 #define LIM_ANGLE 20
 //#define LIM_ANGLE_CIRCLE 25
 #define LIM_MOVEMENT 30
-#define LIM_MOVEMENT_HEIGHT 10
+#define LIM_MOVEMENT_HEIGHT 30
 #define LIM_MOVEMENT_ANGLE 25
 
 const std::string noMovement = "0 ";	
@@ -29,6 +29,12 @@ void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
 	
 	int tmpId=-1;
 	
+	//check land vriables
+	int wentDownCounter = 0;
+	int minHight /*TODO:add min hight*/;
+
+
+
 	while(true) {
 	       while(!drone.commandFlag && detector.ID!=-1);
 		
@@ -39,18 +45,22 @@ void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
 		if(detector.ID==-1 && tmpId!=-1){
 		    int i=0;
 		    while(detector.ID==-1 && i<50){
-			    sleep(2); 
+
+			    tello.SendCommand("rc 0 0 0 0");
 			    std::cout << "Searching for leader" << std::endl;
 			    tello.SendCommand("rc 0 0 0 25");
 		    	    i++;
     		   	    if(detector.ID!=tmpId && detector.ID!=-1)
     			          detector.init=true;
-		    }
+		    	sleep(2); 
+			}
 		    
 		    if(detector.ID==-1)
-		    	tello.SendCommandWithResponse("land");
-      	    			
-        }else{
+		    	tello.SendCommandWithResponse("land");    			
+        }
+		
+		else
+		{
 		std::string command = "rc ";
 		
 		if (drone.distanceRightLeft){
@@ -74,8 +84,27 @@ void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
 			command += noMovement;
 
 
-		if (drone.distanceHeight){
-		
+		if (drone.distanceHeight)
+		{
+
+			//ifland
+			if (drone.distanceHeight < LIM_MOVEMENT_HEIGHT/2)
+			{
+				wentDownCounter ++;
+			}
+			
+
+			//TODO:see if need to change the value of else - test needed
+			else 
+			{
+				if(wentDownCounter > 4)
+				{
+					wentDownCounter -= 3;
+				}
+			}
+			
+			std::cout<<"\nwentDownCounter:  "<<wentDownCounter<<"\n\n";
+
 			if(std::abs(drone.distanceHeight) > LIM_MOVEMENT_HEIGHT)
 				drone.distanceHeight = drone.distanceHeight > 0 ? LIM_MOVEMENT_HEIGHT : -1 * LIM_MOVEMENT_HEIGHT;
 		
@@ -107,9 +136,17 @@ void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
 			
 			usleep(1000000);
 			
-			
-		std::cout << command << std::endl;
 		
+		/// checks if needs to land 
+		if (wentDownCounter > 14)
+		{
+			tello.SendCommandWithResponse("land");
+			tello.SendCommand("shutdown");
+			std::cout<<"\nlanding, breaking";
+			exit(1);
+		}
+		std::cout << command << std::endl;
+
 		std::cout << "drone:" <<" height: "<< drone.distanceHeight << " forward: "<< drone.distanceForward << " rightLeft: " << drone.distanceRightLeft << " angle: "<< drone.angle << std::endl;
 			
 		std::cout << "detector:" << " position" << (detector.rightInForm > 0 ? " RIGHT" : " LEFT") << " forward: " << detector.forward << " right-left: " << detector.rightLeft << " updown: " << detector.upDown	<< " angle: " <<  detector.yaw << " roll: "<< detector.rollAngle << " init: " << detector.init << " ID " << detector.ID   << std::endl;
