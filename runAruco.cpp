@@ -54,18 +54,24 @@ void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
 	//check land vriables
 	int wentDownCounter = 0;
 	int minHight /*TODO:add min hight*/;
-
+	int sleepAmount = 2;
 
 
 	while(true) {
-	       while(!drone.commandFlag && detector.ID!=-1);
+	    	while(!drone.commandFlag && detector.ID!=-1);
 		
-	       if(detector.ID!=-1){
+			if(detector.ID!=-1){
        			tmpId=detector.ID;
        		}
        		  
 		if(detector.ID==-1 && tmpId!=-1){
 		    int i=0;
+			
+			//wait to see if problem solevs itself
+			tello.SendCommand("rc 0 0 0 0");
+			printf("sleeping: %d seconds", sleepAmount);
+			sleep(sleepAmount);
+
 		    while(detector.ID==-1 && i<50){
 
 			    tello.SendCommand("rc 0 0 0 0");
@@ -110,18 +116,16 @@ void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
 		{
 
 			//ifland
-			if (drone.distanceHeight < LIM_MOVEMENT_HEIGHT/2)
+			if (drone.distanceHeight < (LIM_MOVEMENT_HEIGHT/4)*-1)
 			{
 				wentDownCounter ++;
 			}
 			
 
-			//TODO:see if need to change the value of else - test needed
-			else 
-			{
-				if(wentDownCounter > 4)
-				{
+			else {
+				if(wentDownCounter > 3){
 					wentDownCounter -= 3;
+					std::cout<<"counter went down\n";
 				}
 			}
 			
