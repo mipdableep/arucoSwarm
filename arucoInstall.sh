@@ -1,8 +1,9 @@
-opencvVersion=$(pkg-config --modversion opencv)
+#opencvVersion=$(pkg-config --modversion opencv)
 
-if [ "$opencvVersion" != "3.4.16" ]; then
-  chmod +x ../opencv3.4.16Install.sh
-fi
+# if [ "$opencvVersion" != "3.4.16" ]; then
+#   chmod +x ../opencv3.4.16Install.sh
+# fi
+
 cwd=$(pwd)
 cd ~ || exit
 git clone https://github.com/nlohmann/json.git

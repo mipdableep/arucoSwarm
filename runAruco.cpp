@@ -11,7 +11,7 @@
 #include <ctello.h>
 
 //1 = most right, 2 = middle, 3 = most left
-#define DRONE_ID 2
+#define DRONE_ID 1
 
 const std::string noMovement = "0 ";
 
