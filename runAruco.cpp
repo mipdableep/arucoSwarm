@@ -264,9 +264,6 @@ int main(){
     programData >> data;
     programData.close();
     std::string droneName = data["DroneName"];
-    std::string commandString = "nmcli c up " + droneName;
-    const char *command = commandString.c_str();
-    system(command);
     ctello::Tello tello;
     tello.SendCommandWithResponse("streamon");
     std::string yamlCalibrationPath = data["yamlCalibrationPath"];
