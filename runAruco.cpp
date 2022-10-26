@@ -10,11 +10,9 @@
 #include <cmath>
 #include <ctello.h>
 
+
 //1 = most right, 2 = middle, 3 = most left
 #define DRONE_ID 2
-
-const std::string noMovement = "0 ";
-
 
 //checks id's == 1
 #if DRONE_ID == 1
@@ -29,6 +27,7 @@ const std::string noMovement = "0 ";
 #define RIGHT_LEFT 40
 #endif
 
+const std::string noMovement = "0 ";
 //define distance from aruco in x axis (back/forward)
 #define FORWARD 160
 //upper limit of how fast the drone can move on x axis (in rc command)
