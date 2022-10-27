@@ -153,7 +153,10 @@ void aruco::trackMarkerThread() {
                 //this line takes localrevs and prints it as is
                 // std::for_each(begin(localRvecs) , end(localRvecs), [](cv::Vec3d &element){std::cout << element << ",";} );
                 
-                // std::vector<double> zRotate, xPos, yPos, zPos; - alredy declared
+                zRotate.clear();
+                xPos.clear();
+                yPos.clear();
+                zPos.clear();
 
                 //take Zr vector from localRvecs, and push it into zRotate
                 std::transform(begin(localRvecs) , end(localRvecs) , std::back_inserter(zRotate) , [](const cv::Vec3d &element){return element[2];} );
@@ -167,7 +170,8 @@ void aruco::trackMarkerThread() {
                 //transform xpos to distance in cm
                 std::for_each(begin(xPos) , end(xPos) , [](double &element){element *= 70;});
                 //print xPos
-                std::for_each(begin(xPos) , end(xPos) , [](double &element){std::cout<<element<<"\n";});
+                //std::cout <<  xPos.size() << std::endl;
+                std::for_each(begin(xPos) , end(xPos) , [](double &element){std::cout<<element<<std::endl;});
                 
 
 
