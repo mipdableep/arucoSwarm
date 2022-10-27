@@ -25,6 +25,8 @@ public:
     void setStop(bool value) { stop = value; };
 
     void trackMarkerThread();
+
+    void printVector(std::vector<cv::Vec3d> vec);
     
     void initialaize(std::vector<cv::Vec3d> localTvecs, std::vector<cv::Vec3d> localRvecs);
     

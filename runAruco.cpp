@@ -45,6 +45,15 @@ const std::string noMovement = "0 ";
 #define LIM_MOVEMENT_ANGLE 25
 
 
+void webcamTest(aruco& detector)
+{
+	while (true)
+	{
+		sleep(2);
+	}
+
+}
+
 
 // update drones movement with regards to leader.
 void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
@@ -255,45 +264,91 @@ void runAruco(aruco &detector, drone &d1, ctello::Tello& tello){
 
 
 int main(){
-    std::ifstream programData("../config.json");
-
-    drone d1 ;
-
-	
-    nlohmann::json data;
-    programData >> data;
-    programData.close();
-    std::string droneName = data["DroneName"];
-    std::string commandString = "nmcli c up " + droneName;
-    const char *command = commandString.c_str();
-    system(command);
-    ctello::Tello tello;
-    tello.SendCommandWithResponse("streamon");
-    std::string yamlCalibrationPath = data["yamlCalibrationPath"];
-	bool isCameraString = data["isCameraString"];
-    float currentMarkerSize = data["currentMarkerSize"];
     
-    tello.SendCommandWithResponse("takeoff");
-	sleep(2);
-	tello.SendCommand("rc 0 0 0 0");
+	// if (false){
+	// 		std::ifstream programData("../config.json");
 
-				
-    
-    if (isCameraString){
-        std::string cameraString = data["cameraString"];
-        aruco detector(yamlCalibrationPath,cameraString,currentMarkerSize);
- 	std::thread movementThread([&] { updateMovement(d1, detector,tello); } );        
-        runAruco(detector,d1, tello);       
-        movementThread.join(); 
-    }
+	// 		drone d1 ;
+
+			
+	// 		nlohmann::json data;
+	// 		programData >> data;
+	// 		programData.close();
+	// 		std::string droneName = data["DroneName"];
+	// 		std::string commandString = "nmcli c up " + droneName;
+	// 		const char *command = commandString.c_str();
+	// 		system(command);
+	// 		ctello::Tello tello;
+	// 		tello.SendCommandWithResponse("streamon");
+	// 		std::string yamlCalibrationPath = data["yamlCalibrationPath"];
+	// 		bool isCameraString = data["isCameraString"];
+	// 		float currentMarkerSize = data["currentMarkerSize"];
+			
+	// 		tello.SendCommandWithResponse("takeoff");
+	// 		sleep(2);
+	// 		tello.SendCommand("rc 0 0 0 0");
+
+						
+			
+	// 		if (isCameraString){
+	// 			std::string cameraString = data["cameraString"];
+	// 			aruco detector(yamlCalibrationPath,cameraString,currentMarkerSize);
+	// 		std::thread movementThread([&] { updateMovement(d1, detector,tello); } );        
+	// 			runAruco(detector,d1, tello);       
+	// 			movementThread.join(); 
+	// 		}
+			
+	// 		else{
+	// 			int cameraPort = data["cameraPort"];
+	// 			aruco detector(yamlCalibrationPath,cameraPort,currentMarkerSize);
+	// 		std::thread movementThread([&] { updateMovement(d1, detector,tello); } );        
+	// 			runAruco(detector,d1, tello);
+	// 			movementThread.join();   
+	// 		}
+			
+	// 		return 0; 
+	// }
 	
+	
+	std::ifstream programData("../config.json");
+	
+	nlohmann::json data;
+	programData >> data;
+	programData.close();
+	std::string droneName = data["DroneName"];
+	bool isWebcam = data["webcam"];
+	std::string commandString = "nmcli c up " + droneName;
+	const char *command = commandString.c_str();
+	
+	//checking the img input device for correct calibration
+	std::string yamlCalibrationPath;
+	
+	if(!isWebcam){
+		yamlCalibrationPath = data["yamlCalibrationPath"];
+	}
 	else{
-        int cameraPort = data["cameraPort"];
-        aruco detector(yamlCalibrationPath,cameraPort,currentMarkerSize);
-	std::thread movementThread([&] { updateMovement(d1, detector,tello); } );        
-        runAruco(detector,d1, tello);
-        movementThread.join();   
-    }
-    
-    return 0; 
+		yamlCalibrationPath = data["webcamYamlCalibrationPath"];
+	}
+	bool isCameraString = data["isCameraString"];
+
+	float currentMarkerSize = data["currentMarkerSize"];
+
+
+	if (true){
+		int cameraPort = data["cameraPort"];
+		aruco detector(yamlCalibrationPath,cameraPort,currentMarkerSize);
+	std::thread movementThread([&] { webcamTest(detector); } );        
+		std::cout<<"in if\n";
+		movementThread.join(); 
+	}
+	
+	// else{
+	// 	int cameraPort = data["cameraPort"];
+	// 	aruco detector(yamlCalibrationPath,cameraPort,currentMarkerSize);
+	// std::thread movementThread([&] { updateMovement(d1, detector,tello); } );        
+	// 	runAruco(detector,d1, tello);
+	// 	movementThread.join();
+	// }
+
+	
 }

@@ -100,6 +100,8 @@ void aruco::trackMarkerThread() {
     }
 }*/
 
+//declare variables
+std::vector<double> zRotate, xPos, yPos, zPos;
 
 void aruco::trackMarkerThread() {
     stop = false;
@@ -121,14 +123,8 @@ void aruco::trackMarkerThread() {
     medianBlur(*frame, imageCopy, 5);*/
             
             
-            
-            
-            
-            
-            
-            
             cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
-            //cv::imshow("aruco", imageCopy);
+            cv::imshow("aruco", imageCopy);
             
         cv::waitKey(1);
         } else {
@@ -154,12 +150,39 @@ void aruco::trackMarkerThread() {
                 localRvecs,
                 localTvecs);
                 
+                //this line takes localrevs and prints it as is
+                // std::for_each(begin(localRvecs) , end(localRvecs), [](cv::Vec3d &element){std::cout << element << ",";} );
+                
+                // std::vector<double> zRotate, xPos, yPos, zPos; - alredy declared
+
+                //take Zr vector from localRvecs, and push it into zRotate
+                std::transform(begin(localRvecs) , end(localRvecs) , std::back_inserter(zRotate) , [](const cv::Vec3d &element){return element[2];} );
+                //mutiply the value of zRotate to be in degrease
+                std::for_each(begin(zRotate) , end(zRotate) , [](double &element){element *= 45;});
+
+                //print all values of localTvecs
+                // aruco::printVector(localTvecs);
+
+                std::transform(begin(localTvecs) , end(localTvecs) , std::back_inserter(xPos) , [](const cv::Vec3d &element){return element[2];} );
+                //transform xpos to distance in cm
+                std::for_each(begin(xPos) , end(xPos) , [](double &element){element *= 70;});
+                //print xPos
+                std::for_each(begin(xPos) , end(xPos) , [](double &element){std::cout<<element<<"\n";});
+                
+
+
+
+                
+
+
                 for(int i = 0; i < ids.size(); i++){
                 	cv::drawFrameAxes(imageCopy, cameraParams[0], cameraParams[1], localRvecs[i], localTvecs[i], 0.1);
                 }
                 cv::imshow("aruco", imageCopy);
 		
-            
+        // }
+
+
             if (init) {
 		    if (!localRvecs.empty()){
 		        initialaize(localTvecs,localRvecs);
@@ -192,10 +215,11 @@ void aruco::trackMarkerThread() {
                 ID=-1;
             }
             }
-        } else {
+        }//end of canConteniue
+         else {
             std::cout << "didnt detect marker" << std::endl;
         }
-        // usleep(100000);
+        usleep(100000);
     }
 }
 
@@ -213,6 +237,16 @@ void aruco::getEulerAngles(cv::Mat &rotCameraMatrix, cv::Vec3d &eulerAngles) {
                               rotMatrixY,
                               rotMatrixZ,
                               eulerAngles);
+}
+
+void aruco::printVector(std::vector<cv::Vec3d> vec)
+{
+    //print all values of localTvecs
+    std::for_each(begin(vec) , end(vec), [](cv::Vec3d &element){std::cout << element << ",";} );
+    if (!vec.empty())
+    {
+        std::cout << std::endl;
+    }
 }
 
 int aruco::getLeftOverAngleFromRotationVector(const cv::Vec<double, 3> &rvec) {
