@@ -38,6 +38,8 @@ public:
     bool init=true;
     bool inFormation=false;
     int rightInForm=1;
+    std::vector<double> zRotate, xPos, yPos, zPos;
+    bool arucoDetected = false;
 
     double upDown = 0.0;
     double forward = 0.0;

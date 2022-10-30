@@ -100,8 +100,6 @@ void aruco::trackMarkerThread() {
     }
 }*/
 
-//declare variables
-std::vector<double> zRotate, xPos, yPos, zPos;
 
 void aruco::trackMarkerThread() {
     stop = false;
@@ -143,7 +141,8 @@ void aruco::trackMarkerThread() {
         }*/
         // if at least one marker detected
         if (canContinue) {
-        
+            
+            arucoDetected = false;
 
             std::vector<cv::Vec3d> localRvecs, localTvecs;
             cv::aruco::estimatePoseSingleMarkers(corners, currentMarkerSize, cameraParams[0], cameraParams[1],
@@ -162,17 +161,29 @@ void aruco::trackMarkerThread() {
                 std::transform(begin(localRvecs) , end(localRvecs) , std::back_inserter(zRotate) , [](const cv::Vec3d &element){return element[2];} );
                 //mutiply the value of zRotate to be in degrease
                 std::for_each(begin(zRotate) , end(zRotate) , [](double &element){element *= 45;});
-
-                //print all values of localTvecs
-                // aruco::printVector(localTvecs);
-
-                std::transform(begin(localTvecs) , end(localTvecs) , std::back_inserter(xPos) , [](const cv::Vec3d &element){return element[2];} );
-                //transform xpos to distance in cm
-                std::for_each(begin(xPos) , end(xPos) , [](double &element){element *= 70;});
-                //print xPos
-                //std::cout <<  xPos.size() << std::endl;
-                std::for_each(begin(xPos) , end(xPos) , [](double &element){std::cout<<element<<std::endl;});
                 
+                if (!(zRotate.empty())){
+                    arucoDetected = true;
+                }
+
+                //push y position from Tvecs into ypos
+                std::transform(begin(localTvecs) , end(localTvecs) , std::back_inserter(yPos) , [](const cv::Vec3d &element){return element[2];} );
+                //transform yPos to distance in cm
+                std::for_each(begin(yPos) , end(yPos) , [](double &element){element *= 100;});
+                
+                //push X position from Tvecs into xpos
+                std::transform(begin(localTvecs) , end(localTvecs) , std::back_inserter(xPos) , [](const cv::Vec3d &element){return element[0];} );
+                //transform xPos to distance in cm
+                std::for_each(begin(xPos) , end(xPos) , [](double &element){element *= 100;});
+
+                //push Z position from Tvecs into Zpos
+                std::transform(begin(localTvecs) , end(localTvecs) , std::back_inserter(zPos) , [](const cv::Vec3d &element){return element[1];} );
+                //transform yPos to distance in cm
+                std::for_each(begin(zPos) , end(zPos) , [](double &element){element *= 100;});
+
+
+                //print *
+                // std::for_each(begin(xPos) , end(xPos) , [](double &element){std::cout<<element<<std::endl;});   
 
 
 
@@ -292,6 +303,8 @@ aruco::aruco(std::string &yamlCalibrationPath, int cameraPort, float currentMark
     capture = std::make_shared<cv::VideoCapture>();
     if (capture->open(cameraPort)) {
         std::cout << "camera opened" << std::endl;
+        capture->set(3, 640);
+        capture->set(4, 480);
     } else {
         std::cout << "couldnt open camera by port" << std::endl;
     }

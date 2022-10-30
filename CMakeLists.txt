@@ -14,6 +14,9 @@ add_library(drone src/drone.cpp)
 
 target_link_libraries(drone -lctello -lpthread ${OpenCV_LIBS})
 
-add_executable(runAruco runAruco.cpp)
+#add_executable(cameraCalib cameraCalib.cpp)
+#target_link_libraries(cameraCalib aruco drone -lctello -lpthread nlohmann_json::nlohmann_json )
 
+
+add_executable(runAruco runAruco.cpp)
 target_link_libraries(runAruco aruco drone -lctello -lpthread nlohmann_json::nlohmann_json )

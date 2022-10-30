@@ -44,12 +44,55 @@ const std::string noMovement = "0 ";
 #define LIM_MOVEMENT_HEIGHT 30
 #define LIM_MOVEMENT_ANGLE 25
 
+#define DIST_TOLORANCE 15
+#define ANGLE_TOLORANCE 10
+
+
 
 void webcamTest(aruco& detector)
 {
 	while (true)
 	{
-		sleep(2);
+		//while no arucos captured
+		if (detector.arucoDetected){
+		
+			double droneZRotate, droneXPos, droneYPos, droneZPos;
+			
+			//reverse the direction of the position to set the object as the (0,0,0) position of the graph
+			droneZRotate = detector.zRotate[0];
+			droneZRotate *= -1;
+			
+			droneXPos = detector.xPos[0];
+			droneXPos *= -1;
+
+			droneYPos = detector.yPos[0];
+			droneYPos *= -1;
+			
+			droneZPos = detector.zPos[0];
+			droneZPos *= -1;
+
+			// try to reach x, z pos of 0,0
+			// if (droneZPos > DIST_TOLORANCE){std::cout<<"Zpos: --";}
+			// if (droneZPos < -DIST_TOLORANCE){std::cout<<"Zpos: ++";}
+			
+			// if (droneXPos > DIST_TOLORANCE){std::cout<<"Xpos: --"<<std::endl;}
+			// if (droneXPos < -DIST_TOLORANCE){std::cout<<"Xpos: ++"<<std::endl;}
+			// std::cout<<std::endl;
+
+			// calculate wanted angle from position
+			//TODO: FINISH THIS !!!!!!!!
+			double currentPosWantedAgnle = (atan(droneXPos/droneYPos))*57.2958;
+			if (droneZRotate < currentPosWantedAgnle){std::cout<<"angle: ++  "<<droneZRotate+currentPosWantedAgnle<<std::endl;}
+			if (droneZRotate > currentPosWantedAgnle){std::cout<<"angle: --  "<<droneZRotate-currentPosWantedAgnle<<std::endl;}
+			
+
+
+
+		}
+			
+		usleep(500'000);
+
+
 	}
 
 }
@@ -337,8 +380,8 @@ int main(){
 	if (true){
 		int cameraPort = data["cameraPort"];
 		aruco detector(yamlCalibrationPath,cameraPort,currentMarkerSize);
+
 	std::thread movementThread([&] { webcamTest(detector); } );        
-		std::cout<<"in if\n";
 		movementThread.join(); 
 	}
 	
