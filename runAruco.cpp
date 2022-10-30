@@ -85,16 +85,56 @@ void webcamTest(aruco& detector)
 			if (droneZRotate < currentPosWantedAgnle){std::cout<<"angle: ++  "<<droneZRotate+currentPosWantedAgnle<<std::endl;}
 			if (droneZRotate > currentPosWantedAgnle){std::cout<<"angle: --  "<<droneZRotate-currentPosWantedAgnle<<std::endl;}
 			
-
-
-
 		}
 			
-		usleep(500'000);
+	usleep(500'000);
 
 
 	}
 
+}
+
+void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tello)
+{
+	noLeaderLoop(drone, detector, tello);
+
+	
+
+
+}
+
+
+void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello)
+{
+		while(!drone.commandFlag && detector.ID!=-1);
+	
+	if(detector.ID!=-1)
+	{
+		tmpId=detector.ID;
+	}
+
+	if(detector.ID==-1 && tmpId!=-1)
+	{
+		//wait to see if problem solevs itself
+		tello.SendCommand("rc 0 0 0 0");
+		printf("sleeping: %d seconds", sleepAmount);
+		sleep(sleepAmount);
+
+		int i=0;
+		while(detector.ID==-1 && i<50)
+		{
+			tello.SendCommand("rc 0 0 0 0");
+			std::cout << "Searching for leader" << std::endl;
+			tello.SendCommand("rc 0 0 0 25");
+				i++;
+				if(detector.ID!=tmpId && detector.ID!=-1)
+						detector.init=true;
+			sleep(2); 
+		}
+		
+		if(detector.ID==-1)
+			tello.SendCommandWithResponse("land");    			
+	}
 }
 
 
@@ -105,7 +145,6 @@ void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
 	
 	//check land vriables
 	int wentDownCounter = 0;
-	int minHight /*TODO:add min hight*/;
 	int sleepAmount = 2;
 
 
