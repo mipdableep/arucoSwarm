@@ -4,5 +4,5 @@
   "cameraPort": 0,
   "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
   "currentMarkerSize" : 0.10,
-  "DroneName": "TELLO-98F041"
+  "DroneName": "TELLO-9EE8F8"
 }

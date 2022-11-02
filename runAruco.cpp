@@ -11,9 +11,8 @@
 #include <ctello.h>
 
 //1 = most right, 2 = middle, 3 = most left
-#define DRONE_ID 1
+#define DRONE_ID 2
 
-const std::string noMovement = "0 ";
 
 
 //checks id's == 1
@@ -22,7 +21,7 @@ const std::string noMovement = "0 ";
 #endif
 
 #if DRONE_ID == 2
-#define RIGHT_LEFT 0
+#define RIGHT_LEFT 2
 #endif
 
 #if DRONE_ID == 3
@@ -30,21 +29,22 @@ const std::string noMovement = "0 ";
 #endif
 
 //define distance from aruco in x axis (back/forward)
-#define FORWARD 160
+#define FORWARD 200
 //upper limit of how fast the drone can move on x axis (in rc command)
 #define LIM_FORWARD 20
 //upper limit of how fast the drone can move on y axis (in rc command)
 #define LIM_RIGHT_LEFT 15
 
  
-#define LIM_HEIGHT 15
+#define LIM_HEIGHT 5
 #define LIM_ANGLE 20
 //#define LIM_ANGLE_CIRCLE 25
 #define LIM_MOVEMENT 30
-#define LIM_MOVEMENT_HEIGHT 30
+#define LIM_MOVEMENT_HEIGHT 20
 #define LIM_MOVEMENT_ANGLE 25
 
 
+const std::string noMovement = "0 ";
 
 // update drones movement with regards to leader.
 void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
@@ -80,7 +80,7 @@ void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
 		    	    i++;
     		   	    if(detector.ID!=tmpId && detector.ID!=-1)
     			          detector.init=true;
-		    	sleep(2); 
+		    	sleep(2);
 			}
 		    
 		    if(detector.ID==-1)
@@ -123,8 +123,8 @@ void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
 			
 
 			else {
-				if(wentDownCounter > 3){
-					wentDownCounter -= 3;
+				if(wentDownCounter > 2){
+					wentDownCounter -= 2;
 					std::cout<<"counter went down\n";
 				}
 			}
@@ -164,7 +164,7 @@ void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
 			
 		
 		/// checks if needs to land 
-		if (wentDownCounter > 14)
+		if (wentDownCounter > 8)
 		{
 			tello.SendCommandWithResponse("land");
 			tello.SendCommand("shutdown");
@@ -255,7 +255,7 @@ void runAruco(aruco &detector, drone &d1, ctello::Tello& tello){
 
 
 int main(){
-    std::ifstream programData("../config.json");
+	std::ifstream programData("../config.json");
 
     drone d1 ;
 
@@ -266,6 +266,7 @@ int main(){
     std::string droneName = data["DroneName"];
     ctello::Tello tello;
     tello.SendCommandWithResponse("streamon");
+	std::cout<<"stream on"<<std::endl;
     std::string yamlCalibrationPath = data["yamlCalibrationPath"];
 	bool isCameraString = data["isCameraString"];
     float currentMarkerSize = data["currentMarkerSize"];
