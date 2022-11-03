@@ -148,47 +148,7 @@ void aruco::trackMarkerThread() {
             cv::aruco::estimatePoseSingleMarkers(corners, currentMarkerSize, cameraParams[0], cameraParams[1],
                 localRvecs,
                 localTvecs);
-                
-                //this line takes localrevs and prints it as is
-                // std::for_each(begin(localRvecs) , end(localRvecs), [](cv::Vec3d &element){std::cout << element << ",";} );
-                
-                zRotate.clear();
-                xPos.clear();
-                yPos.clear();
-                zPos.clear();
-
-                //take Zr vector from localRvecs, and push it into zRotate
-                std::transform(begin(localRvecs) , end(localRvecs) , std::back_inserter(zRotate) , [](const cv::Vec3d &element){return element[2];} );
-                //mutiply the value of zRotate to be in degrease
-                std::for_each(begin(zRotate) , end(zRotate) , [](double &element){element *= 45;});
-                
-                if (!(zRotate.empty())){
-                    arucoDetected = true;
-                }
-
-                //push y position from Tvecs into ypos
-                std::transform(begin(localTvecs) , end(localTvecs) , std::back_inserter(yPos) , [](const cv::Vec3d &element){return element[2];} );
-                //transform yPos to distance in cm
-                std::for_each(begin(yPos) , end(yPos) , [](double &element){element *= 100;});
-                
-                //push X position from Tvecs into xpos
-                std::transform(begin(localTvecs) , end(localTvecs) , std::back_inserter(xPos) , [](const cv::Vec3d &element){return element[0];} );
-                //transform xPos to distance in cm
-                std::for_each(begin(xPos) , end(xPos) , [](double &element){element *= 100;});
-
-                //push Z position from Tvecs into Zpos
-                std::transform(begin(localTvecs) , end(localTvecs) , std::back_inserter(zPos) , [](const cv::Vec3d &element){return element[1];} );
-                //transform yPos to distance in cm
-                std::for_each(begin(zPos) , end(zPos) , [](double &element){element *= 100;});
-
-
-                //print *
-                // std::for_each(begin(xPos) , end(xPos) , [](double &element){std::cout<<element<<std::endl;});   
-
-
-
-                
-
+        
 
                 for(int i = 0; i < ids.size(); i++){
                 	cv::drawFrameAxes(imageCopy, cameraParams[0], cameraParams[1], localRvecs[i], localTvecs[i], 0.1);

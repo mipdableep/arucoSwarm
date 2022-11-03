@@ -47,6 +47,8 @@ const std::string noMovement = "0 ";
 #define DIST_TOLORANCE 15
 #define ANGLE_TOLORANCE 10
 
+//TODO:TARGET(including z), RC_LIM, TOLORANCE, 
+
 
 
 void webcamTest(aruco& detector)
@@ -59,17 +61,13 @@ void webcamTest(aruco& detector)
 			double droneZRotate, droneXPos, droneYPos, droneZPos;
 			
 			//reverse the direction of the position to set the object as the (0,0,0) position of the graph
-			droneZRotate = detector.zRotate[0];
-			droneZRotate *= -1;
+			droneZRotate = -detector.yaw;
 			
-			droneXPos = detector.xPos[0];
-			droneXPos *= -1;
+			droneXPos = -detector.rightLeft;
 
-			droneYPos = detector.yPos[0];
-			droneYPos *= -1;
+			droneYPos = -detector.forward;
 			
-			droneZPos = detector.zPos[0];
-			droneZPos *= -1;
+			droneZPos = -detector.upDown;
 
 			// try to reach x, z pos of 0,0
 			// if (droneZPos > DIST_TOLORANCE){std::cout<<"Zpos: --";}
