@@ -44,12 +44,32 @@ const std::string noMovement = "0 ";
 #define LIM_MOVEMENT_HEIGHT 30
 #define LIM_MOVEMENT_ANGLE 25
 
-#define DIST_TOLORANCE 15
-#define ANGLE_TOLORANCE 10
 
-//TODO:TARGET(including z), RC_LIM, TOLORANCE, 
+//newsystem constants
+#define RADIANS_TO_DEGREESE (180.0/3.141592653589793238463)
+
+#define X_DIST_TOLORANCE 15//change
+#define Y_DIST_TOLORANCE 15
+#define Z_DIST_TOLORANCE 10
+
+#define Z_ANGLE_TOLORANCE 10
+
+//target!
+#define X_TARGET 0
+#define Y_TARGET 200
+#define Z_TARGET 0
+
+#define Z_ANGLE_TARGET std::atan2(X_TARGET,Y_TARGET)*RADIANS_TO_DEGREESE
 
 
+#define X_LIMIT_RC 20
+#define Y_LIMIT_RC 20//change
+#define Z_LIMIT_RC 20
+
+
+//declare vars
+double droneZRotate, droneXPos, droneYPos, droneZPos;
+int X_rc, Y_rc, Z_rc, Zr_rc; 
 
 void webcamTest(aruco& detector)
 {
@@ -58,7 +78,6 @@ void webcamTest(aruco& detector)
 		//while no arucos captured
 		if (detector.arucoDetected){
 		
-			double droneZRotate, droneXPos, droneYPos, droneZPos;
 			
 			//reverse the direction of the position to set the object as the (0,0,0) position of the graph
 			droneZRotate = -detector.yaw;
@@ -94,22 +113,29 @@ void webcamTest(aruco& detector)
 
 void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tello)
 {
-	noLeaderLoop(drone, detector, tello);
-
+	int tmpId=-1;
 	
+	//check land vriables
+	int wentDownCounter = 0;
+	int sleepAmount = 2;
+	while (true){
+		while(!drone.commandFlag && detector.ID!=-1);
+		
+			if(detector.ID!=-1)
+			{
+				tmpId=detector.ID;
+			}
 
-
+		noLeaderLoop(drone, detector, tello, tmpId, sleepAmount);
+	
+	
+	}
 }
 
 
-void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello)
+void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId, int& sleepAmount)
 {
-		while(!drone.commandFlag && detector.ID!=-1);
-	
-	if(detector.ID!=-1)
-	{
-		tmpId=detector.ID;
-	}
+
 
 	if(detector.ID==-1 && tmpId!=-1)
 	{
@@ -135,6 +161,29 @@ void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello)
 	}
 }
 
+
+void calculate_y_rc()
+{
+	//if current > target + tollorate
+		//if bigger then rc limit
+	if (droneYPos > Y_TARGET + Y_DIST_TOLORANCE){
+		if (droneYPos - Y_TARGET > Y_LIMIT_RC)
+		//TODO: check if need to revers RC valeus
+			Y_rc = -Y_LIMIT_RC;
+		else
+		//TODO: check if need to unrevers RC valeus
+			Y_rc = -(droneYPos - Y_TARGET);
+	}
+	
+	if (droneYPos < Y_TARGET - Y_DIST_TOLORANCE){
+		if (droneYPos + Y_TARGET > Y_LIMIT_RC)
+		//TODO: check if need to revers RC valeus
+			Y_rc = Y_LIMIT_RC;
+		else
+		//TODO: check if need to unrevers RC valeus
+			Y_rc = droneYPos + Y_TARGET;
+	}
+}
 
 // update drones movement with regards to leader.
 void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
