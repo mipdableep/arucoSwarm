@@ -10,7 +10,7 @@ const std::string noMovement = "0 ";
 //declare vars
 double droneZRotate, droneXPos, droneYPos, droneZPos;
 double current_wanted_Zr;
-int X_rc, Y_rc, Z_rc, Zr_rc; 
+int X_rc, Y_rc, Z_rc, Zr_rc;
 
 void webcamTest(aruco& detector)
 {
@@ -379,6 +379,7 @@ int main(){
 	programData.close();
 	std::string droneName = data["DroneName"];
 	bool isWebcam = data["webcam"];
+	float currentMarkerSize = data["currentMarkerSize"];
 	std::string commandString = "nmcli c up " + droneName;
 	const char *command = commandString.c_str();
 	
@@ -391,18 +392,39 @@ int main(){
 	else{
 		yamlCalibrationPath = data["webcamYamlCalibrationPath"];
 	}
-	bool isWebCameraString = data["isWebCameraString"];
 
-	float currentMarkerSize = data["currentMarkerSize"];
+	bool isCameraString = data["isCameraString"];
 
 
-	if (isWebCameraString){
+
+	if (isWebcam){
 		int cameraPort = data["cameraPort"];
 		aruco detector(yamlCalibrationPath,cameraPort,currentMarkerSize);
 
-	std::thread movementThread([&] { webcamTest(detector); } );        
+		std::thread movementThread([&] { webcamTest(detector); } );        
 		movementThread.join(); 
 	}
+
+	else
+	{
+		drone d1;
+		std::string droneName = data["DroneName"];
+		std::string commandString = "nmcli c up " + droneName;
+		const char *command = commandString.c_str();
+		system(command);
+		ctello::Tello tello;
+		tello.SendCommandWithResponse("streamon");
+
+		sleep(2);
+		tello.SendCommandWithResponse("takeoff");
+		tello.SendCommand("rc 0 0 0 0");
+		std::string cameraString = data["cameraString"];
+		aruco detector(yamlCalibrationPath,cameraString,currentMarkerSize);
+		std::thread movementThread([&] { objectOrientedNavigation(d1, detector,tello); } );        
+		movementThread.join(); 
+	}
+
+}
 	
 	// else{
 	// 	int cameraPort = data["cameraPort"];
@@ -413,4 +435,3 @@ int main(){
 	// }
 
 	
-}

@@ -6,6 +6,7 @@
 #include "../include/drone.h"
 #include <cmath>
 #include <ctello.h>
+#include "include/constants.h"
 
 void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId, int& sleepAmount);
 
