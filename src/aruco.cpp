@@ -122,7 +122,7 @@ void aruco::trackMarkerThread() {
             
             
             cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
-            cv::imshow("aruco", imageCopy);
+            // cv::imshow("aruco", imageCopy);
             
         cv::waitKey(1);
         } else {
@@ -142,7 +142,11 @@ void aruco::trackMarkerThread() {
         // if at least one marker detected
         if (canContinue) {
             
-            arucoDetected = false;
+            if (ids.empty())
+                arucoDetected = false;
+            else
+                arucoDetected = true;
+
 
             std::vector<cv::Vec3d> localRvecs, localTvecs;
             cv::aruco::estimatePoseSingleMarkers(corners, currentMarkerSize, cameraParams[0], cameraParams[1],

@@ -1,74 +1,15 @@
 //
 // Created by tzuk on 6/6/22.
 //
-#include <opencv2/opencv.hpp>
-#include <nlohmann/json.hpp>
-#include <unistd.h>
-#include <deque>
-#include "aruco.h"
-#include "../include/drone.h"
-#include <cmath>
-#include <ctello.h>
 
-//1 = most right, 2 = middle, 3 = most left
-#define DRONE_ID 2
+#include "runAruco.h"
+#include "./include/constants.h"
 
 const std::string noMovement = "0 ";
 
-
-//checks id's == 1
-#if DRONE_ID == 1
-#define RIGHT_LEFT -40
-#endif
-
-#if DRONE_ID == 2
-#define RIGHT_LEFT 0
-#endif
-
-#if DRONE_ID == 3
-#define RIGHT_LEFT 40
-#endif
-
-//define distance from aruco in x axis (back/forward)
-#define FORWARD 160
-//upper limit of how fast the drone can move on x axis (in rc command)
-#define LIM_FORWARD 20
-//upper limit of how fast the drone can move on y axis (in rc command)
-#define LIM_RIGHT_LEFT 15
-
- 
-#define LIM_HEIGHT 15
-#define LIM_ANGLE 20
-//#define LIM_ANGLE_CIRCLE 25
-#define LIM_MOVEMENT 30
-#define LIM_MOVEMENT_HEIGHT 30
-#define LIM_MOVEMENT_ANGLE 25
-
-
-//newsystem constants
-#define RADIANS_TO_DEGREESE (180.0/3.141592653589793238463)
-
-#define X_DIST_TOLORANCE 15//change
-#define Y_DIST_TOLORANCE 15
-#define Z_DIST_TOLORANCE 10
-
-#define Z_ANGLE_TOLORANCE 10
-
-//target!
-#define X_TARGET 0
-#define Y_TARGET 200
-#define Z_TARGET 0
-
-#define Z_ANGLE_TARGET std::atan2(X_TARGET,Y_TARGET)*RADIANS_TO_DEGREESE
-
-
-#define X_LIMIT_RC 20
-#define Y_LIMIT_RC 20//change
-#define Z_LIMIT_RC 20
-
-
 //declare vars
 double droneZRotate, droneXPos, droneYPos, droneZPos;
+double current_wanted_Zr;
 int X_rc, Y_rc, Z_rc, Zr_rc; 
 
 void webcamTest(aruco& detector)
@@ -80,13 +21,13 @@ void webcamTest(aruco& detector)
 		
 			
 			//reverse the direction of the position to set the object as the (0,0,0) position of the graph
-			droneZRotate = -detector.yaw;
+			droneZRotate = detector.yaw;
 			
-			droneXPos = -detector.rightLeft;
+			droneXPos = detector.rightLeft;
 
-			droneYPos = -detector.forward;
+			droneYPos = detector.forward;
 			
-			droneZPos = -detector.upDown;
+			droneZPos = detector.upDown;
 
 			// try to reach x, z pos of 0,0
 			// if (droneZPos > DIST_TOLORANCE){std::cout<<"Zpos: --";}
@@ -97,11 +38,20 @@ void webcamTest(aruco& detector)
 			// std::cout<<std::endl;
 
 			// calculate wanted angle from position
-			//TODO: FINISH THIS !!!!!!!!
-			double currentPosWantedAgnle = (atan(droneXPos/droneYPos))*57.2958;
-			if (droneZRotate < currentPosWantedAgnle){std::cout<<"angle: ++  "<<droneZRotate+currentPosWantedAgnle<<std::endl;}
-			if (droneZRotate > currentPosWantedAgnle){std::cout<<"angle: --  "<<droneZRotate-currentPosWantedAgnle<<std::endl;}
 			
+			calculate_x_rc();
+			calculate_y_rc();
+			calculate_z_rc();
+			calculate_z_rotation_rc();
+
+			// std::cout<<"droneZr:  "<<droneZRotate<<std::endl;
+			std::cout<<"Z_rc:  	              "<<droneZPos<<std::endl;
+			// std::cout<<"droneXpos:  	      "<<droneXPos<<std::endl;
+			std::cout<<"Y_rc:                 "<<Y_rc<<std::endl;
+			std::cout<<"X_rc:                 "<<X_rc<<"\n"<<std::endl;
+			std::cout<<"current wanted Zr:    "<<current_wanted_Zr<<std::endl;
+			std::cout<<"Zr_rc:                "<<Zr_rc<<"\n\n"<<std::endl;
+
 		}
 			
 	usleep(500'000);
@@ -113,6 +63,16 @@ void webcamTest(aruco& detector)
 
 void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tello)
 {
+	droneZRotate = detector.yaw;
+	droneXPos = detector.rightLeft;
+	droneYPos = detector.forward;	
+	droneZPos = detector.upDown;
+
+	calculate_x_rc();
+	calculate_y_rc();
+	calculate_z_rc();
+	calculate_z_rotation_rc();
+
 	int tmpId=-1;
 	
 	//check land vriables
@@ -127,63 +87,36 @@ void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tell
 			}
 
 		noLeaderLoop(drone, detector, tello, tmpId, sleepAmount);
-	
-	
-	}
-}
 
+		std::string command = "rc ";
 
-void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId, int& sleepAmount)
-{
-
-
-	if(detector.ID==-1 && tmpId!=-1)
-	{
-		//wait to see if problem solevs itself
-		tello.SendCommand("rc 0 0 0 0");
-		printf("sleeping: %d seconds", sleepAmount);
-		sleep(sleepAmount);
-
-		int i=0;
-		while(detector.ID==-1 && i<50)
-		{
-			tello.SendCommand("rc 0 0 0 0");
-			std::cout << "Searching for leader" << std::endl;
-			tello.SendCommand("rc 0 0 0 25");
-				i++;
-				if(detector.ID!=tmpId && detector.ID!=-1)
-						detector.init=true;
-			sleep(2); 
-		}
+		command += std::to_string((int)(X_rc));
+		command+=" ";
 		
-		if(detector.ID==-1)
-			tello.SendCommandWithResponse("land");    			
+		command += std::to_string((int)(Y_rc));
+		command+=" ";
+		
+		command += std::to_string((int)(Z_rc));
+		command+=" ";
+		
+		command += std::to_string((int)(Zr_rc));
+
+		
+		if(!detector.init || detector.ID!=-1)
+		{
+			tello.SendCommand(command);	
+			std::cout<<command<<std::endl;
+		}
+		else{ 
+			tello.SendCommand("rc 0 0 0 0");
+		}
+
+		usleep(1000000);
+
+
 	}
 }
 
-
-void calculate_y_rc()
-{
-	//if current > target + tollorate
-		//if bigger then rc limit
-	if (droneYPos > Y_TARGET + Y_DIST_TOLORANCE){
-		if (droneYPos - Y_TARGET > Y_LIMIT_RC)
-		//TODO: check if need to revers RC valeus
-			Y_rc = -Y_LIMIT_RC;
-		else
-		//TODO: check if need to unrevers RC valeus
-			Y_rc = -(droneYPos - Y_TARGET);
-	}
-	
-	if (droneYPos < Y_TARGET - Y_DIST_TOLORANCE){
-		if (droneYPos + Y_TARGET > Y_LIMIT_RC)
-		//TODO: check if need to revers RC valeus
-			Y_rc = Y_LIMIT_RC;
-		else
-		//TODO: check if need to unrevers RC valeus
-			Y_rc = droneYPos + Y_TARGET;
-	}
-}
 
 // update drones movement with regards to leader.
 void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
@@ -307,7 +240,7 @@ void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
 			tello.SendCommandWithResponse("land");
 			tello.SendCommand("shutdown");
 			std::cout<<"\nlanding, breaking";
-			exit(1);
+			break;
 		}
 		std::cout << command << std::endl;
 
@@ -458,12 +391,12 @@ int main(){
 	else{
 		yamlCalibrationPath = data["webcamYamlCalibrationPath"];
 	}
-	bool isCameraString = data["isCameraString"];
+	bool isWebCameraString = data["isWebCameraString"];
 
 	float currentMarkerSize = data["currentMarkerSize"];
 
 
-	if (true){
+	if (isWebCameraString){
 		int cameraPort = data["cameraPort"];
 		aruco detector(yamlCalibrationPath,cameraPort,currentMarkerSize);
 
