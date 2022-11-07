@@ -11,67 +11,86 @@ const std::string noMovement = "0 ";
 double droneZRotate, droneXPos, droneYPos, droneZPos;
 double current_wanted_Zr;
 int X_rc, Y_rc, Z_rc, Zr_rc;
+std::string command;
+
 
 void webcamTest(aruco& detector)
 {
-	while (true)
-	{
-		//while no arucos captured
-		if (detector.arucoDetected){
+	std::cout<<"started OON\n"<<std::endl;
+
+	int tmpId=-1;
+	bool commandFlag;
+	//check land vriables
+	int wentDownCounter = 0;
+	int sleepAmount = 2;
+	while (true){
+		std::cout<<wentDownCounter<<std::endl;
+		wentDownCounter++;
+		while(commandFlag && detector.ID!=-1);
 		
-			
-			//reverse the direction of the position to set the object as the (0,0,0) position of the graph
-			droneZRotate = detector.yaw;
-			
-			droneXPos = detector.rightLeft;
+			if(detector.ID!=-1)
+			{
+				tmpId=detector.ID;
+			}
+		
+		if (detector.ID==-1 && tmpId!=-1){
+			// noLeaderLoop(drone, detector, tello, tmpId, sleepAmount);
+			printf("would do noLeader\n");
+		}
 
-			droneYPos = detector.forward;
-			
-			droneZPos = detector.upDown;
+		else{
+			std::cout<<"arucodetected:  "<<detector.arucoDetected<<std::endl;
+			if(!detector.init || detector.ID!=-1)
+			{
+				std::cout<<"start if\n"<<std::endl;
 
-			// try to reach x, z pos of 0,0
-			// if (droneZPos > DIST_TOLORANCE){std::cout<<"Zpos: --";}
-			// if (droneZPos < -DIST_TOLORANCE){std::cout<<"Zpos: ++";}
-			
-			// if (droneXPos > DIST_TOLORANCE){std::cout<<"Xpos: --"<<std::endl;}
-			// if (droneXPos < -DIST_TOLORANCE){std::cout<<"Xpos: ++"<<std::endl;}
-			// std::cout<<std::endl;
+				droneZRotate = detector.yaw;
+				droneXPos = detector.rightLeft;
+				droneYPos = detector.forward;	
+				droneZPos = detector.upDown;
 
-			// calculate wanted angle from position
-			
-			calculate_x_rc();
-			calculate_y_rc();
-			calculate_z_rc();
-			calculate_z_rotation_rc();
+				//run rc calculations
+				calculate_x_rc();
+				calculate_y_rc();
+				calculate_z_rc();
+				calculate_z_rotation_rc();
 
-			// std::cout<<"droneZr:  "<<droneZRotate<<std::endl;
-			std::cout<<"Z_rc:  	              "<<droneZPos<<std::endl;
-			// std::cout<<"droneXpos:  	      "<<droneXPos<<std::endl;
-			std::cout<<"Y_rc:                 "<<Y_rc<<std::endl;
-			std::cout<<"X_rc:                 "<<X_rc<<"\n"<<std::endl;
-			std::cout<<"current wanted Zr:    "<<current_wanted_Zr<<std::endl;
-			std::cout<<"Zr_rc:                "<<Zr_rc<<"\n\n"<<std::endl;
+
+				command = "rc ";
+
+				command += std::to_string((int)(X_rc));
+				command+=" ";
+				
+				command += std::to_string((int)(Y_rc));
+				command+=" ";
+				
+				command += std::to_string((int)(Z_rc));
+				command+=" ";
+				
+				command += std::to_string((int)(Zr_rc));
+
+				// tello.SendCommand(command);	
+				std::cout<<"OON command:  "<<command<<std::endl;
+
+				std::cout<<"end if\n"<<std::endl;
+
+			}
+			else{
+				std::cout<<"in else"<<std::endl;
+			}
+
+			std::cout<<"tempID:  "<<detector.ID<<std::endl;
+
+			commandFlag = false;
 
 		}
-			
-	usleep(500'000);
-
-
+		sleep(1);
 	}
-
 }
 
 void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tello)
 {
-	droneZRotate = detector.yaw;
-	droneXPos = detector.rightLeft;
-	droneYPos = detector.forward;	
-	droneZPos = detector.upDown;
-
-	calculate_x_rc();
-	calculate_y_rc();
-	calculate_z_rc();
-	calculate_z_rotation_rc();
+	std::cout<<"started OON\n"<<std::endl;
 
 	int tmpId=-1;
 	
@@ -79,71 +98,167 @@ void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tell
 	int wentDownCounter = 0;
 	int sleepAmount = 2;
 	while (true){
+		std::cout<<wentDownCounter<<std::endl;
+		wentDownCounter++;
 		while(!drone.commandFlag && detector.ID!=-1);
 		
 			if(detector.ID!=-1)
 			{
 				tmpId=detector.ID;
 			}
-
-		noLeaderLoop(drone, detector, tello, tmpId, sleepAmount);
-
-		std::string command = "rc ";
-
-		command += std::to_string((int)(X_rc));
-		command+=" ";
 		
-		command += std::to_string((int)(Y_rc));
-		command+=" ";
-		
-		command += std::to_string((int)(Z_rc));
-		command+=" ";
-		
-		command += std::to_string((int)(Zr_rc));
-
-		
-		if(!detector.init || detector.ID!=-1)
-		{
-			tello.SendCommand(command);	
-			std::cout<<command<<std::endl;
-		}
-		else{ 
-			tello.SendCommand("rc 0 0 0 0");
+		if (detector.ID==-1 && tmpId!=-1){
+			noLeaderLoop(drone, detector, tello, tmpId, sleepAmount);
 		}
 
-		usleep(1000000);
+		else{
+			std::cout<<"arucodetected:  "<<detector.arucoDetected<<std::endl;
+			if(!detector.init || detector.ID!=-1)
+			{
+				std::cout<<"start if\n"<<std::endl;
+
+				droneZRotate = detector.yaw;
+				droneXPos = detector.rightLeft;
+				droneYPos = detector.forward;	
+				droneZPos = detector.upDown;
+
+				//run rc calculations
+				calculate_x_rc();
+				calculate_y_rc();
+				calculate_z_rc();
+				calculate_z_rotation_rc();
 
 
+				std::string command = "rc ";
+
+				command += std::to_string((int)(X_rc));
+				command+=" ";
+				
+				command += std::to_string((int)(Y_rc));
+				command+=" ";
+				
+				command += std::to_string((int)(Z_rc));
+				command+=" ";
+				
+				command += std::to_string((int)(Zr_rc));
+
+				// tello.SendCommand(command);	
+				std::cout<<"OON command:  "<<command<<std::endl;
+				std::cout<<"end if\n"<<std::endl;
+
+			}
+			else{
+				tello.SendCommand("rc 0 0 0 0");
+			}
+
+			std::cout<<"tempID:  "<<detector.ID<<std::endl;
+
+			sleep(1);
+			drone.commandFlag = false;
+
+		}
+	}
+}
+
+void objectOrientedNavigation_V2(drone& drone, aruco& detector, ctello::Tello& tello)
+{
+	std::cout<<"started OON\n"<<std::endl;
+
+	int tmpId=-1;
+	bool commandFlag;
+	//check land vriables
+	int wentDownCounter = 0;
+	int sleepAmount = 2;
+	while (true){
+		std::cout<<wentDownCounter<<std::endl;
+		wentDownCounter++;
+		while(commandFlag && detector.ID!=-1);
+		
+			if(detector.ID!=-1)
+			{
+				tmpId=detector.ID;
+			}
+		
+		if (detector.ID==-1 && tmpId!=-1){
+			// noLeaderLoop(drone, detector, tello, tmpId, sleepAmount);
+			printf("would do noLeader\n");
+		}
+
+		else{
+			std::cout<<"arucodetected:  "<<detector.arucoDetected<<std::endl;
+			if(!detector.init || detector.ID!=-1)
+			{
+				std::cout<<"start if\n"<<std::endl;
+
+				droneZRotate = detector.yaw;
+				droneXPos = detector.rightLeft;
+				droneYPos = detector.forward;	
+				droneZPos = detector.upDown;
+
+				//run rc calculations
+				calculate_x_rc();
+				calculate_y_rc();
+				calculate_z_rc();
+				calculate_z_rotation_rc();
+
+
+				command = "rc ";
+
+				command += std::to_string((int)(X_rc));
+				command+=" ";
+				
+				command += std::to_string((int)(Y_rc));
+				command+=" ";
+				
+				command += std::to_string((int)(Z_rc));
+				command+=" ";
+				
+				command += std::to_string((int)(Zr_rc));
+
+				tello.SendCommand(command);	
+				std::cout<<"OON command:  "<<command<<std::endl;
+
+				std::cout<<"end if\n"<<std::endl;
+
+			}
+			else{
+				std::cout<<"in else"<<std::endl;
+			}
+
+			std::cout<<"tempID:  "<<detector.ID<<std::endl;
+
+			commandFlag = false;
+
+		}
+		sleep(1);
 	}
 }
 
 void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId, int& sleepAmount)
 {
+	std::cout<<"in no leader loop"<<std::endl;
 
+	//wait to see if problem solevs itself
+	tello.SendCommand("rc 0 0 0 0");
+	printf("sleeping: %d seconds", sleepAmount);
+	sleep(sleepAmount);
 
-	if(detector.ID==-1 && tmpId!=-1)
+	int i=0;
+	while(detector.ID==-1 && i<50)
 	{
-		//wait to see if problem solevs itself
 		tello.SendCommand("rc 0 0 0 0");
-		printf("sleeping: %d seconds", sleepAmount);
-		sleep(sleepAmount);
-
-		int i=0;
-		while(detector.ID==-1 && i<50)
-		{
-			tello.SendCommand("rc 0 0 0 0");
-			std::cout << "Searching for leader" << std::endl;
-			tello.SendCommand("rc 0 0 0 25");
-				i++;
-				if(detector.ID!=tmpId && detector.ID!=-1)
-						detector.init=true;
-			sleep(2); 
-		}
-		
-		if(detector.ID==-1)
-			tello.SendCommandWithResponse("land");    			
+		std::cout << "Searching for leader" << std::endl;
+		tello.SendCommand("rc 0 0 0 25");
+			i++;
+			if(detector.ID!=tmpId && detector.ID!=-1)
+					detector.init=true;
+		sleep(2); 
 	}
+	
+	if(detector.ID==-1)
+		tello.SendCommandWithResponse("land");    			
 }
+
 
 
 void calculate_y_rc()
@@ -151,19 +266,27 @@ void calculate_y_rc()
 	//if current > target + tollorate
 		//if bigger then rc limit
 	if (droneYPos > Y_TARGET + Y_DIST_TOLORANCE){
-		if ((droneYPos - Y_TARGET)/3 > Y_LIMIT_RC)
+		if ((droneYPos - Y_TARGET)/3 > Y_LIMIT_RC){
 			Y_rc = -Y_LIMIT_RC;
-		else
+			// std::cout<<1<<std::endl;
+		}
+		else{
 			Y_rc = -((droneYPos - Y_TARGET)/3);
+			// std::cout<<2<<std::endl;
+		}
 	}
 	else
 	{Y_rc = 0;}
 	
 	if (droneYPos < Y_TARGET - Y_DIST_TOLORANCE){
-		if ((Y_TARGET - droneYPos)/3 > Y_LIMIT_RC)
+		if ((Y_TARGET - droneYPos)/3 > Y_LIMIT_RC){
 			Y_rc = Y_LIMIT_RC;
-		else
+			// std::cout<<3<<std::endl;
+		}
+		else{
 			Y_rc = (Y_TARGET - droneYPos)/3;
+			// std::cout<<4<<std::endl;
+		}
 	}
 
 	Y_rc *= -1;
@@ -216,207 +339,13 @@ void calculate_x_rc()
 	X_rc = (Z_ANGLE_TARGET-current_wanted_Zr)/2;
 }
 
-// update drones movement with regards to leader.
-void updateMovement(drone& drone, aruco& detector, ctello::Tello& tello) {
-	
-	int tmpId=-1;
-	
-	//check land vriables
-	int wentDownCounter = 0;
-	int sleepAmount = 2;
 
-
-	while(true) {
-	    	while(!drone.commandFlag && detector.ID!=-1);
-		
-			if(detector.ID!=-1){
-       			tmpId=detector.ID;
-       		}
-       		  
-		if(detector.ID==-1 && tmpId!=-1){
-		    int i=0;
-			
-			//wait to see if problem solevs itself
-			tello.SendCommand("rc 0 0 0 0");
-			printf("sleeping: %d seconds", sleepAmount);
-			sleep(sleepAmount);
-
-		    while(detector.ID==-1 && i<50){
-
-			    tello.SendCommand("rc 0 0 0 0");
-			    std::cout << "Searching for leader" << std::endl;
-			    tello.SendCommand("rc 0 0 0 25");
-		    	    i++;
-    		   	    if(detector.ID!=tmpId && detector.ID!=-1)
-    			          detector.init=true;
-		    	sleep(2); 
-			}
-		    
-		    if(detector.ID==-1)
-		    	tello.SendCommandWithResponse("land");    			
-        }
-		
-		else
-		{
-		std::string command = "rc ";
-		
-		if (drone.distanceRightLeft){
-			if(std::abs(drone.distanceRightLeft*0.4) > LIM_MOVEMENT)
-				drone.distanceRightLeft = (drone.distanceRightLeft > 0 ? LIM_MOVEMENT : -1 * LIM_MOVEMENT) * 2.5;
-			command += std::to_string((int) (drone.distanceRightLeft*0.4));	
-			command+=" ";
-		}
-		else
-			command += noMovement;
-
-		if (drone.distanceForward){
-		
-			if(std::abs(drone.distanceForward*0.4) > LIM_MOVEMENT)
-				drone.distanceForward = (drone.distanceForward > 0 ? LIM_MOVEMENT : -1 * LIM_MOVEMENT) * 2.5;
-				
-			command +=std::to_string((int)std::trunc(drone.distanceForward*0.4));
-			command+=" ";
-		}
-		else
-			command += noMovement;
-
-
-		if (drone.distanceHeight)
-		{
-
-			//ifland
-			if (drone.distanceHeight < (LIM_MOVEMENT_HEIGHT/4)*-1)
-			{
-				wentDownCounter ++;
-			}
-			
-
-			else {
-				if(wentDownCounter > 3){
-					wentDownCounter -= 3;
-					std::cout<<"counter went down\n";
-				}
-			}
-			
-			std::cout<<"\nwentDownCounter:  "<<wentDownCounter<<"\n\n";
-
-			if(std::abs(drone.distanceHeight) > LIM_MOVEMENT_HEIGHT)
-				drone.distanceHeight = drone.distanceHeight > 0 ? LIM_MOVEMENT_HEIGHT : -1 * LIM_MOVEMENT_HEIGHT;
-		
-			command += std::to_string((int)std::trunc(drone.distanceHeight));
-			command+=" ";
-		}
-		else
-			command += noMovement;
-
-		if (drone.angle){
-		
-			if(std::abs(drone.angle) > LIM_MOVEMENT_ANGLE)
-				drone.angle = drone.angle > 0 ? LIM_MOVEMENT_ANGLE : -1 * LIM_MOVEMENT_ANGLE;
-		
-			command += std::to_string((int)std::trunc(drone.angle));
-			command+=" ";
-		}
-		else
-			command += noMovement;
-		
-                  
-		try {
-				
-			if(!detector.init || detector.ID!=-1){
-				tello.SendCommand(command);	
-			}
-			else 
-				tello.SendCommand("rc 0 0 0 0");
-			
-			usleep(1000000);
-			
-		
-		/// checks if needs to land 
-		if (wentDownCounter > 14)
-		{
-			tello.SendCommandWithResponse("land");
-			tello.SendCommand("shutdown");
-			std::cout<<"\nlanding, breaking";
-			break;
-		}
-		std::cout << command << std::endl;
-
-		std::cout << "drone:" <<" height: "<< drone.distanceHeight << " forward: "<< drone.distanceForward << " rightLeft: " << drone.distanceRightLeft << " angle: "<< drone.angle << std::endl;
-			
-		std::cout << "detector:" << " position" << (detector.rightInForm > 0 ? " RIGHT" : " LEFT") << " forward: " << detector.forward << " right-left: " << detector.rightLeft << " updown: " << detector.upDown	<< " angle: " <<  detector.yaw << " roll: "<< detector.rollAngle << " init: " << detector.init << " ID " << detector.ID   << std::endl;
-                 
-                 
-                std::cout << std::endl;
-                 
-		}catch(...){
-		
-		}
-		
-	}
-		drone.commandFlag = false;
-	}
-}
-
-
-void circularAngle(drone &d1, double angle, aruco  &detector){
-	double radius = std::sqrt(std::pow(detector.forward,2) + std::pow(detector.rightLeft,2));
-	d1.distanceForward += (radius - (radius * std::cos(angle * M_PI / 180)));
-	d1.distanceRightLeft += (radius * std::sin(angle * M_PI / 180)) * -0.25;
-}
-
-
-
-void distances(drone& drone, aruco& detector, ctello::Tello& tello) {
-
-	if (!detector.init) {
-		if (std::abs(detector.forward - FORWARD) > LIM_FORWARD)
-			drone.distanceForward = detector.forward - FORWARD + 0.5*LIM_FORWARD;
-		else
-			drone.distanceForward = 0;
-
-
-		
-		if(std::abs(std::abs(detector.rightLeft - detector.yaw) - RIGHT_LEFT) > LIM_RIGHT_LEFT) {
-			drone.distanceRightLeft = -(detector.rightLeft - detector.yaw) + detector.rightInForm *( RIGHT_LEFT + LIM_RIGHT_LEFT * 0.5 );
-		} else{  
-			drone.distanceRightLeft = 0;
-		}
-	
-		if(detector.rollAngle > 0){
-			drone.distanceHeight = detector.upDown + (180 - detector.rollAngle);
-		} else {
-			drone.distanceHeight = detector.upDown - (180 + detector.rollAngle);
-		}
-
-		
-		if(std::abs(drone.distanceHeight) > LIM_HEIGHT){
-			if(detector.upDown > 0)
-				drone.distanceHeight = -1 * (drone.distanceHeight - LIM_HEIGHT * 0.5);
-			else
-				drone.distanceHeight = -1 * (drone.distanceHeight + LIM_HEIGHT * 0.5);
-		} else 
-			drone.distanceHeight = 0;
-		
-		if (std::abs(detector.yaw) > LIM_ANGLE){
-			drone.angle = detector.yaw > 0 ? (detector.yaw - (LIM_ANGLE*0.5)) : (detector.yaw + (LIM_ANGLE*0.5));
-			//if(std::abs(detector.yaw) > LIM_ANGLE_CIRCLE)
-			circularAngle(drone, drone.angle, detector);
-		}else
-			drone.angle = 0;
-
-
-		drone.commandFlag = true;
-	}
-
-}
 
 
 void runAruco(aruco &detector, drone &d1, ctello::Tello& tello){
     while(true){
    
         if(detector.ID!=-1){        
-        	distances(d1,detector, tello);
         }
     }
 }
@@ -424,51 +353,6 @@ void runAruco(aruco &detector, drone &d1, ctello::Tello& tello){
 
 
 int main(){
-    
-	// if (false){
-	// 		std::ifstream programData("../config.json");
-
-	// 		drone d1 ;
-
-			
-	// 		nlohmann::json data;
-	// 		programData >> data;
-	// 		programData.close();
-	// 		std::string droneName = data["DroneName"];
-	// 		std::string commandString = "nmcli c up " + droneName;
-	// 		const char *command = commandString.c_str();
-	// 		system(command);
-	// 		ctello::Tello tello;
-	// 		tello.SendCommandWithResponse("streamon");
-	// 		std::string yamlCalibrationPath = data["yamlCalibrationPath"];
-	// 		bool isCameraString = data["isCameraString"];
-	// 		float currentMarkerSize = data["currentMarkerSize"];
-			
-	// 		tello.SendCommandWithResponse("takeoff");
-	// 		sleep(2);
-	// 		tello.SendCommand("rc 0 0 0 0");
-
-						
-			
-	// 		if (isCameraString){
-	// 			std::string cameraString = data["cameraString"];
-	// 			aruco detector(yamlCalibrationPath,cameraString,currentMarkerSize);
-	// 		std::thread movementThread([&] { updateMovement(d1, detector,tello); } );        
-	// 			runAruco(detector,d1, tello);       
-	// 			movementThread.join(); 
-	// 		}
-			
-	// 		else{
-	// 			int cameraPort = data["cameraPort"];
-	// 			aruco detector(yamlCalibrationPath,cameraPort,currentMarkerSize);
-	// 		std::thread movementThread([&] { updateMovement(d1, detector,tello); } );        
-	// 			runAruco(detector,d1, tello);
-	// 			movementThread.join();   
-	// 		}
-			
-	// 		return 0; 
-	// }
-	
 	
 	std::ifstream programData("../config.json");
 	
@@ -484,15 +368,12 @@ int main(){
 	//checking the img input device for correct calibration
 	std::string yamlCalibrationPath;
 	
-	if(!isWebcam){
-		yamlCalibrationPath = data["yamlCalibrationPath"];
-	}
-	else{
+	if(isWebcam){
 		yamlCalibrationPath = data["webcamYamlCalibrationPath"];
 	}
-
-	bool isCameraString = data["isCameraString"];
-
+	else{
+		yamlCalibrationPath = data["yamlCalibrationPath"];
+	}
 
 
 	if (isWebcam){
@@ -516,18 +397,11 @@ int main(){
 		tello.SendCommand("rc 0 0 0 0");
 		std::string cameraString = data["cameraString"];
 		aruco detector(yamlCalibrationPath,cameraString,currentMarkerSize);
-		std::thread movementThread([&] { objectOrientedNavigation(d1, detector,tello); } );        
+		std::thread movementThread([&] { objectOrientedNavigation_V2(d1, detector,tello); } );   
+		// std::thread movementThread([&] { webcamTest(detector); } );        
+
 		movementThread.join(); 
 	}
 
 }
-	
-	// else{
-	// 	int cameraPort = data["cameraPort"];
-	// 	aruco detector(yamlCalibrationPath,cameraPort,currentMarkerSize);
-	// std::thread movementThread([&] { updateMovement(d1, detector,tello); } );        
-	// 	runAruco(detector,d1, tello);
-	// 	movementThread.join();
-	// }
-
 	
