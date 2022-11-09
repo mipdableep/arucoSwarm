@@ -5,7 +5,6 @@
 #include "include/runAruco.h"
 #include "include/constants.h"
 
-const std::string noMovement = "0 ";
 
 //declare vars
 double droneZRotate, droneXPos, droneYPos, droneZPos;
@@ -39,10 +38,8 @@ void webcamTest(aruco& detector)
 		}
 
 		else{
-			std::cout<<"arucodetected:  "<<detector.arucoDetected<<std::endl;
 			if(!detector.init || detector.ID!=-1)
 			{
-				std::cout<<"start if\n"<<std::endl;
 
 				droneZRotate = detector.yaw;
 				droneXPos = detector.rightLeft;
@@ -70,16 +67,16 @@ void webcamTest(aruco& detector)
 				command += std::to_string((int)(Zr_rc));
 
 				// tello.SendCommand(command);	
-				std::cout<<"OON command:  "<<command<<std::endl;
+				// std::cout<<"OON command:  "<<command<<std::endl;
 
-				std::cout<<"end if\n"<<std::endl;
+				std::cout<<"Z pos:  "<<droneZPos<<std::endl;
+				std::cout<<"Z rc:   "<<Z_rc<<std::endl<<std::endl;
+
 
 			}
 			else{
 				std::cout<<"in else"<<std::endl;
 			}
-
-			std::cout<<"tempID:  "<<detector.ID<<std::endl;
 
 			commandFlag = false;
 
@@ -112,10 +109,8 @@ void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tell
 		}
 
 		else{
-			std::cout<<"arucodetected:  "<<detector.arucoDetected<<std::endl;
 			if(!detector.init || detector.ID!=-1)
 			{
-				std::cout<<"start if\n"<<std::endl;
 
 				droneZRotate = detector.yaw;
 				droneXPos = detector.rightLeft;
@@ -142,16 +137,14 @@ void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tell
 				
 				command += std::to_string((int)(Zr_rc));
 
-				// tello.SendCommand(command);	
+				tello.SendCommand(command);	
 				std::cout<<"OON command:  "<<command<<std::endl;
-				std::cout<<"end if\n"<<std::endl;
 
 			}
 			else{
 				tello.SendCommand("rc 0 0 0 0");
 			}
 
-			std::cout<<"tempID:  "<<detector.ID<<std::endl;
 
 			sleep(1);
 			drone.commandFlag = false;
@@ -182,6 +175,8 @@ void objectOrientedNavigation_V2(drone& drone, aruco& detector, ctello::Tello& t
 		if (detector.ID==-1 && tmpId!=-1){
 			// noLeaderLoop(drone, detector, tello, tmpId, sleepAmount);
 			printf("would do noLeader\n");
+			tello.SendCommand("rc 0 0 0 0");
+
 		}
 
 		else{
@@ -300,7 +295,7 @@ void calculate_z_rc()
 	//if current > target + tollorate
 		//if bigger then rc limit
 	if (droneZPos > Z_TARGET + Z_DIST_TOLORANCE){
-		if ((droneZPos - Z_TARGET)/3 > Z_LIMIT_RC)
+		if ((droneZPos - Z_TARGET)/2 > Z_LIMIT_RC)
 			Z_rc = -Z_LIMIT_RC;
 		else
 			Z_rc = -((droneZPos - Z_TARGET)/3);
@@ -309,7 +304,7 @@ void calculate_z_rc()
 	{Z_rc = 0;}
 	
 	if (droneZPos < Z_TARGET - Z_DIST_TOLORANCE){
-		if ((Z_TARGET - droneZPos)/3 > Z_LIMIT_RC)
+		if ((Z_TARGET - droneZPos)/2 > Z_LIMIT_RC)
 			Z_rc = Z_LIMIT_RC;
 		else
 			Z_rc = (Z_TARGET - droneZPos)/3;
