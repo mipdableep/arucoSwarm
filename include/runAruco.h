@@ -8,7 +8,10 @@
 #include <ctello.h>
 #include "constants.h"
 
-void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId, int& sleepAmount);
+void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId);
+void noLeaderLoop_v2(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId);
+
+void landCaseCheck(int& rc_y_below_land_limit, int& wentDownCounter, ctello::Tello& tello);
 
 void calculate_y_rc();
 void calculate_z_rc();

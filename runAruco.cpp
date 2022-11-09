@@ -10,6 +10,7 @@
 double droneZRotate, droneXPos, droneYPos, droneZPos;
 double current_wanted_Zr;
 int X_rc, Y_rc, Z_rc, Zr_rc;
+int noLeaderCycle = 0;
 std::string command;
 
 
@@ -90,14 +91,14 @@ void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tell
 	std::cout<<"started OON\n"<<std::endl;
 
 	int tmpId=-1;
-	
+	bool commandFlag;
 	//check land vriables
+	int rc_y_below_land_limit;
 	int wentDownCounter = 0;
-	int sleepAmount = 2;
+
+
 	while (true){
-		std::cout<<wentDownCounter<<std::endl;
-		wentDownCounter++;
-		while(!drone.commandFlag && detector.ID!=-1);
+		while(commandFlag && detector.ID!=-1);
 		
 			if(detector.ID!=-1)
 			{
@@ -105,7 +106,8 @@ void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tell
 			}
 		
 		if (detector.ID==-1 && tmpId!=-1){
-			noLeaderLoop(drone, detector, tello, tmpId, sleepAmount);
+			// noLeaderLoop_v2(drone, detector, tello, tmpId);
+			noLeaderLoop(drone, detector, tello, tmpId);
 		}
 
 		else{
@@ -123,6 +125,7 @@ void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tell
 				calculate_z_rc();
 				calculate_z_rotation_rc();
 
+				landCaseCheck(rc_y_below_land_limit, wentDownCounter, tello);
 
 				std::string command = "rc ";
 
@@ -147,92 +150,17 @@ void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tell
 
 
 			sleep(1);
-			drone.commandFlag = false;
-
-		}
-	}
-}
-
-void objectOrientedNavigation_V2(drone& drone, aruco& detector, ctello::Tello& tello)
-{
-	std::cout<<"started OON\n"<<std::endl;
-
-	int tmpId=-1;
-	bool commandFlag;
-	//check land vriables
-	int wentDownCounter = 0;
-	int sleepAmount = 2;
-	while (true){
-		std::cout<<wentDownCounter<<std::endl;
-		wentDownCounter++;
-		while(commandFlag && detector.ID!=-1);
-		
-			if(detector.ID!=-1)
-			{
-				tmpId=detector.ID;
-			}
-		
-		if (detector.ID==-1 && tmpId!=-1){
-			// noLeaderLoop(drone, detector, tello, tmpId, sleepAmount);
-			printf("would do noLeader\n");
-			tello.SendCommand("rc 0 0 0 0");
-
-		}
-
-		else{
-			std::cout<<"arucodetected:  "<<detector.arucoDetected<<std::endl;
-			if(!detector.init || detector.ID!=-1)
-			{
-				std::cout<<"start if\n"<<std::endl;
-
-				droneZRotate = detector.yaw;
-				droneXPos = detector.rightLeft;
-				droneYPos = detector.forward;	
-				droneZPos = detector.upDown;
-
-				//run rc calculations
-				calculate_x_rc();
-				calculate_y_rc();
-				calculate_z_rc();
-				calculate_z_rotation_rc();
-
-
-				command = "rc ";
-
-				command += std::to_string((int)(X_rc));
-				command+=" ";
-				
-				command += std::to_string((int)(Y_rc));
-				command+=" ";
-				
-				command += std::to_string((int)(Z_rc));
-				command+=" ";
-				
-				command += std::to_string((int)(Zr_rc));
-
-				tello.SendCommand(command);	
-				std::cout<<"OON command:  "<<command<<std::endl;
-
-				std::cout<<"end if\n"<<std::endl;
-
-			}
-			else{
-				std::cout<<"in else"<<std::endl;
-			}
-
-			std::cout<<"tempID:  "<<detector.ID<<std::endl;
-
 			commandFlag = false;
 
 		}
-		sleep(1);
 	}
 }
 
-void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId, int& sleepAmount)
+
+void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId)
 {
 	std::cout<<"in no leader loop"<<std::endl;
-
+	int sleepAmount = 2;
 	//wait to see if problem solevs itself
 	tello.SendCommand("rc 0 0 0 0");
 	printf("sleeping: %d seconds", sleepAmount);
@@ -254,7 +182,36 @@ void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpI
 		tello.SendCommandWithResponse("land");    			
 }
 
+//fuction that checks if the drone stayed at the same level, tells it to go down, and if the z pos relative to the
+//navigation object didnt go down, tells it to land
+void landCaseCheck(int& rc_y_below_land_limit, int& wentDownCounter, ctello::Tello& tello)
+{
+	if (Z_rc < 5){
+		rc_y_below_land_limit ++;
+	}
+			
+	else {
+		if(rc_y_below_land_limit > 3){
+			rc_y_below_land_limit -= 3;
+			std::cout<<"counter went down\n";
+		}
+	}
 
+	if (rc_y_below_land_limit > 16){
+		int first_z_val = droneZPos;
+		tello.SendCommand("rc 0 0 -40 0");
+		sleep(4);
+		if (droneZPos < first_z_val + 5){
+			std::cout<<"landing"<<std::endl;
+			tello.SendCommandWithResponse("land");
+			exit(0);
+		}
+		else
+		{
+			rc_y_below_land_limit -= 6;
+		}
+	}
+}
 
 void calculate_y_rc()
 {
@@ -291,14 +248,13 @@ void calculate_z_rc()
 {
 	//TODO: make it so randon jumps in z pos wont affect the commands sent to tello
 	//TODO: check acuracy
-	//TODO: change the output amount of the rc
 	//if current > target + tollorate
 		//if bigger then rc limit
 	if (droneZPos > Z_TARGET + Z_DIST_TOLORANCE){
 		if ((droneZPos - Z_TARGET)/2 > Z_LIMIT_RC)
 			Z_rc = -Z_LIMIT_RC;
 		else
-			Z_rc = -((droneZPos - Z_TARGET)/3);
+			Z_rc = -((droneZPos - Z_TARGET)/2);
 	}
 	else
 	{Z_rc = 0;}
@@ -307,12 +263,9 @@ void calculate_z_rc()
 		if ((Z_TARGET - droneZPos)/2 > Z_LIMIT_RC)
 			Z_rc = Z_LIMIT_RC;
 		else
-			Z_rc = (Z_TARGET - droneZPos)/3;
+			Z_rc = (Z_TARGET - droneZPos)/2;
 	}
-
-	Z_rc *= -1;
 }
-
 
 void calculate_current_wanted_Zr()
 {
@@ -323,7 +276,7 @@ void calculate_current_wanted_Zr()
 void calculate_z_rotation_rc()
 {
 	calculate_current_wanted_Zr();
-	Zr_rc = droneZRotate - current_wanted_Zr;
+	Zr_rc = (droneZRotate - current_wanted_Zr);
 
 }
 
@@ -392,7 +345,7 @@ int main(){
 		tello.SendCommand("rc 0 0 0 0");
 		std::string cameraString = data["cameraString"];
 		aruco detector(yamlCalibrationPath,cameraString,currentMarkerSize);
-		std::thread movementThread([&] { objectOrientedNavigation_V2(d1, detector,tello); } );   
+		std::thread movementThread([&] { objectOrientedNavigation(d1, detector,tello); } );   
 		// std::thread movementThread([&] { webcamTest(detector); } );        
 
 		movementThread.join(); 
