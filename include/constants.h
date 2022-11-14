@@ -11,8 +11,8 @@
 #define Z_ANGLE_TOLORANCE 10
 
 //target!
-#define X_TARGET 0
-#define Y_TARGET 100
+#define X_TARGET 40
+#define Y_TARGET 130
 #define Z_TARGET 30
 
 #define Z_ANGLE_TARGET std::atan2(X_TARGET,Y_TARGET)*RADIANS_TO_DEGREESE

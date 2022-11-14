@@ -186,7 +186,7 @@ void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpI
 //navigation object didnt go down, tells it to land
 void landCaseCheck(int& rc_y_below_land_limit, int& wentDownCounter, ctello::Tello& tello)
 {
-	if (Z_rc < 5){
+	if (Z_rc < -5){
 		rc_y_below_land_limit ++;
 	}
 			
