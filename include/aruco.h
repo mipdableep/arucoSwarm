@@ -25,6 +25,8 @@ public:
     void setStop(bool value) { stop = value; };
 
     void trackMarkerThread();
+
+    void printVector(std::vector<cv::Vec3d> vec);
     
     void initialaize(std::vector<cv::Vec3d> localTvecs, std::vector<cv::Vec3d> localRvecs);
     
@@ -36,6 +38,7 @@ public:
     bool init=true;
     bool inFormation=false;
     int rightInForm=1;
+    bool arucoDetected = false;
 
     double upDown = 0.0;
     double forward = 0.0;

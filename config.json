@@ -2,6 +2,8 @@
   "yamlCalibrationPath" : "/home/pi/Swarm-Drones-/swarm5.yaml",
   "isCameraString": true,
   "cameraPort": 0,
+  "webcamYamlCalibrationPath" : "/home/fares/rbd/projects/aruco_swarm/Swarm-Drones-/webcamCalib.yaml",
+  "webcam":false,
   "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
   "currentMarkerSize" : 0.10,
   "DroneName": "TELLO-9EE8F8"

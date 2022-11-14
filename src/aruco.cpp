@@ -121,14 +121,8 @@ void aruco::trackMarkerThread() {
     medianBlur(*frame, imageCopy, 5);*/
             
             
-            
-            
-            
-            
-            
-            
             cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
-            //cv::imshow("aruco", imageCopy);
+            // cv::imshow("aruco", imageCopy);
             
         cv::waitKey(1);
         } else {
@@ -147,20 +141,28 @@ void aruco::trackMarkerThread() {
         }*/
         // if at least one marker detected
         if (canContinue) {
-        
+            
+            if (ids.empty())
+                arucoDetected = false;
+            else
+                arucoDetected = true;
+
 
             std::vector<cv::Vec3d> localRvecs, localTvecs;
             cv::aruco::estimatePoseSingleMarkers(corners, currentMarkerSize, cameraParams[0], cameraParams[1],
                 localRvecs,
                 localTvecs);
-                
+        
+
                 for(int i = 0; i < ids.size(); i++){
                 	cv::drawFrameAxes(imageCopy, cameraParams[0], cameraParams[1], localRvecs[i], localTvecs[i], 0.1);
                 }
                 //comented out for rpi02
                 //cv::imshow("aruco", imageCopy);
 		
-            
+        // }
+
+
             if (init) {
 		    if (!localRvecs.empty()){
 		        initialaize(localTvecs,localRvecs);
@@ -193,10 +195,11 @@ void aruco::trackMarkerThread() {
                 ID=-1;
             }
             }
-        } else {
+        }//end of canConteniue
+         else {
             std::cout << "didnt detect marker" << std::endl;
         }
-        // usleep(100000);
+        usleep(100000);
     }
 }
 
@@ -214,6 +217,16 @@ void aruco::getEulerAngles(cv::Mat &rotCameraMatrix, cv::Vec3d &eulerAngles) {
                               rotMatrixY,
                               rotMatrixZ,
                               eulerAngles);
+}
+
+void aruco::printVector(std::vector<cv::Vec3d> vec)
+{
+    //print all values of localTvecs
+    std::for_each(begin(vec) , end(vec), [](cv::Vec3d &element){std::cout << element << ",";} );
+    if (!vec.empty())
+    {
+        std::cout << std::endl;
+    }
 }
 
 int aruco::getLeftOverAngleFromRotationVector(const cv::Vec<double, 3> &rvec) {
@@ -255,6 +268,8 @@ aruco::aruco(std::string &yamlCalibrationPath, int cameraPort, float currentMark
     capture = std::make_shared<cv::VideoCapture>();
     if (capture->open(cameraPort)) {
         std::cout << "camera opened" << std::endl;
+        capture->set(3, 640);
+        capture->set(4, 480);
     } else {
         std::cout << "couldnt open camera by port" << std::endl;
     }
