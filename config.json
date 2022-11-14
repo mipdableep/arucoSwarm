@@ -1,5 +1,5 @@
 {
-  "yamlCalibrationPath" : "/home/fares/rbd/projects/aruco_swarm/Swarm-Drones-/swarm5.yaml",
+  "yamlCalibrationPath" : "/home/pi/arucoSwarm/swarm5.yaml",
   "webcamYamlCalibrationPath" : "/home/fares/rbd/projects/aruco_swarm/Swarm-Drones-/webcamCalib.yaml",
   "webcam":false,
   "cameraPort": true,
