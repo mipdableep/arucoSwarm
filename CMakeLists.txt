@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(2022summerCourse)
+project(ArucoSwarm)
 
 set(CMAKE_CXX_STANDARD 17)
 find_package(Threads REQUIRED)
