@@ -289,17 +289,6 @@ void calculate_x_rc()
 
 
 
-
-void runAruco(aruco &detector, drone &d1, ctello::Tello& tello){
-    while(true){
-   
-        if(detector.ID!=-1){        
-        }
-    }
-}
-
-
-
 int main(){
 	
 	std::ifstream programData("../config.json");
