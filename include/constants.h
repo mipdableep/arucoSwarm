@@ -12,7 +12,7 @@
 
 //target!
 #define X_TARGET 40
-#define Y_TARGET 130
+#define Y_TARGET 170
 #define Z_TARGET 30
 
 #define Z_ANGLE_TARGET std::atan2(X_TARGET,Y_TARGET)*RADIANS_TO_DEGREESE
