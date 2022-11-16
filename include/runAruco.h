@@ -18,3 +18,5 @@ void calculate_z_rc();
 void calculate_current_wanted_Zr();
 void calculate_z_rotation_rc();
 void calculate_x_rc();
+bool opposite_position(double droneVal, double tmp);
+bool opposite_angle(double droneVal, double tmp);
