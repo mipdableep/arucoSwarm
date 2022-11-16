@@ -114,10 +114,28 @@ void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tell
 			if(!detector.init || detector.ID!=-1)
 			{
 
+				double tmpZr = droneZRotate, tmpZ = droneZPos, tmpX = droneXPos;
+
+				bool made_switch_last_time;
+
 				droneZRotate = detector.yaw;
 				droneXPos = detector.rightLeft;
-				droneYPos = detector.forward;	
+				droneYPos = detector.forward;
 				droneZPos = detector.upDown;
+
+				bool opposite_droneZr, opposite_droneZ, opposite_droneX;
+
+				opposite_droneZr = opposite_position(droneZRotate, tmpZr);
+				opposite_droneZ = opposite_position(droneZPos, tmpZ);
+				opposite_droneX = opposite_position(droneXPos, tmpX);
+
+				if (opposite_droneZr && opposite_droneZ && opposite_droneX)
+				{
+					droneXPos *= -1;
+					droneZPos *= -1;
+					droneZRotate *= -1;
+					std::cout<<"make switch\n"<<std::endl;
+				}
 
 				//run rc calculations
 				calculate_x_rc();
@@ -155,7 +173,6 @@ void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tell
 		}
 	}
 }
-
 
 void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId)
 {
@@ -287,18 +304,16 @@ void calculate_x_rc()
 	X_rc = (Z_ANGLE_TARGET-current_wanted_Zr)/2;
 }
 
-
-
-
-void runAruco(aruco &detector, drone &d1, ctello::Tello& tello){
-    while(true){
-   
-        if(detector.ID!=-1){        
-        }
-    }
+bool opposite_position(double droneVal, double tmp)
+{
+	return (tmp -(0.4*tmp) < -droneVal && -droneVal < tmp + (0.4*tmp));
 }
 
 
+bool opposite_angle(double droneVal, double tmp)
+{
+	return (tmp -(0.7*tmp) < -droneVal && -droneVal < tmp + (0.7*tmp));
+}
 
 int main(){
 	
@@ -341,7 +356,9 @@ int main(){
 		tello.SendCommandWithResponse("streamon");
 
 		sleep(2);
+		
 		tello.SendCommandWithResponse("takeoff");
+		
 		tello.SendCommand("rc 0 0 0 0");
 		std::string cameraString = data["cameraString"];
 		aruco detector(yamlCalibrationPath,cameraString,currentMarkerSize);
