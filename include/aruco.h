@@ -5,20 +5,23 @@
 #ifndef INC_2022SUMMERCOURSE_ARUCO_H
 #define INC_2022SUMMERCOURSE_ARUCO_H
 
+#include <boost/lockfree/spsc_queue.hpp>
 #include <iostream>
-#include <vector>
-#include <opencv2/opencv.hpp>
-#include <opencv2/aruco.hpp>
 #include <memory>
+#include <opencv2/aruco.hpp>
+#include <opencv2/opencv.hpp>
 #include <thread>
+#include <vector>
 
 class aruco {
-public:
-    aruco(std::string &yamlCalibrationPath, int cameraPort, float currentMarkerSize);
+   public:
+    aruco(std::string &yamlCalibrationPath, int cameraPort,
+          float currentMarkerSize);
 
     ~aruco();
 
-    aruco(std::string &yamlCalibrationPath, std::string &cameraString, float currentMarkerSize);
+    aruco(std::string &yamlCalibrationPath, std::string &cameraString,
+          float currentMarkerSize);
 
     void setHoldCamera(bool value) { *holdCamera = value; };
 
@@ -27,17 +30,20 @@ public:
     void trackMarkerThread();
 
     void printVector(std::vector<cv::Vec3d> vec);
-    
-    void initialaize(std::vector<cv::Vec3d> localTvecs, std::vector<cv::Vec3d> localRvecs);
-    
-    double forwardDistance(std::vector<cv::Vec3d> localRvecs, std::vector<cv::Vec3d> localTvecs, int Id);
 
-    std::pair<int, int> twoClosest(std::vector<cv::Vec3d> localRvecs, std::vector<cv::Vec3d> localTvecs);
+    void initialaize(std::vector<cv::Vec3d> localTvecs,
+                     std::vector<cv::Vec3d> localRvecs);
 
-    int ID=-1;
-    bool init=true;
-    bool inFormation=false;
-    int rightInForm=1;
+    double forwardDistance(std::vector<cv::Vec3d> localRvecs,
+                           std::vector<cv::Vec3d> localTvecs, int Id);
+
+    std::pair<int, int> twoClosest(std::vector<cv::Vec3d> localRvecs,
+                                   std::vector<cv::Vec3d> localTvecs);
+
+    int ID = -1;
+    bool init = true;
+    bool inFormation = false;
+    int rightInForm = 1;
     bool arucoDetected = false;
 
     double upDown = 0.0;
@@ -47,7 +53,7 @@ public:
     int yaw = 0;
     int rollAngle = 0;
 
-private:
+   private:
     bool runCamera;
     bool stop;
     std::string yamlCalibrationPath;
@@ -58,20 +64,19 @@ private:
     std::shared_ptr<bool> holdCamera;
     std::shared_ptr<cv::VideoCapture> capture;
 
-    long amountOfUSleepForTrackMarker = 5000;
+    boost::lockfree::spsc_queue<std::vector<uchar>> frame_queue;
 
+    long amountOfUSleepForTrackMarker = 5000;
 
     std::vector<cv::Mat> getCameraCalibration(const std::string &path);
 
     void getEulerAngles(cv::Mat &rotCameraMatrix, cv::Vec3d &eulerAngles);
 
     int getLeftOverAngleFromRotationVector(const cv::Vec<double, 3> &rvec);
-    
+
     int getHorizontalAngleFromRotationVector(const cv::Vec<double, 3> &rvec);
 
     void getCameraFeed();
 };
 
-
-
-#endif //INC_2022SUMMERCOURSE_ARUCO_H
+#endif  // INC_2022SUMMERCOURSE_ARUCO_H
