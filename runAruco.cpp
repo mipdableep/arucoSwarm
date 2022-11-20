@@ -1,7 +1,3 @@
-//
-// Created by tzuk on 6/6/22.
-//
-
 #include "include/runAruco.h"
 #include "include/constants.h"
 
