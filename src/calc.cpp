@@ -90,7 +90,3 @@ public:
 calc::calc(/* args */)
 {
 }
-
-calc::~calc()
-{
-}
