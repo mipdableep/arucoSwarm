@@ -87,6 +87,4 @@ public:
 
 };
 
-calc::calc(/* args */)
-{
-}
+

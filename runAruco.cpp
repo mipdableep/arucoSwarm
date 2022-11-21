@@ -42,36 +42,36 @@ void webcamTest(aruco& detector)
 			if(!detector.init || detector.ID!=-1)
 			{
 
-				droneZRotate = detector.yaw;
-				droneXPos = detector.rightLeft;
-				droneYPos = detector.forward;	
-				droneZPos = detector.upDown;
+				// droneZRotate = detector.yaw;
+				// droneXPos = detector.rightLeft;
+				// droneYPos = detector.forward;	
+				// droneZPos = detector.upDown;
 
-				//run rc calculations
-				calculate_x_rc();
-				calculate_y_rc();
-				calculate_z_rc();
-				calculate_z_rotation_rc();
+				// //run rc calculations
+				// calculate_x_rc();
+				// calculate_y_rc();
+				// calculate_z_rc();
+				// calculate_z_rotation_rc();
 
 
-				command = "rc ";
+				// command = "rc ";
 
-				command += std::to_string((int)(X_rc));
-				command+=" ";
+				// command += std::to_string((int)(X_rc));
+				// command+=" ";
 				
-				command += std::to_string((int)(Y_rc));
-				command+=" ";
+				// command += std::to_string((int)(Y_rc));
+				// command+=" ";
 				
-				command += std::to_string((int)(Z_rc));
-				command+=" ";
+				// command += std::to_string((int)(Z_rc));
+				// command+=" ";
 				
-				command += std::to_string((int)(Zr_rc));
+				// command += std::to_string((int)(Zr_rc));
 
-				// tello.SendCommand(command);	
-				// std::cout<<"OON command:  "<<command<<std::endl;
+				// // tello.SendCommand(command);	
+				// // std::cout<<"OON command:  "<<command<<std::endl;
 
-				std::cout<<"Z pos:  "<<droneZPos<<std::endl;
-				std::cout<<"Z rc:   "<<Z_rc<<std::endl<<std::endl;
+				// std::cout<<"Z pos:  "<<droneZPos<<std::endl;
+				// std::cout<<"Z rc:   "<<Z_rc<<std::endl<<std::endl;
 
 
 			}
@@ -86,7 +86,7 @@ void webcamTest(aruco& detector)
 	}
 }
 
-void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tello)
+void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tello, calc calculator)
 {
 	std::cout<<"started OON\n"<<std::endl;
 
@@ -137,13 +137,14 @@ void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tell
 					std::cout<<"make switch\n"<<std::endl;
 				}
 
-				//run rc calculations
-				calculate_x_rc();
-				calculate_y_rc();
-				calculate_z_rc();
-				calculate_z_rotation_rc();
-
 				landCaseCheck(rc_y_below_land_limit, wentDownCounter, tello);
+
+				//run rc calculations
+				X_rc = calculator.calculate_x_rc(droneYPos, droneXPos);
+				Y_rc = calculator.calculate_y_rc(droneYPos);
+				Z_rc = calculator.calculate_z_rc(droneZPos);
+				Zr_rc = calculator.calculate_z_rotation_rc(droneZRotate, droneYPos, droneXPos);
+
 
 				std::string command = "rc ";
 
@@ -230,79 +231,6 @@ void landCaseCheck(int& rc_y_below_land_limit, int& wentDownCounter, ctello::Tel
 	}
 }
 
-void calculate_y_rc()
-{
-	//if current > target + tollorate
-		//if bigger then rc limit
-	if (droneYPos > Y_TARGET + Y_DIST_TOLORANCE){
-		if ((droneYPos - Y_TARGET)/3 > Y_LIMIT_RC){
-			Y_rc = -Y_LIMIT_RC;
-			// std::cout<<1<<std::endl;
-		}
-		else{
-			Y_rc = -((droneYPos - Y_TARGET)/3);
-			// std::cout<<2<<std::endl;
-		}
-	}
-	else
-	{Y_rc = 0;}
-	
-	if (droneYPos < Y_TARGET - Y_DIST_TOLORANCE){
-		if ((Y_TARGET - droneYPos)/3 > Y_LIMIT_RC){
-			Y_rc = Y_LIMIT_RC;
-			// std::cout<<3<<std::endl;
-		}
-		else{
-			Y_rc = (Y_TARGET - droneYPos)/3;
-			// std::cout<<4<<std::endl;
-		}
-	}
-
-	Y_rc *= -1;
-}
-
-void calculate_z_rc()
-{
-	//TODO: make it so randon jumps in z pos wont affect the commands sent to tello
-	//TODO: check acuracy
-	//if current > target + tollorate
-		//if bigger then rc limit
-	if (droneZPos > Z_TARGET + Z_DIST_TOLORANCE){
-		if ((droneZPos - Z_TARGET)/2 > Z_LIMIT_RC)
-			Z_rc = -Z_LIMIT_RC;
-		else
-			Z_rc = -((droneZPos - Z_TARGET)/2);
-	}
-	else
-	{Z_rc = 0;}
-	
-	if (droneZPos < Z_TARGET - Z_DIST_TOLORANCE){
-		if ((Z_TARGET - droneZPos)/2 > Z_LIMIT_RC)
-			Z_rc = Z_LIMIT_RC;
-		else
-			Z_rc = (Z_TARGET - droneZPos)/2;
-	}
-}
-
-void calculate_current_wanted_Zr()
-{
-	current_wanted_Zr = std::atan2(droneXPos, droneYPos)*RADIANS_TO_DEGREESE;
-}
-
-//TODO: finish Zr calc function - aruco shuld always be in the middle
-void calculate_z_rotation_rc()
-{
-	calculate_current_wanted_Zr();
-	Zr_rc = (droneZRotate - current_wanted_Zr);
-
-}
-
-//TODO: make x_rc calc so the the drone will go to the correct angle
-
-void calculate_x_rc()
-{
-	X_rc = (Z_ANGLE_TARGET-current_wanted_Zr)/2;
-}
 
 bool opposite_position(double droneVal, double tmp)
 {
@@ -358,11 +286,11 @@ int main(){
 		sleep(2);
 		
 		tello.SendCommandWithResponse("takeoff");
-		
+		calc calculator;
 		tello.SendCommand("rc 0 0 0 0");
 		std::string cameraString = data["cameraString"];
 		aruco detector(yamlCalibrationPath,cameraString,currentMarkerSize);
-		std::thread movementThread([&] { objectOrientedNavigation(d1, detector,tello); } );   
+		std::thread movementThread([&] { objectOrientedNavigation(d1, detector,tello, calculator); } );   
 		// std::thread movementThread([&] { webcamTest(detector); } );        
 
 		movementThread.join(); 

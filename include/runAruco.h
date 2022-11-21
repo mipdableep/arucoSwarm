@@ -7,7 +7,9 @@
 #include <cmath>
 #include <ctello.h>
 #include "constants.h"
+#include "calc.h"
 
+void objectOrientedNavigation(drone& drone, aruco& detector, ctello::Tello& tello, calc calculator);
 void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId);
 void noLeaderLoop_v2(drone& drone, aruco& detector, ctello::Tello& tello, int& tmpId);
 
