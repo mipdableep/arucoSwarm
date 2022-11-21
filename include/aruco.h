@@ -39,6 +39,7 @@ class aruco {
 
     std::pair<int, int> twoClosest(std::vector<cv::Vec3d> localRvecs,
                                    std::vector<cv::Vec3d> localTvecs);
+    boost::lockfree::spsc_queue<std::vector<uchar>> &get_frame_queue();
 
     int ID = -1;
     bool init = true;

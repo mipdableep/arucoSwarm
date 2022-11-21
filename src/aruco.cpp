@@ -398,3 +398,7 @@ void aruco::initialaize(std::vector<cv::Vec3d> localTvecs,
     inFormation = true;
     init = false;
 }
+
+boost::lockfree::spsc_queue<std::vector<uchar>> &aruco::get_frame_queue() {
+    return frame_queue;
+}
