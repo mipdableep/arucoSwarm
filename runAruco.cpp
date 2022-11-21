@@ -101,7 +101,16 @@ void objectOrientedNavigation(drone& drone, aruco& detector,
 
         else {
             if (!detector.init || detector.ID != -1) {
-                double tmpZr = droneZRotate, tmpZ = droneZPos, tmpX = droneXPos;
+				
+				std::vector<int> classes_in_frame = object_detector.get_classes_in_frame();
+				if (std::find(classes_in_frame.begin(), classes_in_frame.end(), 1) != classes_in_frame.end())
+				{	
+					std::cout << "landing" << std::endl;
+            		tello.SendCommandWithResponse("land");
+            		exit(0);
+				}
+
+				double tmpZr = droneZRotate, tmpZ = droneZPos, tmpX = droneXPos;
 
                 bool made_switch_last_time;
 
