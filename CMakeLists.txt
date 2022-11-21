@@ -16,7 +16,7 @@ include_directories(include)
 
 add_library(aruco src/aruco.cpp)
 add_library(drone src/drone.cpp)
-add_library(detector src/detector.cxx)
+add_library(detector src/detector.cc)
 
 target_link_libraries(drone -lctello -lpthread ${OpenCV_LIBS})
 target_link_libraries(aruco -lpthread ${OpenCV_LIBS} ${Boost_LIBRARIES})

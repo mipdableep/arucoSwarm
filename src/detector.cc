@@ -67,13 +67,13 @@ void Detector::push_new_labels_to_queue() {
     const std::vector<int>& outputs = interpreter->outputs();
 
     // We ignore bboxes for the time being
-    TfLiteTensor* classes = interpreter->tensor(outputs[1]);
-    float* classes_data = classes->data.f;
-    TfLiteTensor* scores = interpreter->tensor(outputs[2]);
-    float* scores_data = scores->data.f;
+    const TfLiteTensor* classes = interpreter->tensor(outputs[1]);
+    const float* classes_data = classes->data.f;
+    const TfLiteTensor* scores = interpreter->tensor(outputs[2]);
+    const float* scores_data = scores->data.f;
 
-    int classes_size = classes->dims->data[classes->dims->size - 1];
-    int scores_size = scores->dims->data[scores->dims->size - 1];
+    const int classes_size = classes->dims->data[classes->dims->size - 1];
+    const int scores_size = scores->dims->data[scores->dims->size - 1];
 
     if (classes_size != scores_size) return;
 
@@ -89,11 +89,11 @@ void Detector::push_new_labels_to_queue() {
 
 void Detector::detection_handler(int model_threads_num) {
     if (!prepare_model(model_threads_num)) return;
-    int input = interpreter->inputs()[0];
-    TfLiteIntArray* dims = interpreter->tensor(input)->dims;
-    int in_height = dims->data[1];
-    int in_width = dims->data[2];
-    int in_channels = dims->data[3];
+    const int input = interpreter->inputs()[0];
+    const TfLiteIntArray* dims = interpreter->tensor(input)->dims;
+    const int in_height = dims->data[1];
+    const int in_width = dims->data[2];
+    const int in_channels = dims->data[3];
     // We will currently support only uint8 models
     uint8_t* input_typed = interpreter->typed_tensor<uint8_t>(input);
 
