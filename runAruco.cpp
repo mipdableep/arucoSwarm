@@ -1,5 +1,8 @@
 #include "include/runAruco.h"
 
+#include <boost/lockfree/spsc_queue.hpp>
+#include <vector>
+
 #include "detector.hpp"
 #include "include/constants.h"
 
@@ -79,6 +82,8 @@ void objectOrientedNavigation(drone& drone, aruco& detector,
                               ctello::Tello& tello, Detector& object_detector) {
     std::cout << "started OON\n" << std::endl;
     object_detector.start_detection();
+    boost::lockfree::spsc_queue<std::vector<int>>& classes_queue =
+        object_detector.get_classes_queue();
 
     int tmpId = -1;
     bool commandFlag;
@@ -101,16 +106,21 @@ void objectOrientedNavigation(drone& drone, aruco& detector,
 
         else {
             if (!detector.init || detector.ID != -1) {
-				
-				std::vector<int> classes_in_frame = object_detector.get_classes_in_frame();
-				if (std::find(classes_in_frame.begin(), classes_in_frame.end(), 1) != classes_in_frame.end())
-				{	
-					std::cout << "landing" << std::endl;
-            		tello.SendCommandWithResponse("land");
-            		exit(0);
-				}
+                std::vector<int> classes_in_frame;
 
-				double tmpZr = droneZRotate, tmpZ = droneZPos, tmpX = droneXPos;
+                if (!classes_queue.empty()) {
+                    classes_queue.pop(classes_in_frame);
+
+                    if (std::find(classes_in_frame.begin(),
+                                  classes_in_frame.end(),
+                                  1) != classes_in_frame.end()) {
+                        std::cout << "landing" << std::endl;
+                        tello.SendCommandWithResponse("land");
+                        exit(0);
+                    }
+                }
+
+                double tmpZr = droneZRotate, tmpZ = droneZPos, tmpX = droneXPos;
 
                 bool made_switch_last_time;
 
