@@ -37,7 +37,6 @@ class Detector {
     void start_detection(int model_threads_num = 4);
     void finish_detection();
 
-    std::vector<int> get_classes_in_frame();
     boost::lockfree::spsc_queue<std::vector<int>>& get_classes_queue();
 };
 

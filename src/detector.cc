@@ -51,7 +51,7 @@ cv::Mat Detector::get_current_frame_from_queue() {
     while (frame_queue.empty()) std::this_thread::sleep_for(20ms);
 
     frame_queue.pop(current_frame);
-    return cv::Mat(480, 640, CV_8UC3, current_frame.data());
+    return cv::Mat(720, 960, CV_8UC3, current_frame.data());
 }
 
 void Detector::fill_array_with_mat(uint8_t* in, const cv::Mat& src) {
@@ -101,6 +101,7 @@ void Detector::detection_handler(int model_threads_num) {
         cv::Mat current_frame = get_current_frame_from_queue();
         cv::resize(current_frame, current_frame, cv::Size(in_height, in_width),
                    cv::INTER_CUBIC);
+
         fill_array_with_mat(input_typed, current_frame);
         if (interpreter->Invoke() == kTfLiteOk) push_new_labels_to_queue();
     }

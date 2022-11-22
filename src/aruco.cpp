@@ -7,6 +7,7 @@
 #include <opencv2/core/hal/interface.h>
 #include <unistd.h>
 
+#include <opencv2/highgui.hpp>
 #include <vector>
 
 std::vector<cv::Mat> aruco::getCameraCalibration(const std::string &path) {
@@ -254,17 +255,21 @@ int aruco::getHorizontalAngleFromRotationVector(
 
 void aruco::getCameraFeed() {
     runCamera = true;
-    std::vector<uchar> frame_vec;
+    int curr_image = 0;
     while (runCamera) {
         if (!capture || !(capture->isOpened()) || *holdCamera) {
             usleep(5000);
             continue;
         }
-        capture->read(*frame);
+        cv::Mat temp_frame;
+        capture->read(temp_frame);
+        *frame = temp_frame.clone();
 
+        std::vector<uchar> frame_vec;
         // Pushing frame to queue
-        frame_vec.assign(frame->data,
-                         frame->data + frame->total() * frame->channels());
+        frame_vec.assign(
+            temp_frame.data,
+            temp_frame.data + temp_frame.total() * temp_frame.channels());
 
         frame_queue.push(frame_vec);
     }
@@ -299,6 +304,8 @@ aruco::aruco(std::string &yamlCalibrationPath, std::string &cameraString,
     frame = std::make_shared<cv::Mat>();
     capture = std::make_shared<cv::VideoCapture>();
     capture->open(cameraString);
+    capture->set(3, 960);
+    capture->set(4, 720);
     this->currentMarkerSize = currentMarkerSize;
     cameraThread = std::move(std::thread(&aruco::getCameraFeed, this));
     arucoThread = std::move(std::thread(&aruco::trackMarkerThread, this));
