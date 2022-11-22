@@ -13,7 +13,7 @@ int X_rc, Y_rc, Z_rc, Zr_rc;
 int noLeaderCycle = 0;
 std::string command;
 
-void webcamTest(aruco& detector) {
+void webcamTest(aruco& detector, Detector& object_detector) {
     std::cout << "started OON\n" << std::endl;
 
     int tmpId = -1;
@@ -38,6 +38,17 @@ void webcamTest(aruco& detector) {
 
         else {
             if (!detector.init || detector.ID != -1) {
+
+				if (!classes_queue.empty()) {
+                    classes_queue.pop(classes_in_frame);
+
+                    if (std::find(classes_in_frame.begin(),
+                                  classes_in_frame.end(),
+                                  1) != classes_in_frame.end()) {
+                        std::cout << "\n\n object detected by model!\n" << std::endl;
+                    }
+                }
+
                 droneZRotate = detector.yaw;
                 droneXPos = detector.rightLeft;
                 droneYPos = detector.forward;
@@ -63,10 +74,10 @@ void webcamTest(aruco& detector) {
                 command += std::to_string((int)(Zr_rc));
 
                 // tello.SendCommand(command);
-                // std::cout<<"OON command:  "<<command<<std::endl;
+                std::cout<<"OON command:  "<<command<<std::endl;
 
-                std::cout << "Z pos:  " << droneZPos << std::endl;
-                std::cout << "Z rc:   " << Z_rc << std::endl << std::endl;
+                // std::cout << "Z pos:  " << droneZPos << std::endl;
+                // std::cout << "Z rc:   " << Z_rc << std::endl << std::endl;
 
             } else {
                 std::cout << "in else" << std::endl;
@@ -325,8 +336,8 @@ int main(int argc, char* argv[]) {
     if (isWebcam) {
         int cameraPort = data["cameraPort"];
         aruco detector(yamlCalibrationPath, cameraPort, currentMarkerSize);
-
-        std::thread movementThread([&] { webcamTest(detector); });
+		Detector object_detector(argv[1], detector.get_frame_queue());
+        std::thread movementThread([&] { webcamTest(detector, object_detector); });
         movementThread.join();
     }
 
