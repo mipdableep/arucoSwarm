@@ -2,6 +2,7 @@
 #define DETECTOR_H_
 
 #include <opencv2/core/hal/interface.h>
+#include <tensorflow/lite/core/model_builder.h>
 #include <tensorflow/lite/interpreter.h>
 
 #include <boost/lockfree/spsc_queue.hpp>
@@ -18,6 +19,7 @@ class Detector {
     std::thread detection_thread;
     bool end_detection = false;
     std::unique_ptr<tflite::Interpreter> interpreter;
+    std::unique_ptr<tflite::FlatBufferModel> model;
     boost::lockfree::spsc_queue<std::vector<int>> classes_queue;
 
     void detection_handler(int model_threads_num);

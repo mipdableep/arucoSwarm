@@ -15,12 +15,15 @@ std::string command;
 
 void webcamTest(aruco& detector, Detector& object_detector) {
     std::cout << "started OON\n" << std::endl;
+    object_detector.start_detection(1);
 
     int tmpId = -1;
     bool commandFlag;
     // check land vriables
     int wentDownCounter = 0;
     int sleepAmount = 2;
+    boost::lockfree::spsc_queue<std::vector<int>>& classes_queue =
+        object_detector.get_classes_queue();
     while (true) {
         std::cout << wentDownCounter << std::endl;
         wentDownCounter++;
@@ -37,18 +40,17 @@ void webcamTest(aruco& detector, Detector& object_detector) {
         }
 
         else {
-            if (!detector.init || detector.ID != -1) {
+            if (!classes_queue.empty()) {
+                std::vector<int> classes_in_frame;
+                classes_queue.pop(classes_in_frame);
 
-				if (!classes_queue.empty()) {
-                    classes_queue.pop(classes_in_frame);
-
-                    if (std::find(classes_in_frame.begin(),
-                                  classes_in_frame.end(),
-                                  1) != classes_in_frame.end()) {
-                        std::cout << "\n\n object detected by model!\n" << std::endl;
-                    }
+                if (std::find(classes_in_frame.begin(), classes_in_frame.end(),
+                              1) != classes_in_frame.end()) {
+                    std::cout << "\n\n object detected by model!\n"
+                              << std::endl;
                 }
-
+            }
+            if (!detector.init || detector.ID != -1) {
                 droneZRotate = detector.yaw;
                 droneXPos = detector.rightLeft;
                 droneYPos = detector.forward;
@@ -74,7 +76,7 @@ void webcamTest(aruco& detector, Detector& object_detector) {
                 command += std::to_string((int)(Zr_rc));
 
                 // tello.SendCommand(command);
-                std::cout<<"OON command:  "<<command<<std::endl;
+                std::cout << "OON command:  " << command << std::endl;
 
                 // std::cout << "Z pos:  " << droneZPos << std::endl;
                 // std::cout << "Z rc:   " << Z_rc << std::endl << std::endl;
@@ -336,8 +338,9 @@ int main(int argc, char* argv[]) {
     if (isWebcam) {
         int cameraPort = data["cameraPort"];
         aruco detector(yamlCalibrationPath, cameraPort, currentMarkerSize);
-		Detector object_detector(argv[1], detector.get_frame_queue());
-        std::thread movementThread([&] { webcamTest(detector, object_detector); });
+        Detector object_detector(argv[1], detector.get_frame_queue());
+        std::thread movementThread(
+            [&] { webcamTest(detector, object_detector); });
         movementThread.join();
     }
 

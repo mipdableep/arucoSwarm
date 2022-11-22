@@ -30,8 +30,7 @@ boost::lockfree::spsc_queue<std::vector<int>>& Detector::get_classes_queue() {
 }
 
 bool Detector::prepare_model(int model_threads_num) {
-    std::unique_ptr<tflite::FlatBufferModel> model =
-        tflite::FlatBufferModel::BuildFromFile(model_path.c_str());
+    model = tflite::FlatBufferModel::BuildFromFile(model_path.c_str());
     if (model == nullptr) return false;
 
     // This assumes we enable XNNPACK on compilation
@@ -80,8 +79,9 @@ void Detector::push_new_labels_to_queue() {
     std::vector<int> classes_detected;
 
     for (int i = 0; i < classes_size; ++i) {
-        if (scores_data[i] > score_threshold)
+        if (scores_data[i] >= score_threshold) {
             classes_detected.push_back(classes_data[i] + 1);
+        }
     }
 
     classes_queue.push(classes_detected);
@@ -99,11 +99,13 @@ void Detector::detection_handler(int model_threads_num) {
 
     while (!end_detection) {
         cv::Mat current_frame = get_current_frame_from_queue();
-        cv::resize(current_frame, current_frame, cv::Size(in_height, in_width),
-                   cv::INTER_CUBIC);
+        if (!current_frame.empty()) {
+            cv::resize(current_frame, current_frame,
+                       cv::Size(in_height, in_width), cv::INTER_CUBIC);
 
-        fill_array_with_mat(input_typed, current_frame);
-        if (interpreter->Invoke() == kTfLiteOk) push_new_labels_to_queue();
+            fill_array_with_mat(input_typed, current_frame);
+            if (interpreter->Invoke() == kTfLiteOk) push_new_labels_to_queue();
+        }
     }
 }
 
