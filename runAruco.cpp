@@ -127,7 +127,7 @@ void objectOrientedNavigation(drone& drone, aruco& detector,
                     if (std::find(classes_in_frame.begin(),
                                   classes_in_frame.end(),
                                   1) != classes_in_frame.end()) {
-                        std::cout << "landing" << std::endl;
+                        std::cout << "landing, object detected" << std::endl;
                         tello.SendCommandWithResponse("land");
                         exit(0);
                     }
@@ -232,7 +232,7 @@ void landCaseCheck(int& rc_y_below_land_limit, int& wentDownCounter,
         tello.SendCommand("rc 0 0 -40 0");
         sleep(4);
         if (droneZPos < first_z_val + 5) {
-            std::cout << "landing" << std::endl;
+            std::cout << "landing, leader landed" << std::endl;
             tello.SendCommandWithResponse("land");
             exit(0);
         } else {
