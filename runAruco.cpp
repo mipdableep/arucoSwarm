@@ -327,6 +327,7 @@ int main(){
 	float currentMarkerSize = data["currentMarkerSize"];
 	std::string commandString = "nmcli c up " + droneName;
 	const char *command = commandString.c_str();
+	bool takeoff = data["takeoff"];
 	
 	//checking the img input device for correct calibration
 	std::string yamlCalibrationPath;
@@ -357,7 +358,8 @@ int main(){
 
 		sleep(2);
 		
-		tello.SendCommandWithResponse("takeoff");
+		if (takeoff)
+			tello.SendCommandWithResponse("takeoff");
 		
 		tello.SendCommand("rc 0 0 0 0");
 		std::string cameraString = data["cameraString"];
