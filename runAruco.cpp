@@ -91,36 +91,36 @@ void webcamTest(aruco& detector, Detector& object_detector) {
     }
 }
 
-void leaderDrone(drone& drone, ctello::Tello& tello, Detector& object_detector) {
+void leaderDrone(drone& drone, ctello::Tello& tello,
+                 Detector& object_detector) {
+    sleep(2);
 
-	sleep(2);
-	
-	std::thread detectorLoop ([&] {detectorLeaderLoop(ctello::Tello& tello, Detector& object_detector)})
+    std::thread detectorLoop(
+        [&] { detectorLeaderLoop(drone, tello, object_detector); });
 
+    for (int i = 0; i < 10; i++) {
+        tello.SendCommand("rc 0 0 0 0");
+        sleep(3);
+    }
 
-	for (int i = 0, i < 10, i++){
-		tello.SendCommand("rc 0 0 0 0")
-		sleep(3);
-	}
-
-	while (true){
-		tello.SendCommand("rc 0 15 0 0");
-		sleep(10);
-		tello.SendCommand("rc 0 0 0 0");
-		sleep(1);
-		tello.SendCommand("rc 0 0 0 10");
-		sleep(4);
-		tello.SendCommand("rc 0 0 0 0");
-		sleep(5);
-		tello.SendCommand("rc 0 0 0 -10");
-		sleep(8);
-		tello.SendCommand("rc 0 0 0 0");
-		sleep(5);
-		tello.SendCommand("rc 0 0 0 10");
-		sleep(4);
-		tello.SendCommand("rc 0 0 0 0");
-		sleep(1);
-	}
+    while (true) {
+        tello.SendCommand("rc 0 15 0 0");
+        sleep(10);
+        tello.SendCommand("rc 0 0 0 0");
+        sleep(1);
+        tello.SendCommand("rc 0 0 0 10");
+        sleep(4);
+        tello.SendCommand("rc 0 0 0 0");
+        sleep(5);
+        tello.SendCommand("rc 0 0 0 -10");
+        sleep(8);
+        tello.SendCommand("rc 0 0 0 0");
+        sleep(5);
+        tello.SendCommand("rc 0 0 0 10");
+        sleep(4);
+        tello.SendCommand("rc 0 0 0 0");
+        sleep(1);
+    }
 }
 
 void objectOrientedNavigation(drone& drone, aruco& detector,
@@ -160,7 +160,7 @@ void objectOrientedNavigation(drone& drone, aruco& detector,
                                   classes_in_frame.end(),
                                   1) != classes_in_frame.end()) {
                         std::cout << "landing, object detected" << std::endl;
-						tello.SendCommand("rc 0 0 0 0");
+                        tello.SendCommand("rc 0 0 0 0");
                         tello.SendCommandWithResponse("land");
                         exit(0);
                     }
@@ -266,8 +266,8 @@ void landCaseCheck(int& rc_y_below_land_limit, int& wentDownCounter,
         sleep(4);
         if (droneZPos < first_z_val + 5) {
             std::cout << "landing, leader landed" << std::endl;
-			
-			tello.SendCommand("rc 0 0 0 0");
+
+            tello.SendCommand("rc 0 0 0 0");
             tello.SendCommandWithResponse("land");
             exit(0);
         } else {
@@ -349,34 +349,31 @@ bool opposite_angle(double droneVal, double tmp) {
     return (tmp - (0.7 * tmp) < -droneVal && -droneVal < tmp + (0.7 * tmp));
 }
 
-void detectorLeaderLoop(drone& drone, ctello::Tello& tello, Detector& object_detector){
-		//initiate object detector
-	object_detector.start_detection();
+void detectorLeaderLoop(drone& drone, ctello::Tello& tello,
+                        Detector& object_detector) {
+    // initiate object detector
+    object_detector.start_detection();
     boost::lockfree::spsc_queue<std::vector<int>>& classes_queue =
-    object_detector.get_classes_queue();
-	std::vector<int> classes_in_frame;
+        object_detector.get_classes_queue();
+    std::vector<int> classes_in_frame;
 
-	bool objectDetected = false;
-	while (!objectDetected){
+    bool objectDetected = false;
+    while (!objectDetected) {
+        if (!classes_queue.empty()) {
+            classes_queue.pop(classes_in_frame);
 
-
-		if (!classes_queue.empty()) {
-			classes_queue.pop(classes_in_frame);
-
-			if (std::find(classes_in_frame.begin(), classes_in_frame.end(), 1) != classes_in_frame.end()) {
-				
-				std::cout << "landing, object detected" << std::endl;
-				tello.SendCommand("rc 0 0 0 0");
-				tello.SendCommandWithResponse("land");
-				objectDetected = true;
-				exit(0);
-			}
-			else
-				sleep(1);
-        }
-		else
-			sleep(1);
-	}
+            if (std::find(classes_in_frame.begin(), classes_in_frame.end(),
+                          1) != classes_in_frame.end()) {
+                std::cout << "landing, object detected" << std::endl;
+                tello.SendCommand("rc 0 0 0 0");
+                tello.SendCommandWithResponse("land");
+                objectDetected = true;
+                exit(0);
+            } else
+                sleep(1);
+        } else
+            sleep(1);
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -388,7 +385,7 @@ int main(int argc, char* argv[]) {
     bool isWebcam = data["webcam"];
     std::string droneName = data["DroneName"];
     float currentMarkerSize = data["currentMarkerSize"];
-	bool isLeader = data["isLeader"];
+    bool isLeader = data["isLeader"];
     std::string commandString = "nmcli c up " + droneName;
     const char* command = commandString.c_str();
 
@@ -410,8 +407,8 @@ int main(int argc, char* argv[]) {
         movementThread.join();
     }
 
-	else if(isLeader){
-		drone d1;
+    else if (isLeader) {
+        drone d1;
         std::string commandString = "nmcli c up " + droneName;
         system(command);
         ctello::Tello tello;
@@ -423,12 +420,13 @@ int main(int argc, char* argv[]) {
 
         tello.SendCommand("rc 0 0 0 0");
         std::string cameraString = data["cameraString"];
+        aruco detector(yamlCalibrationPath, cameraString, currentMarkerSize);
         Detector object_detector(argv[1], detector.get_frame_queue());
         std::thread movementThread([&] {
-            objectOrientedNavigation(d1, tello, object_detector);
+            objectOrientedNavigation(d1, detector, tello, object_detector);
         });
         movementThread.join();
-	}
+    }
 
     else {
         drone d1;

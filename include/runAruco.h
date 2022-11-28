@@ -9,6 +9,7 @@
 #include "../include/drone.h"
 #include "aruco.h"
 #include "constants.h"
+#include "detector.hpp"
 
 void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello,
                   int& tmpId);
@@ -17,6 +18,10 @@ void noLeaderLoop_v2(drone& drone, aruco& detector, ctello::Tello& tello,
 
 void landCaseCheck(int& rc_y_below_land_limit, int& wentDownCounter,
                    ctello::Tello& tello);
+void objectOrientedNavigation(drone& drone, aruco& detector,
+                              ctello::Tello& tello, Detector& object_detector);
+void detectorLeaderLoop(drone& drone, ctello::Tello& tello,
+                        Detector& object_detector);
 
 void calculate_y_rc();
 void calculate_z_rc();
