@@ -161,7 +161,7 @@ void objectOrientedNavigation(drone& drone, aruco& detector,
                 calculate_z_rc();
                 calculate_z_rotation_rc();
 
-                landCaseCheck(rc_y_below_land_limit, wentDownCounter, tello);
+                //landCaseCheck(rc_y_below_land_limit, wentDownCounter, tello);
 
                 std::string command = "rc ";
 
