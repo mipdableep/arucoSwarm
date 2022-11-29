@@ -334,7 +334,7 @@ void calculate_current_wanted_Zr() {
 // TODO: finish Zr calc function - aruco shuld always be in the middle
 void calculate_z_rotation_rc() {
     calculate_current_wanted_Zr();
-    Zr_rc = (droneZRotate - current_wanted_Zr);
+    Zr_rc = (droneZRotate - current_wanted_Zr)*1.15;
 }
 
 // TODO: make x_rc calc so the the drone will go to the correct angle
