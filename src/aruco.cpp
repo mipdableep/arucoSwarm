@@ -1,7 +1,3 @@
-//
-// Created by tzuk on 6/6/22.
-//
-
 #include "../include/aruco.h"
 
 #include <opencv2/core/hal/interface.h>
@@ -57,19 +53,31 @@ std::vector<cv::Mat> aruco::getCameraCalibration(const std::string &path) {
     return newCameraParams;
 }
 
-/*
-void aruco::trackMarkerThread() {
+void aruco::getMarkerIds(){
     stop = false;
     std::cout << "started track thread" << std::endl;
     std::vector<std::vector<cv::Point2f>> corners;
     const std::vector<cv::Mat> cameraParams =
-getCameraCalibration(yamlCalibrationPath); const cv::Ptr<cv::aruco::Dictionary>
-dictionary = cv::aruco::getPredefinedDictionary(
-            cv::aruco::DICT_ARUCO_ORIGINAL);
+        getCameraCalibration(yamlCalibrationPath);
+    const cv::Ptr<cv::aruco::Dictionary> dictionary =
+        cv::aruco::getPredefinedDictionary(
+            cv::aruco::DICT_ARUCO_ORIGINAL /*DICT_4X4_100*/);
+
+    cv::Mat imageCopy;
     while (!stop) {
         std::vector<int> ids;
         if (frame && !frame->empty()) {
             cv::aruco::detectMarkers(*frame, dictionary, corners, ids);
+            (*frame).copyTo(imageCopy);
+
+            // blur is contro by size of the block Size(x,y) of moving windows
+            /*blur(*frame, imageCopy, cv::Size(3 ,3));
+            medianBlur(*frame, imageCopy, 5);*/
+
+            cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
+            // cv::imshow("aruco", imageCopy);
+
+            cv::waitKey(1);
         } else {
             std::cout << "no frames" << std::endl;
             sleep(1);
@@ -77,40 +85,45 @@ dictionary = cv::aruco::getPredefinedDictionary(
         }
         bool canContinue = true;
         int rightId = 0;
-        /*while (rightId < ids.size()) {
-            if (ids[rightId] != 0) {
-                canContinue = true;
-                break;
-            }
-            rightId++;
-        }
+
         // if at least one marker detected
         if (canContinue) {
+            if (ids.empty())
+                arucoDetected = false;
+            else
+                arucoDetected = true;
+
             std::vector<cv::Vec3d> localRvecs, localTvecs;
-            cv::aruco::estimatePoseSingleMarkers(corners, currentMarkerSize,
-cameraParams[0], cameraParams[1], localRvecs, localTvecs); if
-(!localRvecs.empty()) { cv::Mat rmat = cv::Mat::eye(3, 3, CV_64FC1); try {
-                    cv::Rodrigues(localRvecs[rightId], rmat);
-                } catch (...) {
-                    std::cout << "coudlnot convert vector to mat" << std::endl;
-                    continue;
-                }
-                auto t = cv::Mat(-rmat.t() * cv::Mat(localTvecs[rightId]));
-                rightLeft = t.at<double>(0);
-                upDown = t.at<double>(1);
-                forward = t.at<double>(2);
-                leftOverAngle =
-getLeftOverAngleFromRotationVector(localRvecs[rightId]);
-                usleep(amountOfUSleepForTrackMarker);
-            } else {
-                std::cout << "couldnt get R vector" << std::endl;
+            cv::aruco::estimatePoseSingleMarkers(
+                corners, currentMarkerSize, cameraParams[0], cameraParams[1],
+                localRvecs, localTvecs);
+
+            for (int i = 0; i < ids.size(); i++) {
+                cv::drawFrameAxes(imageCopy, cameraParams[0], cameraParams[1],
+                                  localRvecs[i], localTvecs[i], 0.1);
             }
-        } else {
+            // commented out for rpi
+            cv::imshow("aruco", imageCopy);
+
+            if (init) {
+                if (!localRvecs.empty()) {
+                    initialaize(localTvecs, localRvecs);
+                    init = false;
+                }
+            } else {
+                std::cout<<"arucos detected: ";
+                for (int i: ids){
+                    std::cout<<i<<", ";
+                }
+                std::cout<<std::endl;
+            }
+        }  // end of canConteniue
+        else {
             std::cout << "didnt detect marker" << std::endl;
         }
-        // usleep(100000);
+        usleep(100000);
     }
-}*/
+}
 
 void aruco::trackMarkerThread() {
     stop = false;
@@ -292,7 +305,7 @@ aruco::aruco(std::string &yamlCalibrationPath, int cameraPort,
     }
     this->currentMarkerSize = currentMarkerSize;
     cameraThread = std::move(std::thread(&aruco::getCameraFeed, this));
-    arucoThread = std::move(std::thread(&aruco::trackMarkerThread, this));
+    arucoThread = std::move(std::thread(&aruco::getMarkerIds, this));
 }
 
 aruco::aruco(std::string &yamlCalibrationPath, std::string &cameraString,

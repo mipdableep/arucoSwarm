@@ -27,6 +27,8 @@ class aruco {
 
     void setStop(bool value) { stop = value; };
 
+    void getMarkerIds();
+
     void trackMarkerThread();
 
     void printVector(std::vector<cv::Vec3d> vec);
