@@ -32,3 +32,5 @@ target_link_libraries(
   #detector
   -lpthread
   nlohmann_json::nlohmann_json)
+
+#set(CMAKE_BUILD_TYPE Debug)

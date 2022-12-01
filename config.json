@@ -1,10 +1,14 @@
 {
-  "yamlCalibrationPath": "/home/pi/arucoSwarm/swarm5.yaml",
+  "yamlCalibrationPath": "/home/fares/rbd/projects/aruco_swarm/Swarm-Drones-/swarm5.yaml",
   "webcamYamlCalibrationPath": "/home/fares/rbd/projects/aruco_swarm/Swarm-Drones-/webcamCalib.yaml",
-  "webcam": true,
+  "webcam": false,
   "cameraPort": 2,
   "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
   "currentMarkerSize": 0.1,
-  "DroneName": "TELLO-9EE8F8",
-  "isLeader": false
+  "DroneName": "TELLO-FDCCA9",
+  "isLeader": false,
+  
+  "instructions": "set the id of the aruco (acordingly) to 0 if there is no aruco to serch for",
+  "ArucoIdFront": -1,
+  "ArucoIdBehind": 5
 }
