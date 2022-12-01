@@ -15,10 +15,8 @@ find_package(Boost REQUIRED)
 include_directories(include)
 
 add_library(aruco src/aruco.cpp)
-add_library(drone src/drone.cpp)
 # add_library(detector src/detector.cc)
 
-target_link_libraries(drone -lctello -lpthread ${OpenCV_LIBS})
 target_link_libraries(aruco -lpthread ${OpenCV_LIBS} ${Boost_LIBRARIES})
 # target_link_libraries(detector ${OpenCV_LIBS} ${Boost_LIBRARIES} tensorflowlite)
 
@@ -27,7 +25,6 @@ add_executable(followAruco followAruco.cpp)
 target_link_libraries(
   followAruco
   aruco
-  drone
   ctello
   #detector
   -lpthread
