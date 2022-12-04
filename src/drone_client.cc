@@ -24,6 +24,9 @@ void DroneClient::wait_for_takeoff() {
 
         return recvd == takeoff_msg.length() && std::string(msg) == takeoff_msg;
     });
+
+    close(client_socket);
+    connected = false;
 }
 
 bool DroneClient::connect_to_server() {
