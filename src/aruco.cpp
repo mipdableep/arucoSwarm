@@ -76,7 +76,8 @@ void aruco::getMarkerIds(){
             medianBlur(*frame, imageCopy, 5);*/
 
             cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
-            cv::imshow("aruco", imageCopy);
+            
+            //cv::imshow("aruco", imageCopy);
 
             cv::waitKey(1);
         } else {

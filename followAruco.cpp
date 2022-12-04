@@ -7,9 +7,10 @@
 // declare vars
 bool exitLoop = false;
 
-std::string networkString = "nmcli c up HuAirPort";
+//removed for rpi
+/* std::string networkString = "nmcli c up HuAirPort";
 const char* commandEnd = networkString.c_str();
-
+ */
 
 //declare commands
 std::string standStill = "rc 0 0 0 0";
@@ -41,11 +42,12 @@ void webcamTest(aruco& detector) {
 void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront, int ArucoBack/*, Detector& object_detector*/){
     bool initloop = true;
     int counter = 0;
+    //TODO: add thread so first wont start before everybody
     if (ArucoFront == -1) initloop = false;
     while (initloop){
         for (int i: detector.ids){
             if (i == ArucoFront);
-            initloop = false;
+                initloop = false;
         }
         usleep(100000);
         counter ++;
@@ -59,32 +61,17 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront, int Aruc
         
         
         doCommand(detector, ArucoFront, tello, standStill, 4);
-/* 
+
         tello.SendCommand(forward);
         sleep(4);
         tello.SendCommand(standStill);
         
-        doCommand(detector, ArucoFront, tello, standStill, 4); */
+        doCommand(detector, ArucoFront, tello, standStill, 4);
         
         doCommand(detector, ArucoBack, tello, turn360, 14.5);
 
 
     }
-}
-
-void rcTest(ctello::Tello& tello){
-    tello.SendCommand("up 100");
-    sleep(2);    
-    tello.SendCommand("rc 0 -35 -30 100");
-    sleep(5);
-    tello.SendCommand("rc 0 -35 -30 100");
-    sleep(5);
-    tello.SendCommand("rc 0 -35 -30 100");
-    sleep(5);
-
-        
-    tello.SendCommandWithResponse("land");
-    
 }
 
 void doCommand (aruco& detector, int arucoId, ctello::Tello& tello, std::string command, float amountOfSleep){
@@ -118,7 +105,6 @@ void doCommand (aruco& detector, int arucoId, ctello::Tello& tello, std::string 
     if (!canContinue && arucoId != -1){
         std::cout<<"didnt detect aruco "<<arucoId<<", landing!"<<std::endl;
         tello.SendCommand("land");
-        system(commandEnd);
         exit(0);
     }
 
@@ -161,9 +147,10 @@ int main(int argc, char* argv[]) {
     int ArucoFront = data["ArucoIdFront"];
     int Arucoback = data["ArucoIdBehind"];
     
-    std::string commandString = "nmcli c up " + droneName;
+    //removed for rpi
+/*     std::string commandString = "nmcli c up " + droneName;
     const char* command = commandString.c_str();
-
+ */
     // checking the img input device for correct calibration
     std::string yamlCalibrationPath;
 
@@ -181,29 +168,14 @@ int main(int argc, char* argv[]) {
         movementThread.join();
     }
 
-    else if (checkRc){
-        std::string commandString = "nmcli c up " + droneName;
-        system(command);
-        ctello::Tello tello;
-        // tello.SendCommandWithResponse("streamon");
-
-        sleep(2);
-
-        tello.SendCommandWithResponse("takeoff");
-
-        tello.SendCommand("rc 0 0 0 0");
-
-        rcTest(tello);
-
-        system(commandEnd);
-    }
-
     else {
         
         // yotam code
         
-        std::string commandString = "nmcli c up " + droneName;
+        //removed for rpi
+/*         std::string commandString = "nmcli c up " + droneName;
         system(command);
+ */
         ctello::Tello tello;
         tello.SendCommandWithResponse("streamon");
 
