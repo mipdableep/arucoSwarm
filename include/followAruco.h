@@ -10,5 +10,5 @@
 #include "constants.h"
 
 void ScanForAruco(aruco& detector, int arucoId, bool& runDetection, bool& canContinue);
-void doCommand (aruco& detector, int arucoId, ctello::Tello& tello, std::string command, float amountOfSleepTime);
-
+void doContinuanceCommand (aruco& detector, int arucoId, ctello::Tello& tello, std::string command, float amountOfSleepTime);
+void scanForward (aruco& detector, int arucoId, ctello::Tello& tello);

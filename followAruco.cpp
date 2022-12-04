@@ -13,7 +13,6 @@ const char* commandEnd = networkString.c_str();
 
 //declare commands
 std::string standStill = "rc 0 0 0 0";
-std::string forward = "rc 0 25 0 0";
 std::string turn360 = "rc 0 0 0 40"; //sleep for 14.5 sec
 
 void webcamTest(aruco& detector) {
@@ -55,39 +54,79 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront, int Aruc
         }
     }
 
+    int outNum = 0;
     while (!exitLoop){
         
         
-        doCommand(detector, ArucoFront, tello, standStill, 4);
-/* 
-        tello.SendCommand(forward);
-        sleep(4);
-        tello.SendCommand(standStill);
+        scanForward(detector, ArucoFront, tello);
+        std::cout<<outNum++<<std::endl;
+
+        tello.SendCommand("forward 50");
+        usleep(100000);
+        std::cout<<outNum++<<std::endl;
+
+        tello.SendCommand("stop");
+        usleep(1000000);
+        std::cout<<outNum++<<std::endl;
         
-        doCommand(detector, ArucoFront, tello, standStill, 4); */
+        scanForward(detector, ArucoFront, tello);
         
-        doCommand(detector, ArucoBack, tello, turn360, 14.5);
+        doContinuanceCommand(detector, ArucoBack, tello, turn360, 14.5);
 
 
     }
 }
 
 void rcTest(ctello::Tello& tello){
-    tello.SendCommand("up 100");
+    tello.SendCommandWithResponse("up 100");
     sleep(2);    
     tello.SendCommand("rc 0 -35 -30 100");
-    sleep(5);
-    tello.SendCommand("rc 0 -35 -30 100");
-    sleep(5);
-    tello.SendCommand("rc 0 -35 -30 100");
-    sleep(5);
+    sleep(3);
+
+    tello.SendCommandWithResponse("stop");
+    sleep(3);
 
         
     tello.SendCommandWithResponse("land");
     
 }
 
-void doCommand (aruco& detector, int arucoId, ctello::Tello& tello, std::string command, float amountOfSleep){
+void scanForward (aruco& detector, int arucoId, ctello::Tello& tello){
+
+    bool runDetection = true;
+    bool canContinue;
+    std::thread detectAruco ([&] {ScanForAruco(detector, arucoId, runDetection, canContinue);});
+
+
+
+    tello.SendCommand("rc 0 0 0 40");
+    usleep(2000000);
+    tello.SendCommandWithResponse("stop");
+    usleep(1000000);
+
+    tello.SendCommand("rc 0 0 0 -40");
+    usleep(4000000);
+    tello.SendCommandWithResponse("stop");
+    usleep(1000000);
+
+    tello.SendCommand("rc 0 0 0 40");
+    usleep(2000000);
+    tello.SendCommandWithResponse("stop");
+
+    runDetection = false;
+    usleep(1000000);
+
+    detectAruco.join();
+
+    if (!canContinue && arucoId != -1){
+        std::cout<<"didnt detect aruco "<<arucoId<<", landing!"<<std::endl;
+        tello.SendCommand("land");
+        system(commandEnd);
+        exit(0);
+    }
+}
+
+void doContinuanceCommand (aruco& detector, int arucoId, ctello::Tello& tello, std::string command, float amountOfSleep){
 
     int amountOfUSleep = amountOfSleep * 1000000;
     bool runDetection = true;
@@ -142,13 +181,10 @@ void ScanForAruco(aruco& detector, int arucoId, bool& runDetection, bool& canCon
         canContinue = false;
         std::cout<<"aruco wasent detected enugh"<<std::endl;
     }
-
 }
 
 int main(int argc, char* argv[]) {
     
-    bool checkRc = false;
-
     std::ifstream programData("../config.json");
 
     nlohmann::json data;
@@ -157,6 +193,7 @@ int main(int argc, char* argv[]) {
     bool isWebcam = data["webcam"];
     std::string droneName = data["DroneName"];
     float currentMarkerSize = data["currentMarkerSize"];
+    bool doRcTest = data["rcTest"];
     
     int ArucoFront = data["ArucoIdFront"];
     int Arucoback = data["ArucoIdBehind"];
@@ -181,7 +218,7 @@ int main(int argc, char* argv[]) {
         movementThread.join();
     }
 
-    else if (checkRc){
+    else if (doRcTest){
         std::string commandString = "nmcli c up " + droneName;
         system(command);
         ctello::Tello tello;
