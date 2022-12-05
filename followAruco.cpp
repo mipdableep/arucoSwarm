@@ -5,7 +5,7 @@
 #include <thread>
 #include <vector>
 
-// #include "detector.hpp"
+#include "detector.hpp"
 #include "drone_client.hpp"
 #include "include/constants.h"
 
@@ -46,7 +46,7 @@ void webcamTest(aruco& detector) {
 }
 
 void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
-                 int ArucoBack /*, Detector& object_detector*/) {
+                 int ArucoBack, Detector& object_detector) {
     bool initloop = true;
     int counter = 0;
     // TODO: add thread so first wont start before everybody
@@ -204,10 +204,10 @@ int main(int argc, char* argv[]) {
 
         std::string cameraString = data["cameraString"];
         aruco detector(yamlCalibrationPath, cameraString, currentMarkerSize);
-        // Detector object_detector(argv[1], detector.get_frame_queue());
+        Detector object_detector(argv[1], detector.get_frame_queue());
         std::thread movementThread([&] {
-            followAruco(detector, tello, ArucoFront,
-                        Arucoback /*, object_detector */);
+            followAruco(detector, tello, ArucoFront, Arucoback,
+                        object_detector);
         });
 
         movementThread.join();
