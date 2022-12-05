@@ -47,17 +47,9 @@ void webcamTest(aruco& detector) {
 
 void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
                  int ArucoBack, Detector& object_detector) {
-    
-    
     bool initloop = true;
     int counter = 0;
-    
-    object_detector.start_detection();
-    boost::lockfree::spsc_queue<std::vector<int>>& classes_queue =
-        object_detector.get_classes_queue();
-    
-    
-    
+
     // TODO: add thread so first wont start before everybody
     if (ArucoFront == -1) initloop = false;
     while (initloop) {
@@ -74,7 +66,7 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
         }
     }
 
-    std::thread detectAruco([&] {detectorThread(tello, object_detector);});
+    std::thread detectAruco([&] { detectorThread(tello, object_detector); });
 
     while (!exitLoop) {
         doCommand(detector, ArucoFront, tello, standStill, 4);
@@ -89,21 +81,23 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
     }
 }
 
-void detectorThread(ctello::Tello& tello, Detector& object_detector){
+void detectorThread(ctello::Tello& tello, Detector& object_detector) {
+    object_detector.start_detection();
+    boost::lockfree::spsc_queue<std::vector<int>>& classes_queue =
+        object_detector.get_classes_queue();
     std::vector<int> classes_in_frame;
-    while (true){
+    while (true) {
         if (!classes_queue.empty()) {
-        classes_queue.pop(classes_in_frame);
+            classes_queue.pop(classes_in_frame);
 
-            if (std::find(classes_in_frame.begin(),
-                            classes_in_frame.end(),
-                            1) != classes_in_frame.end()) {
+            if (std::find(classes_in_frame.begin(), classes_in_frame.end(),
+                          1) != classes_in_frame.end()) {
                 std::cout << "landing, object detected" << std::endl;
                 tello.SendCommand("stop");
                 tello.SendCommandWithResponse("land");
                 exit(0);
             }
-        } else  {
+        } else {
             usleep(70000);
         }
     }
