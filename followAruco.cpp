@@ -106,10 +106,12 @@ void detectorThread(ctello::Tello& tello, Detector& object_detector,
 }
 
 void change_to_tello_wifi() {
+    const std::string kill_connection_cmd = "sudo killall wpa_supplicant";
     const std::string connection_cmd =
-        "sudo killall wpa_supplicant && sudo "
-        "wpa_supplicant -i wlan0 -B -c " +
-        wpa_supplicant_tello_file_path;
+        "sudo wpa_supplicant -i wlan0 -B -c " + wpa_supplicant_tello_file_path;
+
+    std::system(kill_connection_cmd.c_str());
+    std::this_thread::sleep_for(2s);
     std::system(connection_cmd.c_str());
     std::this_thread::sleep_for(10s);
 }
