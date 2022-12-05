@@ -47,8 +47,17 @@ void webcamTest(aruco& detector) {
 
 void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
                  int ArucoBack, Detector& object_detector) {
+    
+    
     bool initloop = true;
     int counter = 0;
+    
+    object_detector.start_detection();
+    boost::lockfree::spsc_queue<std::vector<int>>& classes_queue =
+        object_detector.get_classes_queue();
+    
+    
+    
     // TODO: add thread so first wont start before everybody
     if (ArucoFront == -1) initloop = false;
     while (initloop) {
@@ -65,6 +74,8 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
         }
     }
 
+    std::thread detectAruco([&] {detectorThread(tello, object_detector);});
+
     while (!exitLoop) {
         doCommand(detector, ArucoFront, tello, standStill, 4);
 
@@ -75,6 +86,26 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
         doCommand(detector, ArucoFront, tello, standStill, 4);
 
         doCommand(detector, ArucoBack, tello, turn360, 14.5);
+    }
+}
+
+void detectorThread(ctello::Tello& tello, Detector& object_detector){
+    std::vector<int> classes_in_frame;
+    while (true){
+        if (!classes_queue.empty()) {
+        classes_queue.pop(classes_in_frame);
+
+            if (std::find(classes_in_frame.begin(),
+                            classes_in_frame.end(),
+                            1) != classes_in_frame.end()) {
+                std::cout << "landing, object detected" << std::endl;
+                tello.SendCommand("stop");
+                tello.SendCommandWithResponse("land");
+                exit(0);
+            }
+        } else  {
+            usleep(70000);
+        }
     }
 }
 
@@ -153,7 +184,6 @@ int main(int argc, char* argv[]) {
     bool isWebcam = data["webcam"];
     std::string droneName = data["DroneName"];
     float currentMarkerSize = data["currentMarkerSize"];
-
     int ArucoFront = data["ArucoIdFront"];
     int Arucoback = data["ArucoIdBehind"];
 
