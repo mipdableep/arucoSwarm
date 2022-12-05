@@ -46,7 +46,7 @@ void webcamTest(aruco& detector) {
 }
 
 void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
-                 int ArucoBack, Detector& object_detector) {
+                 int ArucoBack, Detector& object_detector, int detect_class) {
     bool initloop = true;
     int counter = 0;
 
@@ -66,7 +66,8 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
         }
     }
 
-    std::thread detectAruco([&] { detectorThread(tello, object_detector); });
+    std::thread detectAruco(
+        [&] { detectorThread(tello, object_detector, detect_class); });
 
     while (!exitLoop) {
         doCommand(detector, ArucoFront, tello, standStill, 4);
@@ -81,7 +82,8 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
     }
 }
 
-void detectorThread(ctello::Tello& tello, Detector& object_detector) {
+void detectorThread(ctello::Tello& tello, Detector& object_detector,
+                    int detect_class) {
     object_detector.start_detection();
     boost::lockfree::spsc_queue<std::vector<int>>& classes_queue =
         object_detector.get_classes_queue();
@@ -91,7 +93,7 @@ void detectorThread(ctello::Tello& tello, Detector& object_detector) {
             classes_queue.pop(classes_in_frame);
 
             if (std::find(classes_in_frame.begin(), classes_in_frame.end(),
-                          1) != classes_in_frame.end()) {
+                          detect_class) != classes_in_frame.end()) {
                 std::cout << "landing, object detected" << std::endl;
                 tello.SendCommand("stop");
                 tello.SendCommandWithResponse("land");
@@ -227,11 +229,12 @@ int main(int argc, char* argv[]) {
         // end of yotam code
 
         std::string cameraString = data["cameraString"];
+        int detect_class = data["detect_class"];
         aruco detector(yamlCalibrationPath, cameraString, currentMarkerSize);
         Detector object_detector(argv[1], detector.get_frame_queue());
         std::thread movementThread([&] {
-            followAruco(detector, tello, ArucoFront, Arucoback,
-                        object_detector);
+            followAruco(detector, tello, ArucoFront, Arucoback, object_detector,
+                        detect_class);
         });
 
         movementThread.join();

@@ -7,8 +7,9 @@
   "currentMarkerSize": 0.1,
   "DroneName": "TELLO-FDCCA9",
   "isLeader": false,
-  
+
   "instructions": "set the id of the aruco (acordingly) to 0 if there is no aruco to serch for",
   "ArucoIdFront": 11,
-  "ArucoIdBehind": 11
+  "ArucoIdBehind": 11,
+  "detect_class": 47
 }
