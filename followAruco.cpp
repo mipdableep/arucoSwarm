@@ -51,11 +51,14 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
 
     if (ArucoFront == -1) isFirst = true;
     
-    tello.SendCommand("stop");
-    if (!isFirst)
-        doCommand(detector, ArucoFront, tello, turn360, 14.5);
-    else{
+    tello.SendCommand(standStill);
+    sleep(1);
+    tello.SendCommand(standStill);
+
+    if (isFirst)
         doCommand(detector, ArucoBack, tello, turn360, 14.5);
+    else{
+        doCommand(detector, ArucoFront, tello, turn360, 14.5);
     }
 
 
@@ -88,7 +91,15 @@ void detectorThread(ctello::Tello& tello, Detector& object_detector,
             if (std::find(classes_in_frame.begin(), classes_in_frame.end(),
                           detect_class) != classes_in_frame.end()) {
                 std::cout << "landing, object detected" << std::endl;
-                tello.SendCommand("rc 0 0 0 90");
+                std::cout<< "tello.SendCommand(rc 0 0 0 290);"<<std::endl;
+
+                
+                tello.SendCommand("rc 0 0 0 0");
+                sleep(3);
+                tello.SendCommand("cw 180");
+                sleep(3);
+                tello.SendCommand("cw 180");
+                sleep(3);
                 tello.SendCommandWithResponse("land");
                 exit(0);
             }
@@ -140,7 +151,14 @@ void doCommand(aruco& detector, int arucoId, ctello::Tello& tello,
     if (!canContinue && arucoId != -1) {
         std::cout << "didnt detect aruco " << arucoId << ", landing!"
                   << std::endl;
-        tello.SendCommand("rc 0 0 0 -90");
+        std::cout<<"tello.SendCommand(rc 0 0 0 -290);"<<std::endl;
+
+        tello.SendCommand("rc 0 0 0 0");
+        sleep(3);
+        tello.SendCommand("ccw 180");
+        sleep(3);
+        tello.SendCommand("ccw 180");
+        sleep(3);
         tello.SendCommand("land");
         exit(0);
     }
@@ -178,6 +196,7 @@ int main(int argc, char* argv[]) {
     float currentMarkerSize = data["currentMarkerSize"];
     int ArucoFront = data["ArucoIdFront"];
     int Arucoback = data["ArucoIdBehind"];
+    bool runServer = data["runServer"];
 
     // removed for rpi
     /*     std::string commandString = "nmcli c up " + droneName;
@@ -206,11 +225,12 @@ int main(int argc, char* argv[]) {
         /*         std::string commandString = "nmcli c up " + droneName;
                 system(command);
          */
-
-        DroneClient client(droneName, argv[2], std::stoi(argv[3]));
-        client.connect_to_server();
-        client.wait_for_takeoff();
-        change_to_tello_wifi();
+        if (runServer){
+            DroneClient client(droneName, argv[2], std::stoi(argv[3]));
+            client.connect_to_server();
+            client.wait_for_takeoff();
+            change_to_tello_wifi();
+        }
 
         ctello::Tello tello;
 
