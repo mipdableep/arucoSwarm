@@ -88,7 +88,7 @@ void detectorThread(ctello::Tello& tello, Detector& object_detector,
             if (std::find(classes_in_frame.begin(), classes_in_frame.end(),
                           detect_class) != classes_in_frame.end()) {
                 std::cout << "landing, object detected" << std::endl;
-                tello.SendCommand("stop");
+                tello.SendCommand("rc 0 0 0 90");
                 tello.SendCommandWithResponse("land");
                 exit(0);
             }
@@ -140,6 +140,7 @@ void doCommand(aruco& detector, int arucoId, ctello::Tello& tello,
     if (!canContinue && arucoId != -1) {
         std::cout << "didnt detect aruco " << arucoId << ", landing!"
                   << std::endl;
+        tello.SendCommand("rc 0 0 0 -90");
         tello.SendCommand("land");
         exit(0);
     }
