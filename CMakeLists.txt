@@ -7,7 +7,7 @@ find_package(nlohmann_json 3.2.0 REQUIRED)
 
 add_library(tensorflowlite SHARED IMPORTED)
 set_property(TARGET tensorflowlite PROPERTY IMPORTED_LOCATION
-                                            /usr/local/lib/libtensorflowlite.so)
+                                            /usr/lib/aarch64-linux-gnu/libtensorflowlite.so)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED)
 # find_package(CTello REQUIRED)
