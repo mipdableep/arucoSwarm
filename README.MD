@@ -12,6 +12,8 @@ to new ssid     -> ssid="SSID"
 to new password ->  psk="****"
 }
 
+OR run the change_wpa_sup script
+
 connect to the hotspot thrugh another device, and check your ip.
 you can do it bu runing ${hostname -I}
 in bashrc_extension change ipServerHost to your ip
