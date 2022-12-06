@@ -46,7 +46,7 @@ void webcamTest(aruco& detector) {
 }
 
 void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
-                 int ArucoBack, Detector& object_detector, int detect_class) {
+                 int ArucoBack/* , Detector& object_detector, int detect_class */) {
     bool isFirst = false;
 
     if (ArucoFront == -1) isFirst = true;
@@ -62,9 +62,9 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
     }
 
 
-    std::thread detectAruco(
+    /* std::thread detectAruco(
         [&] { detectorThread(tello, object_detector, detect_class); });
-
+ */
     while (!exitLoop) {
         doCommand(detector, ArucoFront, tello, standStill, 4);
 
@@ -247,10 +247,10 @@ int main(int argc, char* argv[]) {
         std::string cameraString = data["cameraString"];
         int detect_class = data["detect_class"];
         aruco detector(yamlCalibrationPath, cameraString, currentMarkerSize);
-        Detector object_detector(argv[1], detector.get_frame_queue());
+        // Detector object_detector(argv[1], detector.get_frame_queue());
         std::thread movementThread([&] {
-            followAruco(detector, tello, ArucoFront, Arucoback, object_detector,
-                        detect_class);
+            followAruco(detector, tello, ArucoFront, Arucoback/* , object_detector,
+                        detect_class */);
         });
 
         movementThread.join();
