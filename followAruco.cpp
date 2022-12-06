@@ -47,24 +47,17 @@ void webcamTest(aruco& detector) {
 
 void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
                  int ArucoBack, Detector& object_detector, int detect_class) {
-    bool initloop = true;
-    int counter = 0;
+    bool isFirst = false;
 
-    // TODO: add thread so first wont start before everybody
-    if (ArucoFront == -1) initloop = false;
-    while (initloop) {
-        for (int i : detector.ids) {
-            if (i == ArucoFront)
-                ;
-            initloop = false;
-        }
-        usleep(100000);
-        counter++;
-        if (counter > 30) {
-            counter = 0;
-            tello.SendCommand("rc 0 0 0 0");
-        }
+    if (ArucoFront == -1) isFirst = true;
+    
+    tello.SendCommand("stop");
+    if (!isFirst)
+        doCommand(detector, ArucoFront, tello, turn360, 14.5);
+    else{
+        doCommand(detector, ArucoBack, tello, turn360, 14.5);
     }
+
 
     std::thread detectAruco(
         [&] { detectorThread(tello, object_detector, detect_class); });

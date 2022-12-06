@@ -79,8 +79,6 @@ void Detector::push_new_labels_to_queue() {
     std::vector<int> classes_detected;
 
     for (int i = 0; i < classes_size; ++i) {
-        if (classes_data[i] + 1 == 1)
-            std::cout << scores_data[i] << std::endl;
         if (scores_data[i] >= score_threshold) {
             classes_detected.push_back(classes_data[i] + 1);
         }
