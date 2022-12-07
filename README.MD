@@ -1,31 +1,34 @@
-##rpi0-w2 setup:
+# Aruco Swarm
 
-after installing raspberian lite -64 bit on the rpi, run arucoInstall.sh to install the dependencies
+## rpi0-w2 setup:
 
-change the tello.conf to the right ssid with the <sup>change_tello_conf.sh</sup> script
+after installing raspberian lite -64 bit on the rpi, run 
+arucoInstall.sh to install the dependencies.
 
-add the <sup>bashrc_extention.sh</sup> to <sup>.bashrc</sup> in the home folder
+change the tello.conf to the right ssid with the `change_tello_conf.sh` script.
+
+add the `bashrc_extention.sh` to `.bashrc` in the home folder.
 
 
-##activate server:
+## activate server:
 
 open an hotspot from a phone
 
-go to <sup>/etc/wpa_supplicant/wpa_supplicant.conf</sup> on the rpi0 and change the following fields:
-
+go to `/etc/wpa_supplicant/wpa_supplicant.conf` on the rpi0 and change the following fields:
+```
 network={
 to new ssid     -> ssid="SSID"
 to new password ->  psk="****"
 }
-
-OR run the <sup>change_wpa_sup</sup> script
+```
+OR run the `change_wpa_sup` script
 
 connect to the hotspot thrugh another device, and check your ip.
-you can do it bu runing <sup>$hostname -I | cut -b 1-13</sup>
+you can do it bu runing `$ hostname -I | cut -b 1-13`
 in bashrc_extension change ipServerHost to your ip
 
 after all is done, run the following:
 
-<sup>python3 server.py 0.0.0.0 {number of drones}</sup>
+`$ python3 server.py 0.0.0.0 {number of drones}`
 
 after that connect the 
