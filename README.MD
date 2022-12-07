@@ -24,13 +24,13 @@ to new password ->  psk="****"
 OR run the `change_wpa_sup` script
 
 connect to the hotspot thrugh another device, and check your ip.
-you can do it bu runing `$ hostname -I | cut -b 1-13`
+you can do it bu runing `$ hostname -I | cut -b 1-15`
 in bashrc_extension change ipServerHost to your ip
 
 after all is done, run the following:
 
 ```
-$ python3 server.py 0.0.0.0 {number of drones}
+$ python3 server.py 0.0.0.0 9090 {number of drones}
 ```
 
 after that connect the turn on the rpi0's and the drones
