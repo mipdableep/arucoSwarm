@@ -1,3 +1,4 @@
+cd /home/pi/arucoSwarm
 export LD_LIBRARY_PATH=/usr/local/lib
 while ! [[ $(ip a | grep "inet 192") ]]; do sleep 1s; done
 

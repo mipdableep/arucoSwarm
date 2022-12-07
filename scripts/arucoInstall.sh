@@ -22,8 +22,8 @@ cmake ..
 sudo make -j$(nproc) install
 
 cd "$cwd" || exit
+cd ../
 mkdir build
 cd build || exit
 cmake ..
 make -j
-

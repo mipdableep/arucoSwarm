@@ -5,8 +5,10 @@
   "cameraPort": 2,
   "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
   "currentMarkerSize": 0.1,
-  "DroneName": "TELLO-9EE78B",
   "isLeader": false,
+
+  "":"the DroneName will be the name that will apear on the server host",
+  "DroneName": "TELLO-2",
 
   "instructions": "set the id of the aruco (acordingly) to -1 if there is no aruco to serch for",
   "ArucoIdFront": 11,
