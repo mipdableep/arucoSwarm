@@ -1,3 +1,5 @@
+cd ..
+
 opencvVersion=$(pkg-config --modversion opencv)
 
 if [ "$opencvVersion" != "3.4.16" ]; then
