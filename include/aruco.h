@@ -48,6 +48,7 @@ class aruco {
     bool inFormation = false;
     int rightInForm = 1;
     bool arucoDetected = false;
+    bool imshowStream;
     std::vector<int> ids;
     double upDown = 0.0;
     double forward = 0.0;

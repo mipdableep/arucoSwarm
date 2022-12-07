@@ -5,7 +5,7 @@
 #include <thread>
 #include <vector>
 
-#include "detector.hpp"
+// #include "detector.hpp"
 #include "drone_client.hpp"
 #include "include/constants.h"
 
@@ -165,10 +165,11 @@ void ScanForAruco(aruco& detector, int arucoId, bool& runDetection,
     while (runDetection) {
         for (int i : detector.ids) {
             if (i == arucoId) counter++;
+            std::cout<<"++ ";
         }
         usleep(100000);
     }
-    std::cout << "aruco counter = " << counter << std::endl;
+    std::cout << std::endl << "aruco counter = " << counter << std::endl;
 
     if (counter > 5 || arucoId == -1)
         canContinue = true;
@@ -182,6 +183,7 @@ int main(int argc, char* argv[]) {
 
     std::ifstream programData("../config.json");
 
+
     nlohmann::json data;
     programData >> data;
     programData.close();
@@ -194,6 +196,7 @@ int main(int argc, char* argv[]) {
     int Arucoback = data["ArucoIdBehind"];
     int ArucoTarget = data["ArucoIdTarget"];
     bool runServer = data["runServer"];
+    bool imshowStream = data["imshow"];
 
 
     std::string yamlCalibrationPath;
@@ -212,8 +215,6 @@ int main(int argc, char* argv[]) {
     }
 
     else {
-
-
         if (runServer){
             DroneClient client(droneName, argv[2], std::stoi(argv[3]));
             client.connect_to_server();
@@ -232,7 +233,10 @@ int main(int argc, char* argv[]) {
         tello.SendCommand("rc 0 0 0 0");
 
         std::string cameraString = data["cameraString"];
+        
         aruco detector(yamlCalibrationPath, cameraString, currentMarkerSize);
+        detector.imshowStream = imshowStream;
+        
         // Detector object_detector(argv[1], detector.get_frame_queue());
         std::thread movementThread([&] {
             followAruco(detector, tello, ArucoFront, Arucoback, ArucoTarget/* , object_detector,

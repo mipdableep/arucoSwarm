@@ -77,7 +77,8 @@ void aruco::getMarkerIds(){
 
             cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
             
-            //cv::imshow("aruco", imageCopy);
+            if (imshowStream)
+                cv::imshow("aruco", imageCopy);
 
             cv::waitKey(1);
         } else {
