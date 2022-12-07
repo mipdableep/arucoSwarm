@@ -29,6 +29,8 @@ in bashrc_extension change ipServerHost to your ip
 
 after all is done, run the following:
 
-`$ python3 server.py 0.0.0.0 {number of drones}`
+```
+$ python3 server.py 0.0.0.0 {number of drones}
+```
 
-after that connect the 
+after that connect the turn on the rpi0's and the drones
