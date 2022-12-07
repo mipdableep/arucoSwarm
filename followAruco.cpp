@@ -46,7 +46,7 @@ void webcamTest(aruco& detector) {
 }
 
 void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
-                 int ArucoBack/* , Detector& object_detector, int detect_class */) {
+                 int ArucoBack, int ArucoTarget/* , Detector& object_detector, int detect_class */) {
     bool isFirst = false;
 
     if (ArucoFront == -1) isFirst = true;
@@ -62,9 +62,9 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
     }
 
 
-    /* std::thread detectAruco(
-        [&] { detectorThread(tello, object_detector, detect_class); });
- */
+    std::thread detectAruco(
+        [&] { searchArucoTargetThread(tello, detector, ArucoTarget); });
+ 
     while (!exitLoop) {
         doCommand(detector, ArucoFront, tello, standStill, 4);
 
@@ -78,34 +78,34 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
     }
 }
 
-void detectorThread(ctello::Tello& tello, Detector& object_detector,
-                    int detect_class) {
-    object_detector.start_detection();
-    boost::lockfree::spsc_queue<std::vector<int>>& classes_queue =
-        object_detector.get_classes_queue();
-    std::vector<int> classes_in_frame;
-    while (true) {
-        if (!classes_queue.empty()) {
-            classes_queue.pop(classes_in_frame);
-
-            if (std::find(classes_in_frame.begin(), classes_in_frame.end(),
-                          detect_class) != classes_in_frame.end()) {
-                std::cout << "landing, object detected" << std::endl;
-                std::cout<< "tello.SendCommand(rc 0 0 0 290);"<<std::endl;
-
-                
-                tello.SendCommand("rc 0 0 0 0");
-                sleep(3);
-                tello.SendCommand("cw 180");
-                sleep(3);
-                tello.SendCommand("cw 180");
-                sleep(3);
-                tello.SendCommandWithResponse("land");
-                exit(0);
-            }
-        } else {
-            usleep(70000);
+void searchArucoTargetThread(ctello::Tello& tello, aruco& detector, int ArucoTarget){
+    
+    bool runDetection = true;
+    bool targetDetected = false;
+    int counter = 0;
+    while (runDetection) {
+        for (int i : detector.ids) {
+            if (i == ArucoTarget) counter++;
         }
+        usleep(70000);
+        if (counter > 2){
+            runDetection = false;
+            targetDetected = true;
+        }
+    }
+
+    if (targetDetected) {
+        std::cout << "landing, object detected" << std::endl;
+        
+        tello.SendCommand("up 80");
+        sleep(3);
+        tello.SendCommand("rc 0 0 -80 100");
+        sleep(5);
+        tello.SendCommandWithResponse("land");
+        exit(0);
+    
+    } else {
+        usleep(70000);
     }
 }
 
@@ -151,14 +151,9 @@ void doCommand(aruco& detector, int arucoId, ctello::Tello& tello,
     if (!canContinue && arucoId != -1) {
         std::cout << "didnt detect aruco " << arucoId << ", landing!"
                   << std::endl;
-        std::cout<<"tello.SendCommand(rc 0 0 0 -290);"<<std::endl;
 
-        tello.SendCommand("rc 0 0 0 0");
-        sleep(3);
-        tello.SendCommand("ccw 180");
-        sleep(3);
-        tello.SendCommand("ccw 180");
-        sleep(3);
+        tello.SendCommand("rc 0 0 -80 -100");
+        sleep(5);
         tello.SendCommand("land");
         exit(0);
     }
@@ -184,7 +179,6 @@ void ScanForAruco(aruco& detector, int arucoId, bool& runDetection,
 }
 
 int main(int argc, char* argv[]) {
-    bool checkRc = false;
 
     std::ifstream programData("../config.json");
 
@@ -192,24 +186,23 @@ int main(int argc, char* argv[]) {
     programData >> data;
     programData.close();
     bool isWebcam = data["webcam"];
+
+    //drone name will be the name that apears on the server
     std::string droneName = data["DroneName"];
     float currentMarkerSize = data["currentMarkerSize"];
     int ArucoFront = data["ArucoIdFront"];
     int Arucoback = data["ArucoIdBehind"];
+    int ArucoTarget = data["ArucoIdTarget"];
     bool runServer = data["runServer"];
 
-    // removed for rpi
-    /*     std::string commandString = "nmcli c up " + droneName;
-        const char* command = commandString.c_str();
-     */
-    // checking the img input device for correct calibration
-    std::string yamlCalibrationPath;
 
-    if (isWebcam) {
+    std::string yamlCalibrationPath;
+    if (isWebcam) 
         yamlCalibrationPath = data["webcamYamlCalibrationPath"];
-    } else {
+    else
         yamlCalibrationPath = data["yamlCalibrationPath"];
-    }
+
+
 
     if (isWebcam) {
         int cameraPort = data["cameraPort"];
@@ -219,12 +212,8 @@ int main(int argc, char* argv[]) {
     }
 
     else {
-        // yotam code
 
-        // removed for rpi
-        /*         std::string commandString = "nmcli c up " + droneName;
-                system(command);
-         */
+
         if (runServer){
             DroneClient client(droneName, argv[2], std::stoi(argv[3]));
             client.connect_to_server();
@@ -242,14 +231,11 @@ int main(int argc, char* argv[]) {
 
         tello.SendCommand("rc 0 0 0 0");
 
-        // end of yotam code
-
         std::string cameraString = data["cameraString"];
-        int detect_class = data["detect_class"];
         aruco detector(yamlCalibrationPath, cameraString, currentMarkerSize);
         // Detector object_detector(argv[1], detector.get_frame_queue());
         std::thread movementThread([&] {
-            followAruco(detector, tello, ArucoFront, Arucoback/* , object_detector,
+            followAruco(detector, tello, ArucoFront, Arucoback, ArucoTarget/* , object_detector,
                         detect_class */);
         });
 

@@ -11,7 +11,7 @@
   "instructions": "set the id of the aruco (acordingly) to -1 if there is no aruco to serch for",
   "ArucoIdFront": 11,
   "ArucoIdBehind": -1,
-  "detect_class": 47,
+  "arucoIdTarget": 100,
 
   "runServer": true
 }
