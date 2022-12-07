@@ -15,7 +15,7 @@ to new password ->  psk="****"
 OR run the change_wpa_sup script
 
 connect to the hotspot thrugh another device, and check your ip.
-you can do it bu runing ${hostname -I}
+you can do it bu runing ${hostname -I | cut -b 1-13}
 in bashrc_extension change ipServerHost to your ip
 
 after all is done, run the following:
