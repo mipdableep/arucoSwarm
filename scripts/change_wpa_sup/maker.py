@@ -1,7 +1,3 @@
-import sys
-
-
-
 def main():
 
     new_ssid = input("input the new ssid:\n")
@@ -10,18 +6,31 @@ def main():
     if new_paswrd == "":
         new_paswrd = "NONE"
 
-    format = """ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+    format1 = """ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 
 network={
         ssid=\"\"
         psk=\"\"
 }"""
-    # print (format.find("psk"))
 
-    format_new = format[0:97] + new_ssid + format[97:112] + new_paswrd + format[112:]
+    format2 = """ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+
+network={
+        ssid=\"\"
+        key_mgmt=
+}"""
+
+    if new_paswrd != "NONE":
+        format_new = format1[0:97] + new_ssid + format1[97:112] + new_paswrd + format1[112:]
+    else:
+        format_new = format2[0:97] + new_ssid + format2[97:116] + new_paswrd + format2[116:]
+    
     with open("wpa_supplicant.conf", "w+") as f:
         f.write(format_new)
 
-main()
+    # print(format_new)
 
+if __name__ == "__main__":
+    main()
