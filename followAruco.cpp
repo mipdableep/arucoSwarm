@@ -129,7 +129,7 @@ void scan360(aruco& detector, int arucoId, ctello::Tello& tello){
 
     for (int i = 0; i<6; i++){
         tello.SendCommand("cw 60");
-        sleep(2);
+        usleep(3500000);
     }
     tello.SendCommand("rc 0 0 0 0");
     runDetection = false;
