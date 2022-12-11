@@ -21,7 +21,7 @@ const char* commandEnd = networkString.c_str();
 
 // declare commands
 std::string standStill = "rc 0 0 0 0";
-std::string forward = "rc 0 25 0 0";
+std::string forward;
 std::string turn360 = "rc 0 0 0 40";  // sleep for 14.5 sec
 const std::string wpa_supplicant_tello_file_path =
     "/etc/wpa_supplicant/tello.conf";
@@ -68,7 +68,7 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
     while (!exitLoop) {
         doCommand(detector, ArucoFront, tello, standStill, 4);
 
-        tello.SendCommand("forward 70");
+        tello.SendCommand(forward);
         sleep(4);
         tello.SendCommand(standStill);
 
@@ -223,6 +223,8 @@ int main(int argc, char* argv[]) {
     int ArucoFront = data["ArucoIdFront"];
     int Arucoback = data["ArucoIdBehind"];
     int ArucoTarget = data["ArucoIdTarget"];
+    int dist_forward = data["dist_forward"];
+    forward = "forward " + std::to_string(dist_forward);
     bool runServer = data["runServer"];
     bool imshowStream = data["imshow"];
 

@@ -15,6 +15,8 @@
   "ArucoIdBehind": 12,
   "ArucoIdTarget": 100,
 
+  "dist_forward":130,
+
   "runServer": true,
   "imshow": false
 }
