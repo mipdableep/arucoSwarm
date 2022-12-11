@@ -56,9 +56,9 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
     tello.SendCommand(standStill);
 
     if (isFirst)
-        doCommand(detector, ArucoBack, tello, turn360, 14.5);
+        scan360(detector, ArucoBack, tello);
     else{
-        doCommand(detector, ArucoFront, tello, turn360, 14.5);
+        scan360(detector, ArucoFront, tello);
     }
 
 
@@ -68,13 +68,13 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
     while (!exitLoop) {
         doCommand(detector, ArucoFront, tello, standStill, 4);
 
-        tello.SendCommand(forward);
+        tello.SendCommand("forward 70");
         sleep(4);
         tello.SendCommand(standStill);
 
         doCommand(detector, ArucoFront, tello, standStill, 4);
 
-        doCommand(detector, ArucoBack, tello, turn360, 14.5);
+        scan360(detector, ArucoBack, tello);
     }
 }
 
@@ -118,6 +118,34 @@ void change_to_tello_wifi() {
     std::this_thread::sleep_for(2s);
     std::system(connection_cmd.c_str());
     std::this_thread::sleep_for(10s);
+}
+
+void scan360(aruco& detector, int arucoId, ctello::Tello& tello){
+    
+    bool runDetection = true;
+    bool canContinue;
+    std::thread detectAruco(
+        [&] { ScanForAruco(detector, arucoId, runDetection, canContinue); });
+
+    for (int i = 0; i<6; i++){
+        tello.SendCommand("cw 60");
+        sleep(2);
+    }
+    tello.SendCommand("rc 0 0 0 0");
+    runDetection = false;
+    usleep(300000);
+
+    detectAruco.join();
+
+    if (!canContinue && arucoId != -1) {
+        std::cout << "didnt detect aruco " << arucoId << ", landing!"
+                  << std::endl;
+
+        tello.SendCommand("rc 0 0 -80 -100");
+        sleep(5);
+        tello.SendCommand("land");
+        exit(0);
+    }
 }
 
 void doCommand(aruco& detector, int arucoId, ctello::Tello& tello,
