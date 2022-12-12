@@ -14,11 +14,6 @@ using namespace std::chrono_literals;
 // declare vars
 bool exitLoop = false;
 
-// removed for rpi
-/* std::string networkString = "nmcli c up HuAirPort";
-const char* commandEnd = networkString.c_str();
- */
-
 // declare commands
 std::string standStill = "rc 0 0 0 0";
 std::string forward;
@@ -27,6 +22,7 @@ const std::string wpa_supplicant_tello_file_path =
     "/etc/wpa_supplicant/tello.conf";
 
 void webcamTest(aruco& detector) {
+    std::cout<< "in: webcamTest()" << std::endl;
     int tmpId = -1;
     bool commandFlag;
 
@@ -37,7 +33,6 @@ void webcamTest(aruco& detector) {
     while (true) {
         if (!detector.init || detector.ID != -1) {
         } else {
-            std::cout << "in else" << std::endl;
         }
 
         commandFlag = false;
@@ -45,10 +40,11 @@ void webcamTest(aruco& detector) {
     sleep(1);
 }
 
-void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
-                 int ArucoBack, int ArucoTarget/* , Detector& object_detector, int detect_class */) {
-    bool isFirst = false;
+void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront, int ArucoBack, int ArucoTarget/* , Detector& object_detector, int detect_class */) {
 
+    std::cout<< "in: followAruco()" << std::endl;
+
+    bool isFirst = false;
     if (ArucoFront == -1) isFirst = true;
     
     tello.SendCommand(standStill);
@@ -66,19 +62,19 @@ void followAruco(aruco& detector, ctello::Tello& tello, int ArucoFront,
         [&] { searchArucoTargetThread(tello, detector, ArucoTarget); });
  
     while (!exitLoop) {
-        doCommand(detector, ArucoFront, tello, standStill, 4);
-
         tello.SendCommand(forward);
         sleep(4);
-        tello.SendCommand(standStill);
 
-        doCommand(detector, ArucoFront, tello, standStill, 4);
+        scanForward(detector, ArucoFront, tello);
 
         scan360(detector, ArucoBack, tello);
+
+        scanForward(detector, ArucoFront, tello);
     }
 }
 
 void searchArucoTargetThread(ctello::Tello& tello, aruco& detector, int ArucoTarget){
+    std::cout<< "in: searchArucoTargetThread()" << std::endl;
     
     bool runDetection = true;
     bool targetDetected = false;
@@ -110,6 +106,7 @@ void searchArucoTargetThread(ctello::Tello& tello, aruco& detector, int ArucoTar
 }
 
 void change_to_tello_wifi() {
+    std::cout<< "in: change_to_tello_wifi()" << std::endl;
     const std::string kill_connection_cmd = "sudo killall wpa_supplicant";
     const std::string connection_cmd =
         "sudo wpa_supplicant -i wlan0 -B -c " + wpa_supplicant_tello_file_path;
@@ -121,7 +118,9 @@ void change_to_tello_wifi() {
 }
 
 void scan360(aruco& detector, int arucoId, ctello::Tello& tello){
-    
+    std::cout<< "in: scan360()" << std::endl;
+    std::cout << "serching for aruco " << arucoId << std::endl;
+
     bool runDetection = true;
     bool canContinue;
     std::thread detectAruco(
@@ -148,8 +147,44 @@ void scan360(aruco& detector, int arucoId, ctello::Tello& tello){
     }
 }
 
-void doCommand(aruco& detector, int arucoId, ctello::Tello& tello,
-               std::string command, float amountOfSleep) {
+void scanForward(aruco& detector, int arucoId, ctello::Tello& tello){
+    std::cout<< "in: scanForward()" << std::endl;
+    std::cout << "serching for aruco " << arucoId << std::endl;
+
+    bool runDetection = true;
+    bool canContinue;
+    std::thread detectAruco(
+        [&] { ScanForAruco(detector, arucoId, runDetection, canContinue); });
+
+    tello.SendCommand("rc 0 0 0 0");
+    usleep(2000000);
+    tello.SendCommand("cw 60");
+    usleep(3500000);
+    tello.SendCommand("ccw 120");
+    usleep(3500000);
+    tello.SendCommand("cw 60");
+    usleep(3500000);
+
+
+    tello.SendCommand("rc 0 0 0 0");
+    runDetection = false;
+    usleep(1000000);
+
+    detectAruco.join();
+
+    if (!canContinue && arucoId != -1) {
+        std::cout << "didnt detect aruco " << arucoId << ", landing!"
+                  << std::endl;
+
+        tello.SendCommand("rc 0 0 -80 -100");
+        sleep(5);
+        tello.SendCommand("land");
+        exit(0);
+    }
+}
+
+void doCommand(aruco& detector, int arucoId, ctello::Tello& tello, std::string command, float amountOfSleep) {
+    std::cout<< "in: doCommand()" << std::endl;
     int amountOfUSleep = amountOfSleep * 1000000;
     bool runDetection = true;
     bool canContinue;
@@ -187,8 +222,8 @@ void doCommand(aruco& detector, int arucoId, ctello::Tello& tello,
     }
 }
 
-void ScanForAruco(aruco& detector, int arucoId, bool& runDetection,
-                  bool& canContinue) {
+void ScanForAruco(aruco& detector, int arucoId, bool& runDetection, bool& canContinue) {
+    std::cout<< "in: ScanForAruco()" << std::endl;
     int counter = 0;
     while (runDetection) {
         for (int i : detector.ids) {

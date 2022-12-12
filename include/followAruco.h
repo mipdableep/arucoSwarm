@@ -16,3 +16,4 @@ void doCommand(aruco& detector, int arucoId, ctello::Tello& tello,
                std::string command, float amountOfSleepTime);
 void searchArucoTargetThread(ctello::Tello& tello, aruco& detector, int ArucoTarget);
 void scan360(aruco& detector, int arucoId, ctello::Tello& tello);
+void scanForward(aruco& detector, int arucoId, ctello::Tello& tello);
