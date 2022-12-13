@@ -189,45 +189,6 @@ void scanForward(aruco& detector, int arucoId, ctello::Tello& tello){
     }
 }
 
-void doCommand(aruco& detector, int arucoId, ctello::Tello& tello, std::string command, float amountOfSleep) {
-    std::cout<< "in: doCommand()" << std::endl;
-    int amountOfUSleep = amountOfSleep * 1000000;
-    bool runDetection = true;
-    bool canContinue;
-    std::thread detectAruco(
-        [&] { ScanForAruco(detector, arucoId, runDetection, canContinue); });
-
-    std::cout << "serching for aruco " << arucoId << std::endl;
-    if (amountOfSleep / 5 > 1) {
-        int whileAmount = amountOfSleep / 5;
-        while (whileAmount > 0) {
-            tello.SendCommand(command);
-            sleep(5);
-            whileAmount--;
-        }
-        tello.SendCommand(command);
-        usleep(amountOfUSleep % 5000000);
-    } else {
-        tello.SendCommand(command);
-        usleep(amountOfUSleep);
-    }
-    tello.SendCommand("rc 0 0 0 0");
-    runDetection = false;
-    usleep(300000);
-
-    detectAruco.join();
-
-    if (!canContinue && arucoId != -1) {
-        std::cout << "didnt detect aruco " << arucoId << ", landing!"
-                  << std::endl;
-
-        tello.SendCommand("rc 0 0 -80 -100");
-        sleep(5);
-        tello.SendCommand("land");
-        exit(0);
-    }
-}
-
 void ScanForAruco(aruco& detector, int arucoId, bool& runDetection, bool& canContinue) {
     std::cout<< "in: ScanForAruco()" << std::endl;
     int counter = 0;
