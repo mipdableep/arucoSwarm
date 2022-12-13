@@ -3,3 +3,4 @@ build/
 images/*
 .idea
 cmake-build-debug
+scripts/compare.txt
