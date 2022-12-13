@@ -127,9 +127,6 @@ random
 rfkill
 rtc
 rtc0
-sdb
-sdb1
-sdb2
 sg0
 shm
 snapshot

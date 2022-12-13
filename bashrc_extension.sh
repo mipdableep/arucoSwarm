@@ -1,8 +1,8 @@
-cd /home/pi/arucoSwarm
+cd /home/pi/arucoSwarm/
 
-ls /dev/ > scripts/compare.txt
-
-diff -q scripts/devls.txt scripts/compare.txt
+ls /dev/ | grep -v -E "sd" > /home/pi/arucoSwarm/scripts/compare.txt
+break
+diff -q /home/pi/arucoSwarm/scripts/devls.txt /home/pi/arucoSwarm/scripts/compare.txt
 if [[ $? == "0" ]]
 then
     echo -e "\nin chroot, breaking\n"
