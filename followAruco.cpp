@@ -95,8 +95,10 @@ void searchArucoTargetThread(ctello::Tello& tello, aruco& detector, int ArucoTar
         
         tello.SendCommand("up 80");
         sleep(3);
-        tello.SendCommand("rc 0 0 -80 100");
-        sleep(5);
+        tello.SendCommand("down 200");
+        sleep(3);
+        tello.SendCommand("cw 180");
+        sleep(3);
         tello.SendCommandWithResponse("land");
         exit(0);
     
@@ -128,7 +130,7 @@ void scan360(aruco& detector, int arucoId, ctello::Tello& tello){
 
     for (int i = 0; i<6; i++){
         tello.SendCommand("cw 60");
-        usleep(3500000);
+        usleep(4000000);
     }
     tello.SendCommand("rc 0 0 0 0");
     runDetection = false;
@@ -140,9 +142,11 @@ void scan360(aruco& detector, int arucoId, ctello::Tello& tello){
         std::cout << "didnt detect aruco " << arucoId << ", landing!"
                   << std::endl;
 
-        tello.SendCommand("rc 0 0 -80 -100");
-        sleep(5);
-        tello.SendCommand("land");
+        tello.SendCommand("down 100");
+        sleep(4);
+        tello.SendCommand("ccw 180");
+        sleep(4);
+        tello.SendCommandWithResponse("land");
         exit(0);
     }
 }
@@ -159,11 +163,11 @@ void scanForward(aruco& detector, int arucoId, ctello::Tello& tello){
     tello.SendCommand("rc 0 0 0 0");
     usleep(2000000);
     tello.SendCommand("cw 60");
-    usleep(3500000);
+    usleep(4000000);
     tello.SendCommand("ccw 120");
-    usleep(3500000);
+    usleep(4000000);
     tello.SendCommand("cw 60");
-    usleep(3500000);
+    usleep(4000000);
 
 
     tello.SendCommand("rc 0 0 0 0");
@@ -176,9 +180,11 @@ void scanForward(aruco& detector, int arucoId, ctello::Tello& tello){
         std::cout << "didnt detect aruco " << arucoId << ", landing!"
                   << std::endl;
 
-        tello.SendCommand("rc 0 0 -80 -100");
-        sleep(5);
-        tello.SendCommand("land");
+        tello.SendCommand("down 100");
+        sleep(4);
+        tello.SendCommand("ccw 180");
+        sleep(4);
+        tello.SendCommandWithResponse("land");
         exit(0);
     }
 }
