@@ -12,10 +12,12 @@
 
   "instructions": "set the id of the aruco (acordingly) to -1 if there is no aruco to serch for",
   "ArucoIdFront": -1,
-  "ArucoIdBehind": 12,
+  "ArucoIdBehind": 2,
   "ArucoIdTarget": 100,
 
-  "dist_forward":130,
+  "dist_forward":100,
+  
+  "turn_amount":4,
 
   "runServer": true,
   "imshow": false

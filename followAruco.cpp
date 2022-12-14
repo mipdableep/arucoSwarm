@@ -13,6 +13,7 @@ using namespace std::chrono_literals;
 
 // declare vars
 bool exitLoop = false;
+int turnAmount;
 
 // declare commands
 std::string standStill = "rc 0 0 0 0";
@@ -128,8 +129,10 @@ void scan360(aruco& detector, int arucoId, ctello::Tello& tello){
     std::thread detectAruco(
         [&] { ScanForAruco(detector, arucoId, runDetection, canContinue); });
 
-    for (int i = 0; i<6; i++){
-        tello.SendCommand("cw 60");
+    std::string turnCommand = "cw " + std::to_string(360/turnAmount);
+
+    for (int i = 0; i<turnAmount; i++){
+        tello.SendCommand(turnCommand);
         usleep(4000000);
     }
     tello.SendCommand("rc 0 0 0 0");
@@ -229,6 +232,7 @@ int main(int argc, char* argv[]) {
     forward = "forward " + std::to_string(dist_forward);
     bool runServer = data["runServer"];
     bool imshowStream = data["imshow"];
+    turnAmount = data["turn_amount"];
 
 
     std::string yamlCalibrationPath;
@@ -263,6 +267,8 @@ int main(int argc, char* argv[]) {
         tello.SendCommandWithResponse("takeoff");
 
         tello.SendCommand("rc 0 0 0 0");
+        sleep(2);
+        tello.SendCommand("up 70");
 
         std::string cameraString = data["cameraString"];
         
