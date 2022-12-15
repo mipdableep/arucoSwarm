@@ -6,7 +6,7 @@ import sys
 
 # Pin Definitons:
 ledPin = 12 # Broadcom pin 23 (P1 pin 16)
-switchPin = 11 # Broadcom pin 17 (P1 pin 11)
+switchPin = 21 # Broadcom pin 17 (P1 pin 11)
 
 # Pin Setup:
 GPIO.setmode(GPIO.BOARD)
@@ -15,7 +15,7 @@ GPIO.setup(switchPin, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Button pin set as inp
 
 counter = 0
 
-while (counter < 2):
+while (counter < 5):
     GPIO.output(ledPin, GPIO.HIGH)
     sleep(0.5)
     GPIO.output(ledPin, GPIO.LOW)
@@ -27,7 +27,7 @@ counter = 0
 if not GPIO.input(switchPin):
     GPIO.cleanup()
     print("pressed")
-    subprocess.run(["python3", "ledPress.py"])
+    subprocess.run(["python3", "/home/pi/arucoSwarm/hardtest/ledPress.py"])
 else:
     GPIO.cleanup()
     print("not pressed")

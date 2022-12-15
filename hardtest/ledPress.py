@@ -4,7 +4,7 @@ import time
 
 # Pin Definitons:
 ledPin = 12 # Broadcom pin 23 (P1 pin 16)
-switchPin = 11 # Broadcom pin 17 (P1 pin 11)
+switchPin = 21 # Broadcom pin 17 (P1 pin 11)
 
 
 # Pin Setup:
