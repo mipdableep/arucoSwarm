@@ -1,4 +1,5 @@
 # External module imports
+import subprocess
 import RPi.GPIO as GPIO
 from time import sleep
 import sys
@@ -14,7 +15,7 @@ GPIO.setup(switchPin, GPIO.IN, pull_up_down=GPIO.PUD_UP) # Button pin set as inp
 
 counter = 0
 
-while (counter < 5):
+while (counter < 2):
     GPIO.output(ledPin, GPIO.HIGH)
     sleep(0.5)
     GPIO.output(ledPin, GPIO.LOW)
@@ -25,9 +26,9 @@ counter = 0
 
 if not GPIO.input(switchPin):
     GPIO.cleanup()
-    print("1")
-    sys.exit(1)
+    print("pressed")
+    subprocess.run(["python3", "ledPress.py"])
 else:
     GPIO.cleanup()
-    print("0")
-    sys.exit(0)
+    print("not pressed")
+    subprocess.run(["/home/pi/arucoSwarm/hardtest/test.sh"], shell=True)
