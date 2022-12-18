@@ -4,3 +4,4 @@ images/*
 .idea
 cmake-build-debug
 scripts/compare.txt
+videocap/

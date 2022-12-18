@@ -7,7 +7,6 @@
 
 // #include "detector.hpp"
 #include "drone_client.hpp"
-#include "include/constants.h"
 
 using namespace std::chrono_literals;
 

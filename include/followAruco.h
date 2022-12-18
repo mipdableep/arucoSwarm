@@ -7,7 +7,6 @@
 #include <opencv2/opencv.hpp>
 
 #include "aruco.h"
-#include "constants.h"
 // #include "detector.hpp"
 
 void ScanForAruco(aruco& detector, int arucoId, bool& runDetection,

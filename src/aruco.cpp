@@ -6,6 +6,8 @@
 #include <opencv2/highgui.hpp>
 #include <vector>
 
+
+
 std::vector<cv::Mat> aruco::getCameraCalibration(const std::string &path) {
     cv::FileStorage fs(path, cv::FileStorage::READ);
     if (!fs.isOpened())
@@ -64,7 +66,10 @@ void aruco::getMarkerIds(){
             cv::aruco::DICT_ARUCO_ORIGINAL /*DICT_4X4_100*/);
 
     cv::Mat imageCopy;
+    int frame_counter = 0;
     int counter = 0;
+    std::string frame_name;
+
     while (!stop) {
         if (frame && !frame->empty()) {
 
@@ -76,6 +81,12 @@ void aruco::getMarkerIds(){
             medianBlur(*frame, imageCopy, 5);*/
 
             cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
+            cv::Mat temp(imageCopy);
+
+            frame_name ="/home/pi/arucoSwarm/videocap/" + std::to_string(frame_counter) + ".jpg";
+            cv::imwrite(frame_name, temp);
+            frame_counter ++;
+        
             
             if (imshowStream)
                 cv::imshow("aruco", imageCopy);
@@ -87,7 +98,6 @@ void aruco::getMarkerIds(){
             continue;
         }
         bool canContinue = true;
-        int rightId = 0;
 
         // if at least one marker detected
         if (canContinue) {
