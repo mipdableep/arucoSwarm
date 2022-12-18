@@ -5,3 +5,4 @@ images/*
 cmake-build-debug
 scripts/compare.txt
 videocap/
+drone_config.json

@@ -214,25 +214,32 @@ void ScanForAruco(aruco& detector, int arucoId, bool& runDetection, bool& canCon
 int main(int argc, char* argv[]) {
 
     std::ifstream programData("../config.json");
+    std::ifstream programData2("../drone_config.json");
 
 
     nlohmann::json data;
     programData >> data;
     programData.close();
+    
+    nlohmann::json data2;
+    programData2 >> data2;
+    programData2.close();
+
     bool isWebcam = data["webcam"];
 
-    //drone name will be the name that apears on the server
-    std::string droneName = data["DroneName"];
     float currentMarkerSize = data["currentMarkerSize"];
-    int ArucoFront = data["ArucoIdFront"];
-    int Arucoback = data["ArucoIdBehind"];
-    int ArucoTarget = data["ArucoIdTarget"];
     int dist_forward = data["dist_forward"];
     forward = "forward " + std::to_string(dist_forward);
-    bool runServer = data["runServer"];
     bool imshowStream = data["imshow"];
     turnAmount = data["turn_amount"];
+    bool runServer = data["runServer"];
+    int ArucoTarget = data["ArucoIdTarget"];
 
+    //drone vars
+    //drone name will be the name that apears on the server
+    std::string droneName = data2["DroneName"];
+    int Arucoback = data2["ArucoIdBehind"];
+    int ArucoFront = data2["ArucoIdFront"];
 
     std::string yamlCalibrationPath;
     if (isWebcam) 
