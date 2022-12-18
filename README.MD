@@ -9,6 +9,18 @@ change the tello.conf to the right ssid with the `change_tello_conf.sh` script.
 
 add the `bashrc_extention.sh` to `.bashrc` in the home folder.
 
+in the main folder, add a file called `drone_config.json`, and inside it insert:
+
+```
+{
+    "ArucoIdFront": **,
+    "ArucoIdBehind": **,
+    
+    "aa":"the DroneName will be the name that will apear on the server host",
+    "DroneName": "TELLO-**"
+}
+```
+
 ## tello network setup
 
 open an hotspot you can use for runing the server-client connection.
