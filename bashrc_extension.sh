@@ -12,6 +12,8 @@ else
     export LD_LIBRARY_PATH=/usr/local/lib
     while ! [[ $(ip a | grep "inet 192") ]]; do sleep 1s; done
 
+    rm -rf /home/pi/arucoSwarm/videocap/*
+
     ipServerHost=192.168.43.163
 
     cd /home/pi/arucoSwarm/build
