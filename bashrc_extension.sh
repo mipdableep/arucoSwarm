@@ -19,4 +19,12 @@ else
     cd /home/pi/arucoSwarm/build
     /home/pi/arucoSwarm/build/followAruco /home/pi/arucoSwarm/mobilenet_ssd_v2_coco_quant_postprocess.tflite $ipServerHost 9090 2>&1 | tee out.txt
     
+    if [[ $? == "3" ]]
+    then
+        python3 /home/pi/arucoSwarm/build/followAruco/scripts/led/green.py
+    else
+        if [[ $? == "2" ]]
+        then 
+            python3 /home/pi/arucoSwarm/build/followAruco/scripts/led/red.py
+        fi
 fi

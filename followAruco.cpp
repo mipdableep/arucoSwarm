@@ -100,7 +100,8 @@ void searchArucoTargetThread(ctello::Tello& tello, aruco& detector, int ArucoTar
         tello.SendCommand("cw 180");
         sleep(3);
         tello.SendCommandWithResponse("land");
-        exit(0);
+        //for green led
+        exit(3);
     
     } else {
         usleep(70000);
@@ -149,7 +150,9 @@ void scan360(aruco& detector, int arucoId, ctello::Tello& tello){
         tello.SendCommand("ccw 180");
         sleep(4);
         tello.SendCommandWithResponse("land");
-        exit(0);
+
+        //for red led
+        exit(2);
     }
 }
 
@@ -187,7 +190,9 @@ void scanForward(aruco& detector, int arucoId, ctello::Tello& tello){
         tello.SendCommand("ccw 180");
         sleep(4);
         tello.SendCommandWithResponse("land");
-        exit(0);
+
+        //for red led
+        exit(2);
     }
 }
 
@@ -203,7 +208,7 @@ void ScanForAruco(aruco& detector, int arucoId, bool& runDetection, bool& canCon
     }
     std::cout << std::endl << "aruco counter = " << counter << std::endl;
 
-    if (counter > 5 || arucoId == -1)
+    if (counter > 3 || arucoId == -1)
         canContinue = true;
     else {
         canContinue = false;
