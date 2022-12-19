@@ -22,9 +22,9 @@ else
     ret=$?
     if [[ $ret == "3" ]]
     then
-        python3 /home/pi/arucoSwarm/build/followAruco/scripts/led/green.py
+        python3 /home/pi/arucoSwarm/scripts/led/green.py
     elif [[ $ret == "2" ]]
     then
-	python3 /home/pi/arucoSwarm/build/followAruco/scripts/led/red.py
+	python3 /home/pi/arucoSwarm/scripts/led/red.py
     fi
 fi
