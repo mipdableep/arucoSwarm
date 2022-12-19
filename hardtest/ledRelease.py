@@ -9,8 +9,6 @@ ledPin = 12 # Broadcom pin 23 (P1 pin 16)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(ledPin, GPIO.OUT) # LED pin set as output
 
-cleanUp = GPIO.cleanup()
-
 counter = 0
 try:
     while counter < 20:
