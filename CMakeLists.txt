@@ -30,6 +30,7 @@ target_link_libraries(
   detector
   drone_client
   -lpthread
+  -lcppgpio
   nlohmann_json::nlohmann_json)
 
 # set(CMAKE_BUILD_TYPE Debug)

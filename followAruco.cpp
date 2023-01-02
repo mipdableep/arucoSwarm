@@ -4,6 +4,9 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <cppgpio.hpp>
+
+using namespace GPIO;
 
 // #include "detector.hpp"
 #include "drone_client.hpp"
@@ -101,6 +104,10 @@ void searchArucoTargetThread(ctello::Tello& tello, aruco& detector, int ArucoTar
         sleep(3);
         tello.SendCommandWithResponse("land");
         //for green led
+	DigitalOut out(21);
+	out.on();
+	sleep(10);
+	out.off();
         exit(3);
     
     } else {
@@ -152,6 +159,10 @@ void scan360(aruco& detector, int arucoId, ctello::Tello& tello){
         tello.SendCommandWithResponse("land");
 
         //for red led
+	DigitalOut out(13);
+	out.on();
+	sleep(10);
+	out.off();
         exit(2);
     }
 }
@@ -192,6 +203,10 @@ void scanForward(aruco& detector, int arucoId, ctello::Tello& tello){
         tello.SendCommandWithResponse("land");
 
         //for red led
+	DigitalOut out(13);
+	out.on();
+	sleep(10);
+	out.off();
         exit(2);
     }
 }
