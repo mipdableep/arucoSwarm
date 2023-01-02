@@ -6,22 +6,21 @@
 #include <nlohmann/json.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "../include/drone.h"
 #include "aruco.h"
 #include "constants.h"
-#include "detector.hpp"
+#include "drone_client.hpp"
 
-void noLeaderLoop(drone& drone, aruco& detector, ctello::Tello& tello,
+
+void noLeaderLoop(aruco& detector, ctello::Tello& tello,
                   int& tmpId);
-void noLeaderLoop_v2(drone& drone, aruco& detector, ctello::Tello& tello,
+void noLeaderLoop_v2(aruco& detector, ctello::Tello& tello,
                      int& tmpId);
 
-void landCaseCheck(int& rc_y_below_land_limit, int& wentDownCounter,
-                   ctello::Tello& tello);
-void objectOrientedNavigation(drone& drone, aruco& detector,
-                              ctello::Tello& tello, Detector& object_detector);
-void detectorLeaderLoop(drone& drone, ctello::Tello& tello,
-                        Detector& object_detector);
+void landCaseCheck(int& rc_y_below_land_limit, int& wentDownCounter, ctello::Tello& tello);
+
+void objectOrientedNavigation(aruco& detector, ctello::Tello& tello);
+
+void detectorLeaderLoop(ctello::Tello& tello);
 
 void calculate_y_rc();
 void calculate_z_rc();
