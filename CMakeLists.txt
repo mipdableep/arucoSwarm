@@ -13,6 +13,7 @@ include_directories(include)
 
 add_library(aruco src/aruco.cpp)
 add_library(drone_client src/drone_client.cc)
+add_library(arucoCalc src/arucoCalc.cpp)
 
 
 target_link_libraries(aruco -lpthread ${OpenCV_LIBS} ${Boost_LIBRARIES})
@@ -24,5 +25,6 @@ target_link_libraries(
   aruco
   ctello
   drone_client
+  arucoCalc
   -lpthread
   nlohmann_json::nlohmann_json)
