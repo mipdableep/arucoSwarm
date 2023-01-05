@@ -12,6 +12,11 @@
 #include <opencv2/opencv.hpp>
 #include <thread>
 #include <vector>
+#include <algorithm>
+#include <opencv2/core/hal/interface.h>
+#include <unistd.h>
+#include <opencv2/highgui.hpp>
+
 
 class aruco {
    public:
@@ -53,6 +58,11 @@ class aruco {
     std::pair<int, bool> leftOverAngle{0, false};
     int yaw = 0;
     int rollAngle = 0;
+
+    bool imshow = false;
+    cv::Mat objPoints;
+    int id_to_follow;
+    int rightId = 0;
 
    private:
     bool runCamera;

@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 
 class arucoCalc {
     public:
@@ -14,6 +15,8 @@ class arucoCalc {
         bool check_reverse();
 
         void set_temp_vals();
+
+        void get_target_vals();
 
         /// variables
         double droneZRotate, droneXPos, droneYPos, droneZPos;

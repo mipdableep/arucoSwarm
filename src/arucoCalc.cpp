@@ -15,6 +15,13 @@ void arucoCalc::calculate_z_angle_target(){
     Z_ANGLE_TARGET = std::atan2(X_TARGET,Y_TARGET)*RADIANS_TO_DEGREESE;
 }
 
+void arucoCalc::get_target_vals(){
+    std::cout<< "\nX_TARGET: " << X_TARGET << std::endl;
+    std::cout<< "Y_TARGET: " << Y_TARGET << std::endl;
+    std::cout<< "Z_TARGET: " << Z_TARGET << std::endl;
+    std::cout<< "Z_TARGET: " << Z_ANGLE_TARGET << std::endl << std::endl;
+}
+
 /// @brief set the temporary vals to the current pos vals
 void arucoCalc::set_temp_vals(){
     tmpZr = droneZRotate;

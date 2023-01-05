@@ -1,14 +1,15 @@
 {
-  "yamlCalibrationPath": "/home/pi/arucoSwarm/swarm5.yaml",
+  "yamlCalibrationPath": "/home/fares/rbd/projects/aruco_swarm/arucoSwarm/swarm5.yaml",
   "rpiCalibrationPath": "/home/pi/arucoSwarm/rpicamcalib.yaml",
-  "webcamYamlCalibrationPath": "/home/fares/rbd/projects/aruco_swarm/Swarm-Drones-/webcamCalib.yaml",
+  "webcamYamlCalibrationPath": "/home/fares/rbd/projects/aruco_swarm/arucoSwarm/webcamCalib.yaml",
   "webcam": false,
-  "rpiCamera": true,
+  "rpiCamera": false,
   "cameraPort": 2,
   
   "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
   "currentMarkerSize": 0.1,
   
 
+  "imshow":true,
   "runServer": true
 }
