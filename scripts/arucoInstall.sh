@@ -1,3 +1,5 @@
+cd ..
+
 opencvVersion=$(pkg-config --modversion opencv)
 
 if [ "$opencvVersion" != "3.4.16" ]; then
@@ -20,8 +22,8 @@ cmake ..
 sudo make -j$(nproc) install
 
 cd "$cwd" || exit
+cd ../
 mkdir build
 cd build || exit
 cmake ..
 make -j
-
