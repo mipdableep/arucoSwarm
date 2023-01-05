@@ -246,15 +246,15 @@ int main(int argc, char* argv[]) {
         std::thread movementThread([&] { webcamTest(detector, calc); });
         movementThread.join();
     }
-    //TODO: add if 
-    /*(runServer){
-            DroneClient client(droneName, argv[2], std::stoi(argv[3]));
+
+    else {
+
+        if (runServer){
+            DroneClient client(droneName, argv[1], std::stoi(argv[2]));
             client.connect_to_server();
             client.wait_for_takeoff();
             change_to_tello_wifi();
-        }*/
-
-    else {
+        }
 
         ctello::Tello tello;
         tello.SendCommandWithResponse("streamon");
