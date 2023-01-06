@@ -195,23 +195,16 @@ void aruco::trackMarkerThread() {
                     yaw = getLeftOverAngleFromRotationVector(localRvecs[rightId]);
                     rollAngle = getHorizontalAngleFromRotationVector(localRvecs[rightId]);
 
-                    // cv::Mat rot_mat;
-                    // cv::Rodrigues(localRvecs[rightId], rot_mat);
-                    // yaw = atan2(rot_mat.at<double>(1,0), rot_mat.at<double>(0,0));
-
-
-                    // std::cout<< "yaw " << yaw << std::endl;
                     usleep(amountOfUSleepForTrackMarker);
 
                 } else {
-                    // std::cout << "couldnt get R vector" << std::endl;
                     ID = -1;
                 }
             }
         }  // end of canConteniue
         else {
             std::cout << "didnt detect right marker" << std::endl;
-            usleep(200000);
+            usleep(50000);
         }
         if (imshow)
                 cv::imshow("aruco", imageCopy);

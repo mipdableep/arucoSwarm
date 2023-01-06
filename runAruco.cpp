@@ -247,6 +247,33 @@ int main(int argc, char* argv[]) {
         movementThread.join();
     }
 
+    else if (rpiCamera){
+        if (runServer){
+            DroneClient client(droneName, argv[1], std::stoi(argv[2]));
+            client.connect_to_server();
+            client.wait_for_takeoff();
+            change_to_tello_wifi();
+        }
+
+        ctello::Tello tello;
+
+        sleep(2);
+
+        tello.SendCommandWithResponse("takeoff");
+
+        tello.SendCommand("rc 0 0 0 0");
+
+        arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
+        //camera at port 0
+        aruco detector(yamlCalibrationPath, 0, currentMarkerSize);
+        detector.imshow = false;
+        detector.id_to_follow = data2["OON_target_id"];
+        std::thread movementThread([&] {objectOrientedNavigation(detector, tello, calc);
+        });
+
+        movementThread.join();
+    }
+
     else {
 
         if (runServer){
@@ -268,7 +295,7 @@ int main(int argc, char* argv[]) {
 
         arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
         aruco detector(yamlCalibrationPath, cameraString, currentMarkerSize);
-        detector.imshow = true;
+        detector.imshow = do_imshow;
         detector.id_to_follow = data2["OON_target_id"];
         std::thread movementThread([&] {objectOrientedNavigation(detector, tello, calc);
         });

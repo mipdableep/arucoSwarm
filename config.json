@@ -1,15 +1,15 @@
 {
-  "yamlCalibrationPath": "/home/fares/rbd/projects/aruco_swarm/arucoSwarm/swarm5.yaml",
-  "rpiCalibrationPath": "/home/pi/arucoSwarm/rpicamcalib.yaml",
-  "webcamYamlCalibrationPath": "/home/fares/rbd/projects/aruco_swarm/arucoSwarm/webcamCalib.yaml",
-  "webcam": false,
+  "yamlCalibrationPath": "../calib/tello_camera.yaml",
+  "rpiCalibrationPath": "../calib/rpicamcalib.yaml",
+  "webcamYamlCalibrationPath": "../calib/webcamCalib.yaml",
+  "webcam": true,
   "rpiCamera": false,
-  "cameraPort": 2,
+  "cameraPort": 0,
   
   "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
   "currentMarkerSize": 0.1,
   
-
+  "imshow will only take affect when running the code with the tello as img input":"aa",
   "imshow":true,
   "runServer": true
 }
