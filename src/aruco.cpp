@@ -124,6 +124,8 @@ void aruco::trackMarkerThread() {
     objPoints.ptr<cv::Vec3f>(0)[3] = cv::Vec3f(-currentMarkerSize/2.f, -currentMarkerSize/2.f, 0);
 
     cv::Mat imageCopy;
+    std::string frame_name;
+    int frame_counter = 0;
     while (!stop) {
         std::vector<int> ids;
         if (frame && !frame->empty()) {
@@ -146,6 +148,10 @@ void aruco::trackMarkerThread() {
 
             cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
             // cv::imshow("aruco", imageCopy);
+
+            frame_name ="/home/pi/arucoSwarm/videocap/" + std::to_string(frame_counter) + ".jpg";
+            cv::imwrite(frame_name, imageCopy);
+            frame_counter ++;
 
             cv::waitKey(1);
         } else {

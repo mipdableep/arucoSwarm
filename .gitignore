@@ -1,5 +1,5 @@
 build/
 .vscode/
-images/*
+videocap/*
 .idea
 cmake-build-debug
