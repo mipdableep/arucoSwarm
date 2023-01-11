@@ -14,7 +14,7 @@ include_directories(include)
 add_library(aruco src/aruco.cpp)
 add_library(drone_client src/drone_client.cc)
 add_library(arucoCalc src/arucoCalc.cpp)
-
+add_library(SerialTello src/SerialTello.cpp)
 
 target_link_libraries(aruco -lpthread ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
@@ -24,6 +24,7 @@ target_link_libraries(
   runAruco
   aruco
   ctello
+  SerialTello
   drone_client
   arucoCalc
   -lpthread
