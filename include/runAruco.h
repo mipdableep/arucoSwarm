@@ -19,6 +19,8 @@ void noLeaderLoop(aruco& detector, ctello::Tello& tello,
 
 void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& calc);
 
+void objectOrientedNavigation(aruco& detector, SerialTello& tello, arucoCalc& calc);
+
 bool opposite_position(double droneVal, double tmp);
 
 int X_rc, Y_rc, Z_rc, Zr_rc;

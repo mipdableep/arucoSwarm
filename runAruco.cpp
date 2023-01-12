@@ -144,6 +144,63 @@ void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& 
     }
 }
 
+void objectOrientedNavigation(aruco& detector, SerialTello& tello, arucoCalc& calc) {
+    std::cout << "started OON\n" << std::endl;
+
+    while (true) {
+
+        if ((!detector.init || detector.ID != -1) && detector.rightId != -9) {
+
+            calc.set_temp_vals();
+
+            calc.droneZRotate = detector.yaw;
+            calc.droneXPos = detector.rightLeft;
+            calc.droneYPos = detector.forward;
+            calc.droneZPos = detector.upDown;
+
+            if (calc.check_reverse()) {
+                calc.droneXPos *= -1;
+                calc.droneZPos *= -1;
+                calc.droneZRotate *= -1;
+                std::cout << "make switch\n" << std::endl;
+            }
+
+            // std::cout << "droneZRotate: " << calc.droneZRotate << std::endl;
+            // std::cout << "droneXPos: " << calc.droneXPos << std::endl;
+            // std::cout << "droneYPos: " << calc.droneYPos << std::endl;
+            // std::cout << "droneZPos: " << calc.droneZPos << std::endl;
+
+            // run rc calculations
+            X_rc = calc.calculate_x_rc();
+            Y_rc = calc.calculate_y_rc();
+            Z_rc = calc.calculate_z_rc();
+            Zr_rc = calc.calculate_z_rotation_rc();
+
+
+            std::string command = "rc ";
+
+            command += std::to_string((int)(X_rc));
+            command += " ";
+
+            command += std::to_string((int)(Y_rc));
+            command += " ";
+
+            command += std::to_string((int)(Z_rc));
+            command += " ";
+
+            command += std::to_string((int)(Zr_rc));
+
+            tello.SendCommand(command);
+            std::cout << "OON command:  " << command << std::endl;
+
+            } else {
+                tello.SendCommand("rc 0 0 0 0");
+            }
+
+            sleep(1);        
+    }
+}
+
 void noLeaderLoop(aruco& detector, ctello::Tello& tello,
                   int& tmpId) {
     std::cout << "in no leader loop" << std::endl;
@@ -236,10 +293,9 @@ int main(int argc, char* argv[]) {
             DroneClient client(droneName, argv[1], std::stoi(argv[2]));
             client.connect_to_server();
             client.wait_for_takeoff();
-            change_to_tello_wifi();
         }
 
-        ctello::Tello tello;
+        SerialTello tello("");
 
         sleep(2);
 
