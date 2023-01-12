@@ -90,73 +90,57 @@ void leaderDrone(ctello::Tello& tello) {}
 void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& calc) {
     std::cout << "started OON\n" << std::endl;
 
-    int tmpId = -1;
-    bool commandFlag;
-
     while (true) {
-        while (commandFlag && detector.ID != -1);
 
-        if (detector.ID != -1) {
-            tmpId = detector.ID;
-        }
+        if ((!detector.init || detector.ID != -1) && detector.rightId != -9) {
 
-        if (detector.ID == -1 && tmpId != -1) {
-            // noLeaderLoop_v2(drone, detector, tello, tmpId);
-            noLeaderLoop(detector, tello, tmpId);
-        }
+            calc.set_temp_vals();
 
-        else {
-            if (!detector.init || detector.ID != -1) {
+            calc.droneZRotate = detector.yaw;
+            calc.droneXPos = detector.rightLeft;
+            calc.droneYPos = detector.forward;
+            calc.droneZPos = detector.upDown;
 
-                calc.set_temp_vals();
+            if (calc.check_reverse()) {
+                calc.droneXPos *= -1;
+                calc.droneZPos *= -1;
+                calc.droneZRotate *= -1;
+                std::cout << "make switch\n" << std::endl;
+            }
 
-                calc.droneZRotate = detector.yaw;
-                calc.droneXPos = detector.rightLeft;
-                calc.droneYPos = detector.forward;
-                calc.droneZPos = detector.upDown;
+            // std::cout << "droneZRotate: " << calc.droneZRotate << std::endl;
+            // std::cout << "droneXPos: " << calc.droneXPos << std::endl;
+            // std::cout << "droneYPos: " << calc.droneYPos << std::endl;
+            // std::cout << "droneZPos: " << calc.droneZPos << std::endl;
 
-                if (calc.check_reverse()) {
-                    calc.droneXPos *= -1;
-                    calc.droneZPos *= -1;
-                    calc.droneZRotate *= -1;
-                    std::cout << "make switch\n" << std::endl;
-                }
-
-                // std::cout << "droneZRotate: " << calc.droneZRotate << std::endl;
-                // std::cout << "droneXPos: " << calc.droneXPos << std::endl;
-                // std::cout << "droneYPos: " << calc.droneYPos << std::endl;
-                // std::cout << "droneZPos: " << calc.droneZPos << std::endl;
-
-                // run rc calculations
-                X_rc = calc.calculate_x_rc();
-                Y_rc = calc.calculate_y_rc();
-                Z_rc = calc.calculate_z_rc();
-                Zr_rc = calc.calculate_z_rotation_rc();
+            // run rc calculations
+            X_rc = calc.calculate_x_rc();
+            Y_rc = calc.calculate_y_rc();
+            Z_rc = calc.calculate_z_rc();
+            Zr_rc = calc.calculate_z_rotation_rc();
 
 
-                std::string command = "rc ";
+            std::string command = "rc ";
 
-                command += std::to_string((int)(X_rc));
-                command += " ";
+            command += std::to_string((int)(X_rc));
+            command += " ";
 
-                command += std::to_string((int)(Y_rc));
-                command += " ";
+            command += std::to_string((int)(Y_rc));
+            command += " ";
 
-                command += std::to_string((int)(Z_rc));
-                command += " ";
+            command += std::to_string((int)(Z_rc));
+            command += " ";
 
-                command += std::to_string((int)(Zr_rc));
+            command += std::to_string((int)(Zr_rc));
 
-                tello.SendCommand(command);
-                std::cout << "OON command:  " << command << std::endl;
+            tello.SendCommand(command);
+            std::cout << "OON command:  " << command << std::endl;
 
             } else {
                 tello.SendCommand("rc 0 0 0 0");
             }
 
-            sleep(1);
-            commandFlag = false;
-        }
+            sleep(1);        
     }
 }
 
