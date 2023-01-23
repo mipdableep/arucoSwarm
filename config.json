@@ -3,11 +3,14 @@
   "rpiCalibrationPath": "../calib/rpicamcalib.yaml",
   "webcamYamlCalibrationPath": "../calib/webcamCalib.yaml",
   "webcam": false,
-  "rpiCamera": true,
+  "rpiCamera": false,
   
-  "__coment__":"set cam_fps to -1 to  get default",
-  "cam_fps":10,
-  
+  "__comment__":"set cam_fps to -1 to  get default",
+  "cam_fps":-1,
+
+  "__Comment":"save photos",
+  "videoCap":true,
+
   "cameraPort": 0,
   
   "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
@@ -16,5 +19,6 @@
   "__comment":"imshow will only take affect when running the code with the tello as img input",
   "imshow":true,
 
-  "runServer": false
+  "runServer": false,
+  "connect_to_drone":false
 }

@@ -66,6 +66,7 @@ class aruco {
     bool imshow = false;
     cv::Mat objPoints;
     int id_to_follow;
+    bool videoCap;
     int rightId = 0;
 
    private:

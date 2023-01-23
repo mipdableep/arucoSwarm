@@ -266,8 +266,9 @@ int main(int argc, char* argv[]) {
     int OON_target_Z = data2["OON_target_Z"];
 
     bool runServer = data["runServer"];
+    bool videoCap = data["videoCap"];
     bool do_imshow = data["imshow"];
-    
+    bool connect_to_drone = data["connect_to_drone"];
 
     // checking the img input device for correct calibration
     std::string yamlCalibrationPath;
@@ -284,6 +285,7 @@ int main(int argc, char* argv[]) {
         int cameraPort = data["cameraPort"];
         aruco detector(yamlCalibrationPath, cameraPort, currentMarkerSize);
         detector.imshow = true;
+        detector.videoCap = false;
         detector.id_to_follow = data2["OON_target_id"];
         arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
         std::thread movementThread([&] { webcamTest(detector, calc); });
@@ -309,6 +311,7 @@ int main(int argc, char* argv[]) {
         //camera at port 0
         aruco detector(yamlCalibrationPath, 0, currentMarkerSize, cam_fps);
         detector.imshow = false;
+        detector.videoCap = videoCap;
         detector.id_to_follow = data2["OON_target_id"];
         std::thread movementThread([&] {objectOrientedNavigation(detector, tello, calc);
         });
@@ -324,6 +327,9 @@ int main(int argc, char* argv[]) {
             client.wait_for_takeoff();
             change_to_tello_wifi();
         }
+        
+        if (!runServer && connect_to_drone)
+            change_to_tello_wifi();
 
         ctello::Tello tello;
         tello.SendCommandWithResponse("streamon");
@@ -338,6 +344,7 @@ int main(int argc, char* argv[]) {
         arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
         aruco detector(yamlCalibrationPath, cameraString, currentMarkerSize);
         detector.imshow = do_imshow;
+        detector.videoCap = videoCap;
         detector.id_to_follow = data2["OON_target_id"];
         std::thread movementThread([&] {objectOrientedNavigation(detector, tello, calc);
         });

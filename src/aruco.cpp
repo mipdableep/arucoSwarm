@@ -149,9 +149,11 @@ void aruco::trackMarkerThread() {
             cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
             // cv::imshow("aruco", imageCopy);
 
-            frame_name ="/home/pi/arucoSwarm/videocap/" + std::to_string(frame_counter) + ".jpg";
-            cv::imwrite(frame_name, imageCopy);
-            frame_counter ++;
+            if (videoCap){
+                frame_name ="/home/pi/arucoSwarm/videocap/" + std::to_string(frame_counter) + ".jpg";
+                cv::imwrite(frame_name, imageCopy);
+                frame_counter ++;
+            }
 
             cv::waitKey(1);
         } else {
