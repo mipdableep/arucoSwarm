@@ -301,6 +301,29 @@ aruco::aruco(std::string &yamlCalibrationPath, int cameraPort,
     arucoThread = std::move(std::thread(&aruco::trackMarkerThread, this));
 }
 
+aruco::aruco(std::string &yamlCalibrationPath, int cameraPort,
+             float currentMarkerSize, int cam_fps)
+    : frame_queue(1) {
+    this->yamlCalibrationPath = yamlCalibrationPath;
+    stop = false;
+    holdCamera = std::make_shared<bool>(false);
+    frame = std::make_shared<cv::Mat>();
+    capture = std::make_shared<cv::VideoCapture>();
+    if (capture->open(cameraPort)) {
+        std::cout << "camera opened" << std::endl;
+        capture->set(3, 640);
+        capture->set(4, 480);
+        if (cam_fps != -1)
+            capture->set(5, cam_fps);
+            
+    } else {
+        std::cout << "couldnt open camera by port" << std::endl;
+    }
+    this->currentMarkerSize = currentMarkerSize;
+    cameraThread = std::move(std::thread(&aruco::getCameraFeed, this));
+    arucoThread = std::move(std::thread(&aruco::trackMarkerThread, this));
+}
+
 aruco::aruco(std::string &yamlCalibrationPath, std::string &cameraString,
              float currentMarkerSize)
     : frame_queue(1) {

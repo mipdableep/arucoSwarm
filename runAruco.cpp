@@ -253,6 +253,8 @@ int main(int argc, char* argv[]) {
     bool isWebcam = data["webcam"];
     bool rpiCamera = data["rpiCamera"];
 
+    int cam_fps = data["cam_fps"];
+
     float currentMarkerSize = data["currentMarkerSize"];
 
     std::string droneName = data2["DroneName"];
@@ -305,7 +307,7 @@ int main(int argc, char* argv[]) {
 
         arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
         //camera at port 0
-        aruco detector(yamlCalibrationPath, 0, currentMarkerSize);
+        aruco detector(yamlCalibrationPath, 0, currentMarkerSize, cam_fps);
         detector.imshow = false;
         detector.id_to_follow = data2["OON_target_id"];
         std::thread movementThread([&] {objectOrientedNavigation(detector, tello, calc);

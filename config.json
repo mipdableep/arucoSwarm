@@ -4,12 +4,17 @@
   "webcamYamlCalibrationPath": "../calib/webcamCalib.yaml",
   "webcam": false,
   "rpiCamera": true,
+  
+  "__coment__":"set cam_fps to -1 to  get default",
+  "cam_fps":10,
+  
   "cameraPort": 0,
   
   "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
   "currentMarkerSize": 0.1,
   
-  "imshow will only take affect when running the code with the tello as img input":"aa",
+  "__comment":"imshow will only take affect when running the code with the tello as img input",
   "imshow":true,
+
   "runServer": false
 }

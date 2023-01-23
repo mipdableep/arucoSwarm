@@ -23,6 +23,10 @@ class aruco {
     aruco(std::string &yamlCalibrationPath, int cameraPort,
           float currentMarkerSize);
 
+    aruco(std::string &yamlCalibrationPath, int cameraPort,
+          float currentMarkerSize, int cam_fps);
+
+
     ~aruco();
 
     aruco(std::string &yamlCalibrationPath, std::string &cameraString,
