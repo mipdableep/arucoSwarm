@@ -12,10 +12,6 @@ class arucoCalc {
         int calculate_x_rc();
         int calculate_z_rotation_rc();
 
-        bool check_reverse();
-
-        void set_temp_vals();
-
         void get_target_vals();
 
         /// variables
@@ -27,8 +23,6 @@ class arucoCalc {
     // variable declaretion:
 
         double RADIANS_TO_DEGREESE = (180/3.141592653589793238463);
-
-        double tmpZr, tmpZ, tmpX;
 
         int X_DIST_TOLORANCE =  15;//change
         int Y_DIST_TOLORANCE =  15;

@@ -22,21 +22,6 @@ void arucoCalc::get_target_vals(){
     std::cout<< "Z_TARGET: " << Z_ANGLE_TARGET << std::endl << std::endl;
 }
 
-/// @brief set the temporary vals to the current pos vals
-void arucoCalc::set_temp_vals(){
-    tmpZr = droneZRotate;
-    tmpZ = droneZPos;
-    tmpX = droneXPos;
-}
-
-bool arucoCalc::check_reverse(){
-    opposite_droneZr = opposite_position(droneZRotate, tmpZr);
-    opposite_droneZ = opposite_position(droneZPos, tmpZ);
-    opposite_droneX = opposite_position(droneXPos, tmpX);
-
-    return (opposite_droneZr && opposite_droneZ && opposite_droneX);
-}
-
 int arucoCalc::calculate_y_rc() {
     // if current > target + tollorate
     // if bigger then rc limit

@@ -32,24 +32,10 @@ void webcamTest(aruco& detector, arucoCalc& calc){
         else {
             if (!detector.init || detector.ID != -1) {
 
-                calc.set_temp_vals();
-
                 calc.droneZRotate = detector.yaw;
                 calc.droneXPos = detector.rightLeft;
                 calc.droneYPos = detector.forward;
                 calc.droneZPos = detector.upDown;
-
-                std::cout << "droneZRotate: " << calc.droneZRotate << std::endl;
-                std::cout << "droneXPos: " << calc.droneXPos << std::endl;
-                std::cout << "droneYPos: " << calc.droneYPos << std::endl;
-                std::cout << "droneZPos: " << calc.droneZPos << std::endl;
-                
-                if (calc.check_reverse()) {
-                    calc.droneXPos *= -1;
-                    calc.droneZPos *= -1;
-                    calc.droneZRotate *= -1;
-                    std::cout << "make switch\n" << std::endl;
-                }
 
                 // run rc calculations
                 X_rc = calc.calculate_x_rc();
@@ -85,8 +71,6 @@ void webcamTest(aruco& detector, arucoCalc& calc){
     }
 }
 
-void leaderDrone(ctello::Tello& tello) {}
-
 void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& calc) {
     std::cout << "started OON\n" << std::endl;
 
@@ -94,19 +78,10 @@ void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& 
 
         if ((!detector.init || detector.ID != -1) && detector.rightId != -9) {
 
-            calc.set_temp_vals();
-
             calc.droneZRotate = detector.yaw;
             calc.droneXPos = detector.rightLeft;
             calc.droneYPos = detector.forward;
             calc.droneZPos = detector.upDown;
-
-            if (calc.check_reverse()) {
-                calc.droneXPos *= -1;
-                calc.droneZPos *= -1;
-                calc.droneZRotate *= -1;
-                std::cout << "make switch\n" << std::endl;
-            }
 
             // std::cout << "droneZRotate: " << calc.droneZRotate << std::endl;
             // std::cout << "droneXPos: " << calc.droneXPos << std::endl;
@@ -144,6 +119,7 @@ void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& 
     }
 }
 
+/*
 void objectOrientedNavigation(aruco& detector, SerialTello& tello, arucoCalc& calc) {
     std::cout << "started OON\n" << std::endl;
 
@@ -158,13 +134,6 @@ void objectOrientedNavigation(aruco& detector, SerialTello& tello, arucoCalc& ca
             calc.droneYPos = detector.forward;
             calc.droneZPos = detector.upDown;
 
-            if (calc.check_reverse()) {
-                calc.droneXPos *= -1;
-                calc.droneZPos *= -1;
-                calc.droneZRotate *= -1;
-                std::cout << "make switch\n" << std::endl;
-            }
-
             // std::cout << "droneZRotate: " << calc.droneZRotate << std::endl;
             // std::cout << "droneXPos: " << calc.droneXPos << std::endl;
             // std::cout << "droneYPos: " << calc.droneYPos << std::endl;
@@ -200,6 +169,7 @@ void objectOrientedNavigation(aruco& detector, SerialTello& tello, arucoCalc& ca
             sleep(1);        
     }
 }
+*/
 
 void noLeaderLoop(aruco& detector, ctello::Tello& tello,
                   int& tmpId) {
@@ -291,7 +261,7 @@ int main(int argc, char* argv[]) {
         std::thread movementThread([&] { webcamTest(detector, calc); });
         movementThread.join();
     }
-
+/*
     else if (rpiCamera){
         if (runServer){
             DroneClient client(droneName, argv[1], std::stoi(argv[2]));
@@ -318,8 +288,9 @@ int main(int argc, char* argv[]) {
 
         movementThread.join();
     }
+*/
 
-    else {
+    else { //regular run with wifi connection
 
         if (runServer){
             DroneClient client(droneName, argv[1], std::stoi(argv[2]));
