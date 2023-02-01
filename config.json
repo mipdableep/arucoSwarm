@@ -9,7 +9,7 @@
   "cam_fps":-1,
 
   "__Comment":"save photos",
-  "videoCap":true,
+  "videoCap":false,
 
   "cameraPort": 0,
   

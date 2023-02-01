@@ -26,7 +26,7 @@ int arucoCalc::calculate_y_rc() {
     // if current > target + tollorate
     // if bigger then rc limit
     int return_Y_rc;
-    if (droneYPos > Y_TARGET + Y_DIST_TOLORANCE) {
+    if (droneYPos > Y_TARGET) {
         if ((droneYPos - Y_TARGET) / 3 > Y_LIMIT_RC) {
             return_Y_rc = -Y_LIMIT_RC;
             // std::cout<<1<<std::endl;
@@ -38,7 +38,7 @@ int arucoCalc::calculate_y_rc() {
         return_Y_rc = 0;
     }
 
-    if (droneYPos < Y_TARGET - Y_DIST_TOLORANCE) {
+    if (droneYPos < Y_TARGET) {
         if ((Y_TARGET - droneYPos) / 3 > Y_LIMIT_RC) {
             return_Y_rc = Y_LIMIT_RC;
             // std::cout<<3<<std::endl;
@@ -56,7 +56,7 @@ int arucoCalc::calculate_z_rc() {
     // if current > target + tollorate
     // if bigger then rc limit
     int return_Z_rc;
-    if (droneZPos > Z_TARGET + Z_DIST_TOLORANCE) {
+    if (droneZPos > Z_TARGET) {
         if ((droneZPos - Z_TARGET) / 2 > Z_LIMIT_RC)
             return_Z_rc = -Z_LIMIT_RC;
         else
@@ -65,7 +65,7 @@ int arucoCalc::calculate_z_rc() {
         return_Z_rc = 0;
     }
 
-    if (droneZPos < Z_TARGET - Z_DIST_TOLORANCE) {
+    if (droneZPos < Z_TARGET) {
         if ((Z_TARGET - droneZPos) / 2 > Z_LIMIT_RC)
             return_Z_rc = Z_LIMIT_RC;
         else
@@ -74,26 +74,26 @@ int arucoCalc::calculate_z_rc() {
     return return_Z_rc;
 }
 
+int arucoCalc::calculate_x_rc() { 
+    int return_X_rc;
+    if (droneXPos > X_TARGET) {
+        if ((droneXPos - X_TARGET) / 2 > X_LIMIT_RC)
+            return_X_rc = -X_LIMIT_RC;
+        else
+            return_X_rc = -((droneXPos - X_TARGET) / 2);
+    } else {
+        return_X_rc = 0;
+    }
 
-void arucoCalc::calculate_current_wanted_Zr() {
-    current_wanted_Zr = std::atan2(droneXPos, droneYPos) * RADIANS_TO_DEGREESE;
+    if (droneXPos < X_TARGET) {
+        if ((X_TARGET - droneXPos) / 2 > X_LIMIT_RC)
+            return_X_rc = X_LIMIT_RC;
+        else
+            return_X_rc = (X_TARGET - droneXPos) / 2;
+    }
+    return return_X_rc;
 }
 
 int arucoCalc::calculate_z_rotation_rc() {
-    calculate_current_wanted_Zr();
-    return (droneZRotate - current_wanted_Zr)*1.15;
+    return (droneZRotate)/1.5;
 }
-
-int arucoCalc::calculate_x_rc() { 
-    return (Z_ANGLE_TARGET - current_wanted_Zr) / 2;
-}
-
-bool arucoCalc::opposite_position(double droneVal, double tmp) {
-    return (tmp - (0.4 * tmp) < -droneVal && -droneVal < tmp + (0.4 * tmp));
-}
-
-bool opposite_angle(double droneVal, double tmp) {
-    return (tmp - (0.7 * tmp) < -droneVal && -droneVal < tmp + (0.7 * tmp));
-}
-
-

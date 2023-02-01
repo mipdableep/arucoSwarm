@@ -24,12 +24,6 @@ class arucoCalc {
 
         double RADIANS_TO_DEGREESE = (180/3.141592653589793238463);
 
-        int X_DIST_TOLORANCE =  15;//change
-        int Y_DIST_TOLORANCE =  15;
-        int Z_DIST_TOLORANCE =  10;
-
-        int Z_ANGLE_TOLORANCE =  10;
-
         //target!
         int X_TARGET;
         int Y_TARGET;
