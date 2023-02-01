@@ -74,7 +74,7 @@ void webcamTest(aruco& detector, arucoCalc& calc){
 void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& calc) {
     std::cout << "started OON\n" << std::endl;
 
-    while (true) {
+    while (run_OON) {
 
         if ((!detector.init || detector.ID != -1) && detector.rightId != -9) {
 
@@ -117,6 +117,9 @@ void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& 
 
             sleep(1);        
     }
+    tello.SendCommand("rc 0 0 0 0");
+    usleep(200000);
+    tello.SendCommand("rc 0 0 0 0");
 }
 
 /*
@@ -207,6 +210,21 @@ void change_to_tello_wifi() {
     std::this_thread::sleep_for(10s);
 }
 
+void timer_limiter(aruco& detector, ctello::Tello& tello, bool& run_OON, int seconds_time_amount){
+    while (seconds_time_amount > 0)
+    {
+        sleep(1);
+        seconds_time_amount --;
+        if (seconds_time_amount%5 == 0)
+            std::cout << "time left: " << seconds_time_amount << std::endl;
+    }
+    run_OON = false;
+    detector.~aruco();
+    usleep(300000);
+    tello.SendCommand("land");
+
+}
+
 int main(int argc, char* argv[]) {
 
     std::ifstream programData("../config.json");
@@ -235,10 +253,12 @@ int main(int argc, char* argv[]) {
     int OON_target_Y = data2["OON_target_Y"];
     int OON_target_Z = data2["OON_target_Z"];
 
-    bool runServer = data["runServer"];
     bool videoCap = data["videoCap"];
     bool do_imshow = data["imshow"];
+
+    bool runServer = data["runServer"];
     bool connect_to_drone = data["connect_to_drone"];
+    int runtime_length = data["runtime_length"];
 
     // checking the img input device for correct calibration
     std::string yamlCalibrationPath;
@@ -319,7 +339,13 @@ int main(int argc, char* argv[]) {
         detector.id_to_follow = data2["OON_target_id"];
         std::thread movementThread([&] {objectOrientedNavigation(detector, tello, calc);
         });
-
+        std::thread countdownThread([&] {timer_limiter(detector, tello, run_OON, runtime_length);
+        });
         movementThread.join();
+        countdownThread.join();
+
+        // if exit or return 0 is in the first scope it outputs "std::system_error - what():  Invalid argument"
+        exit(0);
     }
+    
 }

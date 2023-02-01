@@ -7,7 +7,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "aruco.h"
-#include "SerialTello.h"
+// #include "SerialTello.h"
 #include "drone_client.hpp"
 #include "arucoCalc.hpp"
 
@@ -19,8 +19,12 @@ void noLeaderLoop(aruco& detector, ctello::Tello& tello,
 
 void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& calc);
 
-void objectOrientedNavigation(aruco& detector, SerialTello& tello, arucoCalc& calc);
+void timer_limiter(aruco& detector, ctello::Tello& tello, bool& run_OON, int seconds_time_amount);
 
-bool opposite_position(double droneVal, double tmp);
+// void objectOrientedNavigation(aruco& detector, SerialTello& tello, arucoCalc& calc);
+
+// bool opposite_position(double droneVal, double tmp);
 
 int X_rc, Y_rc, Z_rc, Zr_rc;
+
+bool run_OON = true;

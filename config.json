@@ -5,20 +5,21 @@
   "webcam": false,
   "rpiCamera": false,
   
-  "__comment__":"set cam_fps to -1 to  get default",
+  "__comment__":"rpi input fps, set cam_fps to -1 to get default",
   "cam_fps":-1,
-
-  "__Comment":"save photos",
-  "videoCap":false,
-
+  
   "cameraPort": 0,
   
   "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
   "currentMarkerSize": 0.1,
   
+  "__Comment":"save photos",
+  "videoCap":false,
+
   "__comment":"imshow will only take affect when running the code with the tello as img input",
   "imshow":true,
 
   "runServer": false,
-  "connect_to_drone":false
+  "connect_to_drone":false,
+  "runtime_length": 20
 }
