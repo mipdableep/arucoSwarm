@@ -15,85 +15,48 @@ void arucoCalc::calculate_z_angle_target(){
     Z_ANGLE_TARGET = std::atan2(X_TARGET,Y_TARGET)*RADIANS_TO_DEGREESE;
 }
 
-void arucoCalc::get_target_vals(){
-    std::cout<< "\nX_TARGET: " << X_TARGET << std::endl;
+void arucoCalc::get_target_vals(){ std::cout<<std::endl;
+    std::cout<< "X_TARGET: " << X_TARGET << std::endl;
     std::cout<< "Y_TARGET: " << Y_TARGET << std::endl;
     std::cout<< "Z_TARGET: " << Z_TARGET << std::endl;
     std::cout<< "Z_TARGET: " << Z_ANGLE_TARGET << std::endl << std::endl;
 }
 
+int arucoCalc::calculate_rc(double pos, int target, int rc_max, int rc_min, double devidor, int tolorance){
+    int rc;
+    if (pos > target + tolorance)
+        rc = -((pos - target) / devidor);
+    
+    else if (pos < target - tolorance)
+        rc = (target - pos) / devidor;
+    
+    else
+        return 0;
+    
+    if (rc > 0){
+        if (rc < rc_min)
+            rc = rc_min;
+        
+        if (rc > rc_max)
+            rc = rc_max;
+
+    } else { //if rc < 0
+        if (rc < rc_max)
+            rc = -rc_max;
+        
+        if (rc > rc_min)
+            rc = -rc_min;
+    }
+}
+
 int arucoCalc::calculate_y_rc() {
-    // if current > target + tollorate
-    // if bigger then rc limit
-    int return_Y_rc;
-    if (droneYPos > Y_TARGET) {
-        if ((droneYPos - Y_TARGET) / 3 > Y_LIMIT_RC) {
-            return_Y_rc = -Y_LIMIT_RC;
-            // std::cout<<1<<std::endl;
-        } else {
-            return_Y_rc = -((droneYPos - Y_TARGET) / 3);
-            // std::cout<<2<<std::endl;
-        }
-    } else {
-        return_Y_rc = 0;
-    }
-
-    if (droneYPos < Y_TARGET) {
-        if ((Y_TARGET - droneYPos) / 3 > Y_LIMIT_RC) {
-            return_Y_rc = Y_LIMIT_RC;
-            // std::cout<<3<<std::endl;
-        } else {
-            return_Y_rc = (Y_TARGET - droneYPos) / 3;
-            // std::cout<<4<<std::endl;
-        }
-    }
-
-    return_Y_rc *= -1;
-    return return_Y_rc;
+    return -(calculate_rc(droneYPos, Y_TARGET, Y_MAX_RC, Y_MIN_RC, Y_DEVIDOR, Y_TOLORANCE));
 }
 
 int arucoCalc::calculate_z_rc() {
-    // if current > target + tollorate
-    // if bigger then rc limit
-    int return_Z_rc;
-    if (droneZPos > Z_TARGET) {
-        if ((droneZPos - Z_TARGET) / 2 > Z_LIMIT_RC)
-            return_Z_rc = -Z_LIMIT_RC;
-        else
-            return_Z_rc = -((droneZPos - Z_TARGET) / 2);
-    } else {
-        return_Z_rc = 0;
-    }
-
-    if (droneZPos < Z_TARGET) {
-        if ((Z_TARGET - droneZPos) / 2 > Z_LIMIT_RC)
-            return_Z_rc = Z_LIMIT_RC;
-        else
-            return_Z_rc = (Z_TARGET - droneZPos) / 2;
-    }
-    return return_Z_rc;
+    return calculate_rc(droneZPos, Z_TARGET, Z_MAX_RC, Z_MIN_RC, Z_DEVIDOR, Z_TOLORANCE);
 }
 
 int arucoCalc::calculate_x_rc() { 
-    int return_X_rc;
-    if (droneXPos > X_TARGET) {
-        if ((droneXPos - X_TARGET) / 2 > X_LIMIT_RC)
-            return_X_rc = -X_LIMIT_RC;
-        else
-            return_X_rc = -((droneXPos - X_TARGET) / 2);
-    } else {
-        return_X_rc = 0;
-    }
-
-    if (droneXPos < X_TARGET) {
-        if ((X_TARGET - droneXPos) / 2 > X_LIMIT_RC)
-            return_X_rc = X_LIMIT_RC;
-        else
-            return_X_rc = (X_TARGET - droneXPos) / 2;
-    }
-    return return_X_rc;
-}
-
-int arucoCalc::calculate_z_rotation_rc() {
-    return (droneZRotate)/1.5;
+    return -(calculate_rc(droneXPos, X_TARGET, X_MAX_RC, X_MIN_RC, X_DEVIDOR, X_TOLORANCE));
 }

@@ -5,9 +5,7 @@ else
 
     while ! [[ $(ip a | grep "inet 192") ]]; do sleep 1s; done
 
-    ipServerHost=192.168.43.163
-
     cd /home/pi/arucoSwarm/build
-    /home/pi/arucoSwarm/build/runAruco $ipServerHost 9090 2>&1 | tee out.txt
+    /home/pi/arucoSwarm/build/runAruco 2>&1 | tee out.txt
     
 fi

@@ -313,7 +313,10 @@ int main(int argc, char* argv[]) {
     else { //regular run with wifi connection
 
         if (runServer){
-            DroneClient client(droneName, argv[1], std::stoi(argv[2]));
+            int serverPort = data["serverPort"];
+            std::string serverHostIp = data["serverHostIp"];
+
+            DroneClient client(droneName, serverHostIp, serverPort);
             client.connect_to_server();
             client.wait_for_takeoff();
             change_to_tello_wifi();

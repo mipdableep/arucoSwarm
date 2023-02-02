@@ -6,7 +6,7 @@ class arucoCalc {
     //calculations
         arucoCalc(int x_target ,int y_target ,int z_target);
         
-        void calculate_current_wanted_Zr();
+        int calculate_rc(double pos, int target, int rc_max, int rc_min, double devidor, int tolorance);
         int calculate_y_rc();
         int calculate_z_rc();
         int calculate_x_rc();
@@ -24,6 +24,11 @@ class arucoCalc {
 
         double RADIANS_TO_DEGREESE = (180/3.141592653589793238463);
 
+        //tolorance - set in cm to each side
+        int X_TOLORANCE = 5;
+        int Y_TOLORANCE = 5;
+        int Z_TOLORANCE = 2;
+
         //target!
         int X_TARGET;
         int Y_TARGET;
@@ -31,9 +36,19 @@ class arucoCalc {
 
         double Z_ANGLE_TARGET;
 
-        int X_LIMIT_RC = 15;
-        int Y_LIMIT_RC = 15;//change
-        int Z_LIMIT_RC = 15;
+        // devidors - rc +- target / devidor
+        double X_DEVIDOR = 1.5;
+        double Y_DEVIDOR = 1.5;
+        double Z_DEVIDOR = 1.5;
+
+        // rc limits
+        int X_MAX_RC = 25;
+        int Y_MAX_RC = 25;//change
+        int Z_MAX_RC = 25;
+
+        int X_MIN_RC = 7;        
+        int Y_MIN_RC = 7;
+        int Z_MIN_RC = 7;
 
         void calculate_z_angle_target();
         bool opposite_position(double droneVal, double tmp);
