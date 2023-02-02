@@ -73,6 +73,7 @@ void webcamTest(aruco& detector, arucoCalc& calc){
 
 void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& calc) {
     std::cout << "started OON\n" << std::endl;
+    calc.get_target_vals();
 
     while (run_OON) {
 
@@ -258,6 +259,7 @@ int main(int argc, char* argv[]) {
 
     bool runServer = data["runServer"];
     bool connect_to_drone = data["connect_to_drone"];
+    bool do_ncli_command = data["do_ncli_command"];
     int runtime_length = data["runtime_length"];
 
     // checking the img input device for correct calibration
@@ -304,7 +306,9 @@ int main(int argc, char* argv[]) {
         detector.videoCap = videoCap;
         detector.id_to_follow = data2["OON_target_id"];
         std::thread movementThread([&] {objectOrientedNavigation(detector, tello, calc);
-        });
+        });1.5
+1.5
+1.5
 
         movementThread.join();
     }
@@ -324,6 +328,12 @@ int main(int argc, char* argv[]) {
         
         if (!runServer && connect_to_drone)
             change_to_tello_wifi();
+
+        if (do_ncli_command){
+            std::string commandString = "nmcli c up " + droneName;
+            const char *command = commandString.c_str();
+            system(command);
+        }
 
         ctello::Tello tello;
         tello.SendCommandWithResponse("streamon");

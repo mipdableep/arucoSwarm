@@ -19,11 +19,13 @@
   "__comment":"imshow will only take affect when running the code with the tello as img input",
   "imshow":true,
 
+  "do_ncli_command": true,
+
   "runServer": false,
   "serverHostIp": "192.168.43.163",
   "serverPort": 9090,
 
   "connect_to_drone":false,
 
-  "runtime_length": 20
+  "runtime_length": 30
 }

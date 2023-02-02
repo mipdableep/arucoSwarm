@@ -47,6 +47,7 @@ int arucoCalc::calculate_rc(double pos, int target, int rc_max, int rc_min, doub
         if (rc > rc_min)
             rc = -rc_min;
     }
+    return rc;
 }
 
 int arucoCalc::calculate_y_rc() {
@@ -58,5 +59,9 @@ int arucoCalc::calculate_z_rc() {
 }
 
 int arucoCalc::calculate_x_rc() { 
-    return -(calculate_rc(droneXPos, X_TARGET, X_MAX_RC, X_MIN_RC, X_DEVIDOR, X_TOLORANCE));
+    return calculate_rc(droneXPos, X_TARGET, X_MAX_RC, X_MIN_RC, X_DEVIDOR, X_TOLORANCE);
+}
+
+int arucoCalc::calculate_z_rotation_rc() {
+    return (droneZRotate)/Z_ROTATION_DEVIDOR;
 }

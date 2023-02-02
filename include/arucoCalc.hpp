@@ -37,20 +37,20 @@ class arucoCalc {
         double Z_ANGLE_TARGET;
 
         // devidors - rc +- target / devidor
-        double X_DEVIDOR = 1.5;
-        double Y_DEVIDOR = 1.5;
-        double Z_DEVIDOR = 1.5;
+        double X_DEVIDOR = 2.2;
+        double Y_DEVIDOR = 4;
+        double Z_DEVIDOR = 2.2;
+
+        double Z_ROTATION_DEVIDOR = 2;
 
         // rc limits
-        int X_MAX_RC = 25;
-        int Y_MAX_RC = 25;//change
-        int Z_MAX_RC = 25;
+        int X_MAX_RC = 17;
+        int Y_MAX_RC = 17;//change
+        int Z_MAX_RC = 17;
 
         int X_MIN_RC = 7;        
         int Y_MIN_RC = 7;
         int Z_MIN_RC = 7;
 
         void calculate_z_angle_target();
-        bool opposite_position(double droneVal, double tmp);
-
 };

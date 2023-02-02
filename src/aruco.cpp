@@ -126,6 +126,7 @@ void aruco::trackMarkerThread() {
     cv::Mat imageCopy;
     std::string frame_name;
     int frame_counter = 0;
+    std::ofstream out("RT.log");
     while (!stop) {
         std::vector<int> ids;
         if (frame && !frame->empty()) {
@@ -142,17 +143,12 @@ void aruco::trackMarkerThread() {
             else 
                 rightId = -9;
 
-            // blur is contro by size of the block Size(x,y) of moving windows
-            /*blur(*frame, imageCopy, cv::Size(3 ,3));
-            medianBlur(*frame, imageCopy, 5);*/
-
             cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
             // cv::imshow("aruco", imageCopy);
 
             if (videoCap){
                 frame_name ="/home/pi/arucoSwarm/videocap/" + std::to_string(frame_counter) + ".jpg";
                 cv::imwrite(frame_name, imageCopy);
-                frame_counter ++;
             }
 
             cv::waitKey(1);
@@ -202,6 +198,10 @@ void aruco::trackMarkerThread() {
                     ID = ids[rightId];
                     yaw = getLeftOverAngleFromRotationVector(localRvecs[rightId]);
                     rollAngle = getHorizontalAngleFromRotationVector(localRvecs[rightId]);
+                    
+                    out << "img num: " << frame_counter << " rightLeft, upDown, forwardBack, yaw:" << std::endl;
+                    out << "[" << rightLeft << ", " << upDown << ", " << forward << ", " << yaw << "]" << std::endl;
+                    frame_counter ++;
 
                     usleep(amountOfUSleepForTrackMarker);
 
@@ -219,6 +219,7 @@ void aruco::trackMarkerThread() {
     
         usleep(100000);
     }
+    out.close();
 }
 
 void aruco::getEulerAngles(cv::Mat &rotCameraMatrix, cv::Vec3d &eulerAngles) {

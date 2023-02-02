@@ -5,8 +5,8 @@
 
     "OON_target_X": 0,
     "OON_target_Y": 90,
-    "OON_target_Z": 20,
+    "OON_target_Z": 0,
 
     "__comment__":"the DroneName will be the name that will apear on the server host",
-    "DroneName": "TELLO-1"
+    "DroneName": "TELLO-98F041"
 }
