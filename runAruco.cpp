@@ -116,7 +116,7 @@ void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& 
                 tello.SendCommand("rc 0 0 0 0");
             }
 
-            sleep(1);        
+            usleep(1000000);        
     }
     tello.SendCommand("rc 0 0 0 0");
     usleep(200000);
@@ -340,7 +340,8 @@ int main(int argc, char* argv[]) {
 
         sleep(2);
 
-        tello.SendCommandWithResponse("takeoff");
+        if (!tello.SendCommandWithResponse("takeoff"))
+            exit(1);
 
         tello.SendCommand("rc 0 0 0 0");
         std::string cameraString = data["cameraString"];

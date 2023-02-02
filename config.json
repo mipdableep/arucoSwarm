@@ -14,12 +14,12 @@
   "currentMarkerSize": 0.1,
   
   "__Comment":"save photos",
-  "videoCap":false,
+  "videoCap":true,
 
   "__comment":"imshow will only take affect when running the code with the tello as img input",
   "imshow":true,
 
-  "do_ncli_command": true,
+  "do_ncli_command": false,
 
   "runServer": false,
   "serverHostIp": "192.168.43.163",

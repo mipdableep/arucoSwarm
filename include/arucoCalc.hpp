@@ -27,7 +27,7 @@ class arucoCalc {
         //tolorance - set in cm to each side
         int X_TOLORANCE = 5;
         int Y_TOLORANCE = 5;
-        int Z_TOLORANCE = 2;
+        int Z_TOLORANCE = 5;
 
         //target!
         int X_TARGET;
@@ -37,20 +37,20 @@ class arucoCalc {
         double Z_ANGLE_TARGET;
 
         // devidors - rc +- target / devidor
-        double X_DEVIDOR = 2.2;
-        double Y_DEVIDOR = 4;
-        double Z_DEVIDOR = 2.2;
+        double X_DEVIDOR = 6;
+        double Y_DEVIDOR = 6;
+        double Z_DEVIDOR = 6;
 
         double Z_ROTATION_DEVIDOR = 2;
 
         // rc limits
-        int X_MAX_RC = 17;
-        int Y_MAX_RC = 17;//change
-        int Z_MAX_RC = 17;
+        int X_MAX_RC = 35;
+        int Y_MAX_RC = 35;//change
+        int Z_MAX_RC = 35;
 
-        int X_MIN_RC = 7;        
-        int Y_MIN_RC = 7;
-        int Z_MIN_RC = 7;
+        int X_MIN_RC = 0;        
+        int Y_MIN_RC = 0;
+        int Z_MIN_RC = 0;
 
         void calculate_z_angle_target();
 };
