@@ -5,7 +5,9 @@ else
 
     while ! [[ $(ip a | grep "inet 192") ]]; do sleep 1s; done
 
-    cd /home/pi/arucoSwarm/build
-    /home/pi/arucoSwarm/build/runAruco 2>&1 | tee out.txt
+    python3 /home/pi/arucoSwarm/sshClient.py
+
+    # cd /home/pi/arucoSwarm/build
+    # /home/pi/arucoSwarm/build/runAruco 2>&1 | tee out.txt
     
 fi

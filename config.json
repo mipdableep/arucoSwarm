@@ -17,15 +17,15 @@
   "videoCap":true,
 
   "__comment":"imshow will only take affect when running the code with the tello as img input",
-  "imshow":true,
+  "imshow":false,
 
   "do_ncli_command": false,
 
-  "runServer": false,
-  "serverHostIp": "192.168.43.163",
+  "runServer": true,
+  "serverHostIp": "10.3.141.188",
   "serverPort": 9090,
 
-  "connect_to_drone":false,
+  "connect_to_drone":true,
 
-  "runtime_length": 30
+  "runtime_length": 45
 }
