@@ -26,6 +26,9 @@ base = [x,a,p]
 """
 #base ^-1 * any vector ([x, y, 1]) will be the coardinits
 
+
+# another possible solution can be just to take the target - current and then multiply bby the current angle
+
 dev = 12
 
 pygame.init()
@@ -55,13 +58,15 @@ print ("v = ", v)
 T = np.array([2,-3])
 print ("T = ", T)
 
-Rv = np.matmul(R, v)
-print ("Rv = ", Rv)
+T_v = T - v
 
-TRv = Rv - T
-print ("TRv = ", TRv)
-
+theta = np.radians(-45)
+c, s = np.cos(theta), np.sin(theta)
+R = np.array(((c, -s), (s, c)))
 # Plot w
+
+T_v_r = np.matmul(R, T_v)
+
 origin = np.array([0,0])
 
 def drawPoint(color, loc, radius = 7):
@@ -84,8 +89,10 @@ def main():
             pygame.draw.line(WIN, LIGHTGRAY, (0, i*(WIDTH/dev)), (HIGHT, i*(WIDTH/dev)))
             pygame.draw.line(WIN, LIGHTGRAY, (i*(WIDTH/dev), 0), (i*(WIDTH/dev), HIGHT))
 
-        # drawPoint(BLUE, v)
-        # drawPoint(BLACK, T)
+        drawPoint(BLUE, v)
+        drawPoint(BLACK, T)
+        drawPoint(GREEN, T_v)
+        drawPoint(RED, T_v_r)
 
         pygame.display.update()
 
