@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 class arucoCalc {
     public:
@@ -13,6 +14,12 @@ class arucoCalc {
         int calculate_z_rotation_rc();
 
         void get_target_vals();
+        
+        void chagneDevidor(int dev_x, int dev_y, int dev_z);
+        void chagneDevidor(int dev);
+
+        void changeMax(int max_x, int max_y, int max_z);
+        void changeMax(int max);
 
         /// variables
         double droneZRotate, droneXPos, droneYPos, droneZPos;
@@ -37,9 +44,9 @@ class arucoCalc {
         double Z_ANGLE_TARGET;
 
         // devidors - rc +- target / devidor
-        double X_DEVIDOR = 6;
-        double Y_DEVIDOR = 6;
-        double Z_DEVIDOR = 6;
+        double X_DEVIDOR = 4.5;
+        double Y_DEVIDOR = 4.5;
+        double Z_DEVIDOR = 4.5;
 
         double Z_ROTATION_DEVIDOR = 2;
 
@@ -48,7 +55,7 @@ class arucoCalc {
         int Y_MAX_RC = 35;//change
         int Z_MAX_RC = 35;
 
-        int X_MIN_RC = 0;        
+        int X_MIN_RC = 0;
         int Y_MIN_RC = 0;
         int Z_MIN_RC = 0;
 

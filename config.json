@@ -9,23 +9,23 @@
   "cam_fps":-1,
   
   "cameraPort": 0,
-  
+
   "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
   "currentMarkerSize": 0.1,
-  
+
   "__Comment":"save photos",
-  "videoCap":true,
+  "videoCap":false,
 
   "__comment":"imshow will only take affect when running the code with the tello as img input",
-  "imshow":false,
+  "imshow":true,
 
-  "do_ncli_command": false,
+  "do_ncli_command": true,
 
-  "runServer": true,
+  "runServer": false,
   "serverHostIp": "10.3.141.188",
   "serverPort": 9090,
 
-  "connect_to_drone":true,
+  "connect_to_drone":false,
 
   "runtime_length": 45
 }

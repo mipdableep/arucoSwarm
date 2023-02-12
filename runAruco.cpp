@@ -75,9 +75,17 @@ void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& 
     std::cout << "started OON\n" << std::endl;
     calc.get_target_vals();
 
+    int loop_counter = 0;
+
     while (run_OON) {
 
         if ((!detector.init || detector.ID != -1) && detector.rightId != -9) {
+
+
+            if (loop_counter == 15){
+                calc.chagneDevidor(2.5);
+                calc.changeMax(15);
+            }
 
             calc.droneZRotate = detector.yaw;
             calc.droneXPos = detector.rightLeft;
@@ -116,7 +124,9 @@ void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& 
                 tello.SendCommand("rc 0 0 0 0");
             }
 
-            usleep(1000000);        
+            usleep(1000000);
+
+            loop_counter ++;        
     }
     tello.SendCommand("rc 0 0 0 0");
     usleep(200000);
@@ -340,8 +350,7 @@ int main(int argc, char* argv[]) {
 
         sleep(2);
 
-        if (!tello.SendCommandWithResponse("takeoff"))
-            exit(1);
+        tello.SendCommandWithResponse("takeoff");
 
         tello.SendCommand("rc 0 0 0 0");
         std::string cameraString = data["cameraString"];
@@ -351,6 +360,7 @@ int main(int argc, char* argv[]) {
         detector.imshow = do_imshow;
         detector.videoCap = videoCap;
         detector.id_to_follow = data2["OON_target_id"];
+        std::cout<<"1"<<std::endl;
         std::thread movementThread([&] {objectOrientedNavigation(detector, tello, calc);
         });
         std::thread countdownThread([&] {timer_limiter(detector, tello, run_OON, runtime_length);

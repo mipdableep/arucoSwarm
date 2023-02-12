@@ -1,12 +1,12 @@
 {
     "isLeader": false,
-    
+
     "OON_target_id": 100,
 
     "OON_target_X": 0,
-    "OON_target_Y": 90,
+    "OON_target_Y": 110,
     "OON_target_Z": 0,
 
     "__comment__":"the DroneName will be the name that will apear on the server host",
-    "DroneName": "Drone-1"
+    "DroneName": "TELLO-FE1A81"
 }
