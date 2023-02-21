@@ -26,5 +26,7 @@
 
   "connect_to_drone":false,
 
-  "runtime_length": 100
+  "runtime_length": 100,
+
+  "DRONE_NUM":"drone-1"
 }
