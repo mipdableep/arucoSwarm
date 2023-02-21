@@ -48,3 +48,16 @@ $ python3 server.py 0.0.0.0 9090 {number of drones}
 ```
 
 after that connect the turn on the rpi0's and the drones
+
+
+## FORMATION
+```
+              100
+
+|            drone1
+|            (id 1)
+|   
+|75      drone2  drone4
+|       [-25____0____+25]
+|95          drone3
+```

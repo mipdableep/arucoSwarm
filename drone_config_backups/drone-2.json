@@ -1,13 +1,13 @@
 {
     "isLeader": false,
 
-    "OON_target_id": 100,
-    "currentMarkerSize": 0.1,
+    "OON_target_id": 1,
+    "currentMarkerSize": 0.08,
 
-    "OON_target_X": 0,
-    "OON_target_Y": 110,
+    "OON_target_X": -25,
+    "OON_target_Y": 75,
     "OON_target_Z": 0,
 
     "__comment__":"the DroneName will be the name that will apear on the server host",
-    "DroneName": "TELLO-FE1A81"
+    "DroneName": "drone-2"
 }

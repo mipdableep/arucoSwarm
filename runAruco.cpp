@@ -81,21 +81,10 @@ void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& 
 
         if ((!detector.init || detector.ID != -1) && detector.rightId != -9) {
 
-
-            if (loop_counter == 15){
-                calc.chagneDevidor(2.5);
-                calc.changeMax(15);
-            }
-
             calc.droneZRotate = detector.yaw;
             calc.droneXPos = detector.rightLeft;
             calc.droneYPos = detector.forward;
             calc.droneZPos = detector.upDown;
-
-            // std::cout << "droneZRotate: " << calc.droneZRotate << std::endl;
-            // std::cout << "droneXPos: " << calc.droneXPos << std::endl;
-            // std::cout << "droneYPos: " << calc.droneYPos << std::endl;
-            // std::cout << "droneZPos: " << calc.droneZPos << std::endl;
 
             // run rc calculations
             X_rc = calc.calculate_x_rc();
@@ -254,7 +243,7 @@ int main(int argc, char* argv[]) {
 
     int cam_fps = data["cam_fps"];
 
-    float currentMarkerSize = data["currentMarkerSize"];
+    float currentMarkerSize = data2["currentMarkerSize"];
 
     std::string droneName = data2["DroneName"];
     bool isLeader = data2["isLeader"];
