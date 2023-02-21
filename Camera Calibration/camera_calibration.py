@@ -3,7 +3,7 @@ import cv2 as cv
 import glob
 
 # Chess board crosses
-cross = (6, 9)
+cross = (7, 7)
 
 # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -16,7 +16,7 @@ objp[:,:2] = 6 * np.mgrid[0:cross[0], 0:cross[1]].T.reshape(-1, 2)
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
-images = glob.glob('/home/daniel/Documents/Camera Calibration/Images3/*.jpg')
+images = glob.glob('/home/daniel/Documents/arucoSwarm/Camera Calibration/Images4/*.jpg')
 
 for fname in images:
 
@@ -37,7 +37,7 @@ for fname in images:
         cv.drawChessboardCorners(img, cross, corners2, ret)
 
         cv.imshow('img', img[0:-1:2,0:-1:2])
-        cv.waitKey(1000)
+        #cv.waitKey(300)
 
 cv.destroyAllWindows()
 
