@@ -1,6 +1,11 @@
 import cv2
 import numpy as np
 from djitellopy import Tello
+import VCS
+import TelloUtils
+from time import sleep
+import threading
+
 '''
 # Laptop camera calibration information
 camMatrix = np.array([[642.70447427,   0.        , 341.57956398],
@@ -8,19 +13,29 @@ camMatrix = np.array([[642.70447427,   0.        , 341.57956398],
                       [  0.        ,   0.        ,   1.        ]])
 camDistortion = np.array([[ 0.03411031, -0.10003022,  0.00066265,  0.00281555, -0.10130354]])
 '''
+'''
 #1280x720
+# Drone calibration
 camMatrix = np.array([[960.62263735,   0.        , 470.52922775],
                       [  0.        , 963.94910764, 331.7355087 ],
                       [  0.        ,   0.        ,   1.        ]])
 camDistortion = np.array([[ 2.39342314e-02, -2.66942206e-01, -8.06335405e-03,  2.31336119e-04,  8.11008436e-01]]) 
+'''
+#1280 x 720
+camMatrix = np.array(
+    [[924.49497254,   0.        , 479.20422298],
+     [  0.        , 926.01552365, 366.64431926],
+     [  0.        ,   0.        ,   1.        ]])
+camDistortion = np.array([[-0.00276759,  0.09178107,  0.00083479, -0.00039963, -0.12152757]])
 
 # Aruco square size in cm
 aruco_size = 7.0
 
+
 # Detect all arucos (that in dictionary) in the given image
 def detectAruco (inputImage):
     # Set Aruco dictionary
-    dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_50)
+    dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
     # Set detection parameters
     detectorParams = cv2.aruco.DetectorParameters()
     # Setup Aruco detector
@@ -34,7 +49,7 @@ def detectAruco (inputImage):
 
 
 # Draw box around the detected arucos
-def drawMarkers (inputImage, markerCorners, markerIds):
+def drawMarkers (inputImage, markerCorners, markerIds=None):
     # Create new image to not overwrite the original
     outputImage = np.copy(inputImage)
     # Draw square around the markers
@@ -70,125 +85,182 @@ def drawAxes (inputImage, rvecs, tvecs):
     return outputImage
 
 
-tello = Tello("10.3.141.159")
-tello.connect()
+# Draw Grid lines on image
+def drawGrid (inputImage : np.array, v_lines : int, h_lines : int, color=(0, 0, 0)):
+    # Create new image to not overwrite the original
+    outputImage = np.copy(inputImage)
 
-tello.set_network_ports(8890, 11113)
-tello.streamon()
+    h, w, _ = outputImage.shape
 
-tello.takeoff()
+    # Print horizontal lines
+    for hline in range(0, w, int(w / (h_lines + 1))):
+        outputImage = cv2.line(outputImage, (hline, 0), (hline, h), color)
+    
+    # Print vertical lines
+    for vline in range(0, h, int(h / (v_lines + 1))):
+        outputImage = cv2.line(outputImage, (0, vline), (w, vline), color)
 
-webcam = cv2.VideoCapture('udp://10.3.141.159:11113')
-webcam.set(cv2.CAP_PROP_BUFFERSIZE, 0)
+    return outputImage
+
+class TelloObject:
+
+    def __init__(self, address : str, vport : int):
+        self._vport = vport
+        self._address = address
+        self._tello = Tello(address)
+        self._tello.connect()
+        self._tello.set_network_ports(8890, vport)
+        self._tello.set_video_bitrate(Tello.BITRATE_1MBPS)
+        self._tello.streamon()
+        return
+    
+    def takeoff(self):
+        # self._tello.takeoff()
+        return
+    
+    def startCam(self):
+        self.cam = VCS.VideoCapture("udp://" + self._address + ":" + str(self._vport))
+        self.title = "TELLO-" + self._address
+
+    def track(self, arucoID : int, angle : float, distance : float):
+
+        self.ret, self.frame = self.cam.read()
+
+        if not self.ret:
+            print ('Error retriving video stream')
+            return
+
+        # Detect arucos and extract thier positions
+        markerCorners, markerIds = detectAruco(self.frame)
+        rvecs, tvecs = extractArucoPosition(markerCorners)
+
+        # Mark the arucos and draw thier pose
+        self.img = np.copy (self.frame)
+
+        self.img = drawMarkers (self.img, markerCorners)
+        #img = drawMarkers (img, markerCorners, markerIds)
+        self.img = drawAxes (self.img, rvecs, tvecs)
+        self.img = drawGrid (self.img, 5, 5, (255, 255, 255))
+        self.img = cv2.flip (self.img, 1)
+
+        lr, fb, ud, cw = 0, 0, 0, 0
+
+        # Print all the positions
+        for i in range(len(rvecs)):
+
+            if markerIds[i] != arucoID:
+                continue
+
+            rvec = rvecs[i][0]
+            tvec = tvecs[i].transpose()
+
+            rmat, _ = cv2.Rodrigues(rvec)
+            rmat = np.matrix(rmat)
+
+            zvec = np.matrix([[0.], [0.], [-1.]])
+            pvec = rmat * zvec
+
+            px, py, pz = TelloUtils.extractVector(pvec)
+            cx, cy, cz = TelloUtils.extractVector(tvec)
+
+            pyaw = np.arctan2(px, pz) * 180. / np.pi
+            ppitch = np.arctan2(py, np.sqrt(px ** 2 + pz ** 2)) * 180. / np.pi
+            prange = np.sqrt(np.sum(tvecs[i][0] ** 2))
+
+            ud = TelloUtils.fixValue(-2.0 * cy)
+            cw = TelloUtils.fixValue( 150 * np.arctan2(cx, cz), 100)
+            lr = TelloUtils.fixValue(-0.5 * (pyaw - angle))
+            fb = TelloUtils.fixValue(-0.5 * (distance - prange))
+
+            if False:
+                print ("--------------------------------------------------")
+                print ("Up/Down : " + str(ud))
+                print ("Forward/Backword : " + str(fb))
+                print ("Left/Right : " + str(lr))
+                print ("ClockWise Rotation : " + str(cw))
+
+                print ("--------------------------------------------------")
+                print ("Yaw : " + str(np.around(pyaw, 2)) + "\xb0")
+                print ("Pitch : " + str(np.around(ppitch, 2)) + "\xb0")
+                print ("Distance : " + str(np.around(prange, 0)) + "cm")
+                print ("Position : " + str(tvec.transpose()))
+
+        self._tello.send_rc_control(lr, fb, ud, cw)
+        self.img = cv2.resize(self.img, (720, 480))
+        cv2.imshow(self.title, self.img)
+
+    def kill(self):
+        self._tello.streamoff()
+        self._tello.land()
+
+
+def takeoff_func(tello : TelloObject):
+    tello.takeoff()
+
+def startCam_func(tello : TelloObject):
+    tello.startCam()
+
+def kill_func(tello : TelloObject):
+    tello.kill()
+
+
+tello1 = TelloObject("10.3.141.169", 11112)
+tello2 = TelloObject("10.3.141.67", 11113)
+tello3 = TelloObject("10.3.141.117", 11114)
+
+print (tello1._tello.get_battery())
+print (tello2._tello.get_battery())
+print (tello3._tello.get_battery())
+
+thread1 = threading.Thread(target=takeoff_func, args=(tello1,), name="tello1 takeoff")
+thread2 = threading.Thread(target=takeoff_func, args=(tello2,), name="tello2 takeoff")
+thread3 = threading.Thread(target=takeoff_func, args=(tello3,), name="tello3 takeoff")
+
+thread1.start()
+thread2.start()
+thread3.start()
+
+thread1.join()
+thread2.join()
+thread3.join()
+
+tello1._tello.send_rc_control(0, 0, 0, 0)
+tello2._tello.send_rc_control(0, 0, 0, 0)
+tello3._tello.send_rc_control(0, 0, 0, 0)
+
+tello1.startCam()
+
+tello1._tello.send_rc_control(0, 0, 0, 0)
+tello2._tello.send_rc_control(0, 0, 0, 0)
+tello3._tello.send_rc_control(0, 0, 0, 0)
+
+tello2.startCam()
+
+tello1._tello.send_rc_control(0, 0, 0, 0)
+tello2._tello.send_rc_control(0, 0, 0, 0)
+tello3._tello.send_rc_control(0, 0, 0, 0)
+
+tello3.startCam()
+
+tello1._tello.send_rc_control(0, 0, 0, 0)
+tello2._tello.send_rc_control(0, 0, 0, 0)
+tello3._tello.send_rc_control(0, 0, 0, 0)
+
 
 while cv2.waitKey(1) != ord("q"):
+    tello1.track(145,  45,  70)
+    tello2.track(145, -45,  70)
+    tello3.track(145,   0, 100)
 
-    for _ in range(5):
-        webcam.read()
 
-    ret, frame = webcam.read()
+thread1 = threading.Thread(target=kill_func, args=(tello1,), name="tello1 kill")
+thread2 = threading.Thread(target=kill_func, args=(tello2,), name="tello2 kill")
+thread3 = threading.Thread(target=kill_func, args=(tello3,), name="tello3 kill")
 
-    if not ret:
-        print ('Error retriving video stream')
-        break
+thread1.start()
+thread2.start()
+thread3.start()
 
-    # Detect arucos and extract thier positions
-    markerCorners, markerIds = detectAruco(frame)
-    rvecs, tvecs = extractArucoPosition(markerCorners)
-
-    '''
-    if len(rvecs) == 1:
-        rvecs = np.array([[[0, 0, 0]]], float)
-    '''
-
-    # Mark the arucos and draw thier pose
-    img = np.copy (frame)
-
-    img = drawMarkers (img, markerCorners, markerIds)
-    img = drawAxes (img, rvecs, tvecs)
-
-    lr, fb, ud, cw = 0, 0, 0, 0
-
-    # Print all the positions
-    for i in range(len(rvecs)):
-        rvec = rvecs[i][0]
-
-        rmat, _ = cv2.Rodrigues(rvec)
-        rmat = np.matrix(rmat)
-
-        zvec = np.matrix([[0.], [0.], [-1.]])
-        pvec = rmat * zvec
-
-        px = pvec[0,0]
-        py = pvec[1,0]
-        pz = pvec[2,0]
-
-        cx = tvecs[0,0,0]
-        cy = tvecs[0,0,1]
-        cz = tvecs[0,0,2]
-
-        pyaw = np.arctan2(px, pz) * 180. / np.pi
-        ppitch = np.arctan2(py, np.sqrt(px ** 2 + pz ** 2)) * 180. / np.pi
-        distance = np.sqrt(np.sum(tvecs[i][0] ** 2))
-        
-        pyaw = np.around(pyaw, 2)
-        ppitch = np.around(ppitch, 2)
-        distance = np.around(distance, 1)
-
-        if cy > 100:
-            cy = 100
-        elif cy < -100:
-            cy = -100
-        else:
-            cy = int(cy)
-        
-        ud = -3 * cy
-
-        if cx > 100:
-            cx = 100
-        elif cx < -100:
-            cx = -100
-        else:
-            cx = int(cx)
-        
-        cw = 3 * cx / cz
-
-        if distance > 110:
-            fb = distance - 110
-        elif distance < 90:
-            fb = distance - 90
-        
-        fb /= 3
-
-        if fb > 100:
-            fb = 100
-        elif fb < -100:
-            fb = -100
-        else:
-            fb = int(fb)
-        
-        cw *= 10
-
-        if cw > 100:
-            cw = 100
-        elif cw < -100:
-            cw = -100
-        else:
-            cw = int(cw)
-
-        print (ud)
-        print (fb)
-        print (lr)
-        print (cw)
-
-        print ("--------------------------------------------------")
-        print ("Yaw : " + str(pyaw) + "\xb0")
-        print ("Pitch : " + str(ppitch) + "\xb0")
-        print ("Distance : " + str(distance) + "cm")
-        #print ("Position : " + str(tvecs[i]))
-
-    tello.send_rc_control(lr, fb, ud, cw)
-    img = cv2.resize(img, (720, 480))
-    cv2.imshow("Webcam out stream", img)
-
-webcam.release()
+thread1.join()
+thread2.join()
+thread3.join()

@@ -2,16 +2,26 @@ import cv2
 import numpy as np
 from time import sleep
 from datetime import datetime
-from VCS import VideoCaptureSpeeder
+from VCS import VideoCapture
+from djitellopy import Tello
 
-webcam = VideoCaptureSpeeder(0)
+
+tello = Tello("10.3.141.67")
+tello.connect()
+
+tello.set_network_ports(8890, 11112)
+# tello.set_video_fps(Tello.FPS_5)
+tello.set_video_bitrate(Tello.BITRATE_1MBPS)
+tello.streamon()
+
+webcam = VideoCapture("udp://10.3.141.67:11112")
 
 # Save folder
-folder = '/home/daniel/Documents/arucoSwarm/Camera Calibration/Images4'
+folder = '/home/daniel/Documents/arucoSwarm/Camera Calibration/Images5'
 # Count number of pictures
 count = 0
 # Chess board crosses
-cross = (7, 7)
+cross = (5, 7)
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
@@ -50,6 +60,4 @@ while True:
     elif key == ord("q"):
         break
     
-
-
 webcam.release()
