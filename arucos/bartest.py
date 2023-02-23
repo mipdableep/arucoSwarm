@@ -115,7 +115,7 @@ class TelloObject:
         return
     
     def takeoff(self):
-        # self._tello.takeoff()
+        self._tello.takeoff()
         return
     
     def startCam(self):
@@ -204,6 +204,18 @@ def kill_func(tello : TelloObject):
     tello.kill()
 
 
+
+
+'''
+!!!!!!!!!!! TOP VIEW !!!!!!!!!!!
+
+         DRONE 3
+            |
+DRONE 1     |     DRONE 2
+        \   |   /
+          TARGET
+'''
+
 tello1 = TelloObject("10.3.141.169", 11112)
 tello2 = TelloObject("10.3.141.67", 11113)
 tello3 = TelloObject("10.3.141.117", 11114)
@@ -211,6 +223,12 @@ tello3 = TelloObject("10.3.141.117", 11114)
 print (tello1._tello.get_battery())
 print (tello2._tello.get_battery())
 print (tello3._tello.get_battery())
+
+tello1.startCam()
+tello2.startCam()
+tello3.startCam()
+
+sleep(2)
 
 thread1 = threading.Thread(target=takeoff_func, args=(tello1,), name="tello1 takeoff")
 thread2 = threading.Thread(target=takeoff_func, args=(tello2,), name="tello2 takeoff")
@@ -223,29 +241,6 @@ thread3.start()
 thread1.join()
 thread2.join()
 thread3.join()
-
-tello1._tello.send_rc_control(0, 0, 0, 0)
-tello2._tello.send_rc_control(0, 0, 0, 0)
-tello3._tello.send_rc_control(0, 0, 0, 0)
-
-tello1.startCam()
-
-tello1._tello.send_rc_control(0, 0, 0, 0)
-tello2._tello.send_rc_control(0, 0, 0, 0)
-tello3._tello.send_rc_control(0, 0, 0, 0)
-
-tello2.startCam()
-
-tello1._tello.send_rc_control(0, 0, 0, 0)
-tello2._tello.send_rc_control(0, 0, 0, 0)
-tello3._tello.send_rc_control(0, 0, 0, 0)
-
-tello3.startCam()
-
-tello1._tello.send_rc_control(0, 0, 0, 0)
-tello2._tello.send_rc_control(0, 0, 0, 0)
-tello3._tello.send_rc_control(0, 0, 0, 0)
-
 
 while cv2.waitKey(1) != ord("q"):
     tello1.track(145,  45,  70)
