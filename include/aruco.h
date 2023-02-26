@@ -18,18 +18,18 @@
 #include <opencv2/highgui.hpp>
 
 
-class aruco {
+class aruco_utils {
    public:
-    aruco(std::string &yamlCalibrationPath, int cameraPort,
+    aruco_utils(std::string &yamlCalibrationPath, int cameraPort,
           float currentMarkerSize);
 
-    aruco(std::string &yamlCalibrationPath, int cameraPort,
+    aruco_utils(std::string &yamlCalibrationPath, int cameraPort,
           float currentMarkerSize, int cam_fps);
 
 
-    ~aruco();
+    ~aruco_utils();
 
-    aruco(std::string &yamlCalibrationPath, std::string &cameraString,
+    aruco_utils(std::string &yamlCalibrationPath, std::string &cameraString,
           float currentMarkerSize);
 
     void setHoldCamera(bool value) { *holdCamera = value; };
@@ -67,7 +67,7 @@ class aruco {
     cv::Mat objPoints;
     int id_to_follow;
     bool videoCap;
-    int rightId = 0;
+    int correct_index = 0;
 
    private:
     bool runCamera;

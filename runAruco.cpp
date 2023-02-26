@@ -5,7 +5,7 @@ using namespace std::chrono_literals;
 // declare vars
 std::string command;
 
-void webcamTest(aruco& detector, arucoCalc& calc){
+void webcamTest(aruco_utils& detector, arucoCalc& calc){
 
     sleep(1);
 
@@ -71,7 +71,7 @@ void webcamTest(aruco& detector, arucoCalc& calc){
     }
 }
 
-void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& calc) {
+void objectOrientedNavigation(aruco_utils& detector, ctello::Tello& tello, arucoCalc& calc) {
     std::cout << "started OON\n" << std::endl;
     calc.get_target_vals();
 
@@ -79,7 +79,7 @@ void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& 
 
     while (run_OON) {
 
-        if ((!detector.init || detector.ID != -1) && detector.rightId != -9) {
+        if ((!detector.init || detector.ID != -1) && detector.correct_index != -9) {
 
             calc.droneZRotate = detector.yaw;
             calc.droneXPos = detector.rightLeft;
@@ -122,59 +122,7 @@ void objectOrientedNavigation(aruco& detector, ctello::Tello& tello, arucoCalc& 
     tello.SendCommand("rc 0 0 0 0");
 }
 
-/*
-void objectOrientedNavigation(aruco& detector, SerialTello& tello, arucoCalc& calc) {
-    std::cout << "started OON\n" << std::endl;
-
-    while (true) {
-
-        if ((!detector.init || detector.ID != -1) && detector.rightId != -9) {
-
-            calc.set_temp_vals();
-
-            calc.droneZRotate = detector.yaw;
-            calc.droneXPos = detector.rightLeft;
-            calc.droneYPos = detector.forward;
-            calc.droneZPos = detector.upDown;
-
-            // std::cout << "droneZRotate: " << calc.droneZRotate << std::endl;
-            // std::cout << "droneXPos: " << calc.droneXPos << std::endl;
-            // std::cout << "droneYPos: " << calc.droneYPos << std::endl;
-            // std::cout << "droneZPos: " << calc.droneZPos << std::endl;
-
-            // run rc calculations
-            X_rc = calc.calculate_x_rc();
-            Y_rc = calc.calculate_y_rc();
-            Z_rc = calc.calculate_z_rc();
-            Zr_rc = calc.calculate_z_rotation_rc();
-
-
-            std::string command = "rc ";
-
-            command += std::to_string((int)(X_rc));
-            command += " ";
-
-            command += std::to_string((int)(Y_rc));
-            command += " ";
-
-            command += std::to_string((int)(Z_rc));
-            command += " ";
-
-            command += std::to_string((int)(Zr_rc));
-
-            tello.SendCommand(command);
-            std::cout << "OON command:  " << command << std::endl;
-
-            } else {
-                tello.SendCommand("rc 0 0 0 0");
-            }
-
-            sleep(1);        
-    }
-}
-*/
-
-void noLeaderLoop(aruco& detector, ctello::Tello& tello,
+void noLeaderLoop(aruco_utils& detector, ctello::Tello& tello,
                   int& tmpId) {
     std::cout << "in no leader loop" << std::endl;
     int sleepAmount = 2;
@@ -210,7 +158,7 @@ void change_to_tello_wifi(const std::string tello_conf_path) {
     std::this_thread::sleep_for(10s);
 }
 
-void timer_limiter(aruco& detector, ctello::Tello& tello, bool& run_OON, int seconds_time_amount){
+void timer_limiter(aruco_utils& detector, ctello::Tello& tello, bool& run_OON, int seconds_time_amount){
     while (seconds_time_amount > 0)
     {
         sleep(1);
@@ -219,7 +167,7 @@ void timer_limiter(aruco& detector, ctello::Tello& tello, bool& run_OON, int sec
             std::cout << "time left: " << seconds_time_amount << std::endl;
     }
     run_OON = false;
-    detector.~aruco();
+    detector.~aruco_utils();
     usleep(300000);
     tello.SendCommand("land");
 
@@ -280,7 +228,7 @@ int main(int argc, char* argv[]) {
 
     if (isWebcam) {
         int cameraPort = global_vars["cameraPort"];
-        aruco detector(yamlCalibrationPath, cameraPort, currentMarkerSize);
+        aruco_utils detector(yamlCalibrationPath, cameraPort, currentMarkerSize);
         detector.imshow = true;
         detector.videoCap = false;
         detector.id_to_follow = OON_TARGET_ID;
@@ -351,7 +299,7 @@ int main(int argc, char* argv[]) {
         std::string cameraString = global_vars["cameraString"];
 
         arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
-        aruco detector(yamlCalibrationPath, cameraString, currentMarkerSize);
+        aruco_utils detector(yamlCalibrationPath, cameraString, currentMarkerSize);
         detector.imshow = do_imshow;
         detector.videoCap = videoCap;
         detector.id_to_follow = OON_TARGET_ID;

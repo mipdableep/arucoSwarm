@@ -5,7 +5,7 @@
 #include "../include/aruco.h"
 #include <fstream>
 
-std::vector<cv::Mat> aruco::getCameraCalibration(const std::string &path) {
+std::vector<cv::Mat> aruco_utils::getCameraCalibration(const std::string &path) {
     cv::FileStorage fs(path, cv::FileStorage::READ);
     if (!fs.isOpened())
         throw std::runtime_error(
@@ -52,7 +52,7 @@ std::vector<cv::Mat> aruco::getCameraCalibration(const std::string &path) {
     return newCameraParams;
 }
 
-void aruco::trackMarkerThread() {
+void aruco_utils::trackMarkerThread() {
     stop = false;
     std::cout << "started track thread" << std::endl;
     std::vector<std::vector<cv::Point2f>> corners;
@@ -88,10 +88,10 @@ void aruco::trackMarkerThread() {
             auto it = std::find(ids.begin(), ids.end(), id_to_follow);
             if (it != ids.end()){
                 int index = it - ids.begin();
-                rightId = index;
+                correct_index = index;
             }
             else 
-                rightId = -9;
+                correct_index = -9;
 
             cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
             // cv::imshow("aruco", imageCopy);
@@ -109,7 +109,7 @@ void aruco::trackMarkerThread() {
         }
         
         // if the set marker was detected
-        if (rightId != -9) {
+        if (correct_index != -9) {
             if (ids.empty())
                 arucoDetected = false;
             else
@@ -135,19 +135,19 @@ void aruco::trackMarkerThread() {
                 if (!localRvecs.empty()) {
                     cv::Mat rmat = cv::Mat::eye(3, 3, CV_64FC1);
                     try {
-                        cv::Rodrigues(localRvecs[rightId], rmat);
+                        cv::Rodrigues(localRvecs[correct_index], rmat);
                     } catch (...) {
                         std::cout << "coudlnot convert vector to mat"
                                   << std::endl;
                         continue;
                     }
-                    auto t = cv::Mat(-rmat.t() * cv::Mat(localTvecs[rightId]));
+                    auto t = cv::Mat(-rmat.t() * cv::Mat(localTvecs[correct_index]));
                     rightLeft = t.at<double>(0) * 100;
                     upDown = t.at<double>(1) * 100;
                     forward = t.at<double>(2) * 100;
-                    ID = ids[rightId];
-                    yaw = getLeftOverAngleFromRotationVector(localRvecs[rightId]);
-                    rollAngle = getHorizontalAngleFromRotationVector(localRvecs[rightId]);
+                    ID = ids[correct_index];
+                    yaw = getLeftOverAngleFromRotationVector(localRvecs[correct_index]);
+                    rollAngle = getHorizontalAngleFromRotationVector(localRvecs[correct_index]);
                     
                     out << frame_counter << " rightLeft, upDown, forwardBack, yaw:" << std::endl;
                     out << "[" << rightLeft << ", " << upDown << ", " << forward << ", " << yaw << "]" << std::endl;
@@ -170,7 +170,7 @@ void aruco::trackMarkerThread() {
     out.close();
 }
 
-void aruco::getEulerAngles(cv::Mat &rotCameraMatrix, cv::Vec3d &eulerAngles) {
+void aruco_utils::getEulerAngles(cv::Mat &rotCameraMatrix, cv::Vec3d &eulerAngles) {
     cv::Mat cameraMatrix, rotMatrix, transVect, rotMatrixX, rotMatrixY,
         rotMatrixZ;
     auto *_r = rotCameraMatrix.ptr<double>();
@@ -181,7 +181,7 @@ void aruco::getEulerAngles(cv::Mat &rotCameraMatrix, cv::Vec3d &eulerAngles) {
                               rotMatrixZ, eulerAngles);
 }
 
-void aruco::printVector(std::vector<cv::Vec3d> vec) {
+void aruco_utils::printVector(std::vector<cv::Vec3d> vec) {
     // print all values of localTvecs
     std::for_each(begin(vec), end(vec),
                   [](cv::Vec3d &element) { std::cout << element << ","; });
@@ -190,7 +190,7 @@ void aruco::printVector(std::vector<cv::Vec3d> vec) {
     }
 }
 
-int aruco::getLeftOverAngleFromRotationVector(const cv::Vec<double, 3> &rvec) {
+int aruco_utils::getLeftOverAngleFromRotationVector(const cv::Vec<double, 3> &rvec) {
     cv::Mat R33 = cv::Mat::eye(3, 3, CV_64FC1);
     cv::Rodrigues(rvec, R33);
     cv::Vec3d eulerAngles;
@@ -199,7 +199,7 @@ int aruco::getLeftOverAngleFromRotationVector(const cv::Vec<double, 3> &rvec) {
     return yaw;
 }
 
-int aruco::getHorizontalAngleFromRotationVector(
+int aruco_utils::getHorizontalAngleFromRotationVector(
     const cv::Vec<double, 3> &rvec) {
     cv::Mat R33 = cv::Mat::eye(3, 3, CV_64FC1);
     cv::Rodrigues(rvec, R33);
@@ -210,7 +210,7 @@ int aruco::getHorizontalAngleFromRotationVector(
     return roll;
 }
 
-void aruco::getCameraFeed() {
+void aruco_utils::getCameraFeed() {
     runCamera = true;
     int curr_image = 0;
     while (runCamera) {
@@ -232,7 +232,11 @@ void aruco::getCameraFeed() {
     }
 }
 
-aruco::aruco(std::string &yamlCalibrationPath, int cameraPort,
+/// @brief constructor for webcam operations
+/// @param yamlCalibrationPath 
+/// @param cameraPort 
+/// @param currentMarkerSize 
+aruco_utils::aruco_utils(std::string &yamlCalibrationPath, int cameraPort,
              float currentMarkerSize)
     : frame_queue(1) {
     this->yamlCalibrationPath = yamlCalibrationPath;
@@ -248,11 +252,11 @@ aruco::aruco(std::string &yamlCalibrationPath, int cameraPort,
         std::cout << "couldnt open camera by port" << std::endl;
     }
     this->currentMarkerSize = currentMarkerSize;
-    cameraThread = std::move(std::thread(&aruco::getCameraFeed, this));
-    arucoThread = std::move(std::thread(&aruco::trackMarkerThread, this));
+    cameraThread = std::move(std::thread(&aruco_utils::getCameraFeed, this));
+    arucoThread = std::move(std::thread(&aruco_utils::trackMarkerThread, this));
 }
 
-aruco::aruco(std::string &yamlCalibrationPath, int cameraPort,
+aruco_utils::aruco_utils(std::string &yamlCalibrationPath, int cameraPort,
              float currentMarkerSize, int cam_fps)
     : frame_queue(1) {
     this->yamlCalibrationPath = yamlCalibrationPath;
@@ -271,11 +275,15 @@ aruco::aruco(std::string &yamlCalibrationPath, int cameraPort,
         std::cout << "couldnt open camera by port" << std::endl;
     }
     this->currentMarkerSize = currentMarkerSize;
-    cameraThread = std::move(std::thread(&aruco::getCameraFeed, this));
-    arucoThread = std::move(std::thread(&aruco::trackMarkerThread, this));
+    cameraThread = std::move(std::thread(&aruco_utils::getCameraFeed, this));
+    arucoThread = std::move(std::thread(&aruco_utils::trackMarkerThread, this));
 }
 
-aruco::aruco(std::string &yamlCalibrationPath, std::string &cameraString,
+/// @brief aruco constractor for tello camera operations
+/// @param yamlCalibrationPath 
+/// @param cameraString 
+/// @param currentMarkerSize 
+aruco_utils::aruco_utils(std::string &yamlCalibrationPath, std::string &cameraString,
              float currentMarkerSize)
     : frame_queue(1) {
     this->yamlCalibrationPath = yamlCalibrationPath;
@@ -287,11 +295,11 @@ aruco::aruco(std::string &yamlCalibrationPath, std::string &cameraString,
     //capture->set(3, 960);
     //capture->set(4, 720);
     this->currentMarkerSize = currentMarkerSize;
-    cameraThread = std::move(std::thread(&aruco::getCameraFeed, this));
-    arucoThread = std::move(std::thread(&aruco::trackMarkerThread, this));
+    cameraThread = std::move(std::thread(&aruco_utils::getCameraFeed, this));
+    arucoThread = std::move(std::thread(&aruco_utils::trackMarkerThread, this));
 }
 
-aruco::~aruco() {
+aruco_utils::~aruco_utils() {
     stop = true;
     runCamera = false;
     cameraThread.join();
@@ -300,7 +308,7 @@ aruco::~aruco() {
 }
 
 // Try to generalize to return t var instead.
-double aruco::forwardDistance(std::vector<cv::Vec3d> localRvecs,
+double aruco_utils::forwardDistance(std::vector<cv::Vec3d> localRvecs,
                               std::vector<cv::Vec3d> localTvecs, int Id) {
     cv::Mat rmat = cv::Mat::eye(3, 3, CV_64FC1);
     try {
@@ -313,7 +321,7 @@ double aruco::forwardDistance(std::vector<cv::Vec3d> localRvecs,
 }
 
 // Returns the two closest markers detected.
-std::pair<int, int> aruco::twoClosest(std::vector<cv::Vec3d> localRvecs,
+std::pair<int, int> aruco_utils::twoClosest(std::vector<cv::Vec3d> localRvecs,
                                       std::vector<cv::Vec3d> localTvecs) {
     double firstMinForward;
     double secondMinForward;
@@ -349,7 +357,7 @@ std::pair<int, int> aruco::twoClosest(std::vector<cv::Vec3d> localRvecs,
 }
 
 // initialize drones
-void aruco::initialaize(std::vector<cv::Vec3d> localTvecs,
+void aruco_utils::initialaize(std::vector<cv::Vec3d> localTvecs,
                         std::vector<cv::Vec3d> localRvecs) {
     cv::Mat rmat = cv::Mat::eye(3, 3, CV_64FC1);
     std::pair<int, int> closest = twoClosest(localRvecs, localTvecs);
@@ -386,6 +394,6 @@ void aruco::initialaize(std::vector<cv::Vec3d> localTvecs,
     init = false;
 }
 
-boost::lockfree::spsc_queue<std::vector<uchar>> &aruco::get_frame_queue() {
+boost::lockfree::spsc_queue<std::vector<uchar>> &aruco_utils::get_frame_queue() {
     return frame_queue;
 }

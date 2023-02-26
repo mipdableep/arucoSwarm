@@ -18,7 +18,14 @@ add_library(arucoCalc src/arucoCalc.cpp)
 
 target_link_libraries(aruco -lpthread ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
-add_executable(ArucoTest ArucoTest.cpp)
+add_executable(runAruco runAruco.cpp)
 
 target_link_libraries(
-    ArucoTest)
+    runAruco
+    aruco
+    ctello
+    # SerialTello
+    drone_client
+    arucoCalc
+    -lpthread
+    nlohmann_json::nlohmann_json)
