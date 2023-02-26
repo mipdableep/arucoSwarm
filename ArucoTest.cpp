@@ -11,87 +11,97 @@
 #include <unistd.h>
 #include <opencv2/highgui.hpp>
 #include <fstream>
+#include "src/aruco2.cpp"
 
-
-float currentMarkerSize;
-std::string yamlCalibrationPath;
-bool Target_found
-// vars for calculate_6_DOF()
-const std::vector<cv::Mat> cameraParams = ;
-const cv::Ptr<cv::aruco::Dictionary> dictionary =
-cv::aruco::getPredefinedDictionary (cv::aruco::DICT_ARUCO_ORIGINAL /*DICT_4X4_100*/);
-
-cv::aruco::DetectorParameters detectorParams = cv::aruco::DetectorParameters();
-
-//ids of arucos in frame
-std::vector<int> ids;
-// corner list of arucos in frame
-std::vector<std::vector<cv::Point2f>> corners;
-
-int correct_index = 0;
-int id_to_follow = 100;
-
-
-// TODO: implement "frame && !frame->empty()" to check the mat passed
-void calculate_6_DOF(cv::Mat img)
-{
-    cv::aruco::detectMarkers(img, dictionary, corners, ids);
-
-    // if no arucos found
-    if (ids.empty()){
-        correct_index = -9;
-        Target_found = false;
-        return;
-    }
-    
-    cv::aruco::drawDetectedMarkers(img, corners, ids);
-
-    auto it = std::find(ids.begin(), ids.end(), id_to_follow);
-    
-    //if right aruco not found
-    if (it == ids.end()) {
-        correct_index = -9;
-        Target_found = false;
-        return;
-    }
-    correct_index = it - ids.begin();
-
-    std::vector<cv::Vec3d> localRvecs, localTvecs;
-    cv::aruco::estimatePoseSingleMarkers(corners, currentMarkerSize, cameraParams[0], cameraParams[1], localRvecs, localTvecs);
-    
-    if (localRvecs.empty()){
-        Target_found = false;
+void get_vid() {
+    // Open the video capture device at port 0
+    cv::VideoCapture cap(0);
+    if(!cap.isOpened()) {
+        std::cerr << "Failed to open video capture device" << std::endl;
         return;
     }
 
-    // draw Target aruco axis
-    cv::drawFrameAxes(img, cameraParams[0], cameraParams[1], localRvecs[correct_index], localTvecs[correct_index], currentMarkerSize);
+    // Create a window to display the frames
+    cv::namedWindow("Camera", cv::WINDOW_NORMAL);
 
-    cv::Mat rotation_mat = cv::Mat::eye(3, 3, CV_64FC1);
-    try {
-        cv::Rodrigues(localRvecs[correct_index], rotation_mat);
-    } catch (...) {
-        std::cout << "could not convert vector to mat"<< std::endl;
-        return;
+    int counter = 0;
+    // Loop over the frames
+    while(true) {
+        // Capture a frame
+        cv::Mat frame;
+        cap >> frame;
+
+        // Check if the frame was captured successfully
+        if(frame.empty()) {
+            std::cerr << "Failed to capture frame" << std::endl;
+            break;
+        }
+
+        // Display the frame
+        cv::imshow("Camera", frame);
+
+        // Check if the 's' key was pressed
+        int key = cv::waitKey(1);
+        if(key == 's') {
+            // Save the frame to a file
+            std::string filename = "/home/fares/rbd/projects/aruco_swarm/arucoSwarm/vid/" + std::to_string(counter) + ".jpg";
+            cv::imwrite(filename, frame);
+            std::cout << "Saved frame to " << filename << std::endl;
+            counter ++;
+
+        }
+        else if(key == 27) { // Check if the ESC key was pressed
+            break;
+        }
     }
 
-    cv::Mat forward_mat = (cv::Mat_<double>(3, 1) << 0, 0, -1);
-
-    cv::Mat R_vec_mult = rotation_mat * forward_mat;
-    cv::Vec3d T_vec = localTvecs[correct_index];
-
-    cv::Vec3d R_vec (R_vec_mult.at<double>(0), R_vec_mult.at<double>(1), R_vec_mult.at<double>(2));
-
-    float Rx = R_vec[0];
-    float Ry = R_vec[1];
-    float Rz = R_vec[2];
-
-    float Tx = T_vec[0]*100;
-    float Ty = T_vec[1]*100;
-    float Tz = T_vec[2]*100;
-
-    float yaw = atan2(Rx, Ry) * RADIANS_TO_DEGREESE;
-    float pitch = atan2(Rz, sqrt(Rx*Rx + Ry*Ry)) * RADIANS_TO_DEGREESE;
-
+    // Release the video capture device and destroy the window
+    cap.release();
+    cv::destroyAllWindows();
 }
 
+void webcamTest(){
+        aruco_utils util("/home/fares/rbd/projects/aruco_swarm/arucoSwarm/calib/webcam.yaml", 0.07, 145);
+
+    int counter = 0;
+
+    cv::Mat input_img;
+    int key;
+    cv::VideoCapture cap(0);
+
+    while (key != 'q'){
+
+        cap.read(input_img);
+
+        if (input_img.empty()){
+            sleep(1);
+            continue;
+        }
+
+        cv::Mat frame = util.calculate_6_DOF(input_img);
+        if (util.correct_index == -9){
+            cv::imshow("Camera", frame);
+            cv::waitKey(1);
+            usleep(20000);
+            continue;
+        }
+
+        // std::cout<<"Tx: " << util.Tx;
+        // std::cout<<"  Ty: " << util.Ty;
+        // std::cout<<"  Tz: " << util.Tz;
+        std::cout<<"  yaw: " << util.yaw;
+        std::cout<<"  pitch: " << util.pitch;
+        std::cout << std::endl;
+        
+        cv::imshow("Camera", frame);
+        key = cv::waitKey(1);
+    }
+}
+
+int main()
+{
+    // get_vid();
+    // exit(0);
+
+    return 0;
+}

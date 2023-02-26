@@ -20,22 +20,11 @@
 class aruco_utils
 {
 public:
-      aruco_utils(std::string &yamlCalibrationPath, int cameraPort,
-            float currentMarkerSize);
-
-      aruco_utils(std::string &yamlCalibrationPath, int cameraPort,
-            float currentMarkerSize, int cam_fps);
-
-      ~aruco_utils();
-
-      aruco_utils(std::string &yamlCalibrationPath, std::string &cameraString,
-            float currentMarkerSize);
-
-      void trackMarkerThread();
+      aruco_utils(std::string yamlCalibrationPath, float currentMarkerSize, int id_to_follow);
 
       void printVector(std::vector<cv::Vec3d> vec);
 
-      void calculate_6_DOF(cv::Mat img);
+      cv::Mat calculate_6_DOF(cv::Mat img);
 
       int ID = -1;
       int correct_index = 0;
@@ -44,8 +33,15 @@ public:
       bool imshow = false;
       int id_to_follow;
       bool videoCap;
-      
-      cv::Mat objPoints;
+
+      float Tx;
+      float Ty;
+      float Tz;
+
+      float yaw;
+      float pitch;
+
+      cv::Mat frame;
 
 private:
       
@@ -54,7 +50,9 @@ private:
       std::string yamlCalibrationPath;
       
       // vars for calculate_6_DOF()
-      const std::vector<cv::Mat> cameraParams = getCameraCalibration(yamlCalibrationPath);
+
+      std::vector<cv::Mat> cameraParams;
+
       const cv::Ptr<cv::aruco::Dictionary> dictionary =
       cv::aruco::getPredefinedDictionary (cv::aruco::DICT_ARUCO_ORIGINAL /*DICT_4X4_100*/);
 
@@ -65,24 +63,12 @@ private:
       // corner list of arucos in frame
       std::vector<std::vector<cv::Point2f>> corners;
 
-
-      std::shared_ptr<cv::Mat> frame;
-      std::thread cameraThread;
-      std::thread arucoThread;
-      std::shared_ptr<bool> holdCamera;
-
-      std::shared_ptr<cv::VideoCapture> capture;
-
-      boost::lockfree::spsc_queue<std::vector<uchar>> frame_queue;
-
-      long amountOfUSleepForTrackMarker = 5000;
-
       std::vector<cv::Mat> getCameraCalibration(const std::string &path);
 
       double RADIANS_TO_DEGREESE = (180/3.141592653589793238463);
+      double PI = 3.141592653589793238463;
 
-
-      void getCameraFeed();
+      // void getCameraFeed();
 };
 
 #endif
