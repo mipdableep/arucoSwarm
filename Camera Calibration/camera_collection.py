@@ -1,29 +1,49 @@
 import cv2
 import numpy as np
 from time import sleep
-from datetime import datetime
+import datetime
 from VCS import VideoCapture
 from djitellopy import Tello
+from os import mkdir, path
 
 
-tello = Tello("10.3.141.67")
+
+####################### Input parameters #######################
+
+# If you calibrate tello, you can uncomment these lines
+
+tello = Tello("10.3.141.117")
 tello.connect()
 
-tello.set_network_ports(8890, 11112)
-# tello.set_video_fps(Tello.FPS_5)
+tello.set_network_ports(9980, 11112)
 tello.set_video_bitrate(Tello.BITRATE_1MBPS)
 tello.streamon()
 
-webcam = VideoCapture("udp://10.3.141.67:11112")
+webcam = VideoCapture("udp://10.3.141.117:11112")
+
+
+# Open the default camera
+# webcam = VideoCapture(0)
 
 # Save folder
-folder = '/home/daniel/Documents/arucoSwarm/Camera Calibration/Images5'
-# Count number of pictures
-count = 0
+folder = 'Camera Calibration/Drone3'
+
 # Chess board crosses
 cross = (5, 7)
+
+
+####################### Do not change #######################
+
+# Create the folder if it not exist
+if not path.isdir(folder):
+    mkdir(folder)
+
+# Count number of pictures
+count = 0
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+# Last time a photo taken
+last_taken_pic = datetime.datetime.now()
 
 while True:
     ret, frame = webcam.read()
@@ -50,12 +70,12 @@ while True:
 
     key = cv2.waitKey(1)
 
-    if key == ord("s"):
+    if ret and last_taken_pic + datetime.timedelta(seconds=2) < datetime.datetime.now():
         count = count + 1
-        current_time = datetime.now().strftime("%Y%m%d_%H:%M:%S")
+        last_taken_pic = datetime.datetime.now()
+        current_time = datetime.datetime.now().strftime("%Y%m%d_%H:%M:%S")
         cv2.imwrite(folder + '/' + str(current_time) + '.jpg', frame)
         print ("saved - " + str(current_time) + " - " + str(count))
-        sleep(0.5)
 
     elif key == ord("q"):
         break
