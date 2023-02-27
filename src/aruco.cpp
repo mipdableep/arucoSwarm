@@ -81,7 +81,7 @@ void aruco_utils::trackMarkerThread() {
         std::vector<int> ids;
         if (frame && !frame->empty()) {
             cv::aruco::detectMarkers(*frame, dictionary, corners, ids);
-     
+
             (*frame).copyTo(imageCopy);
 
             // serch the set aruco marker and its id else set rightid to -9(arbitrary)

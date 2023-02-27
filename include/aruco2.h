@@ -22,17 +22,26 @@ class aruco_utils
 public:
       aruco_utils(std::string yamlCalibrationPath, float currentMarkerSize, int id_to_follow);
 
-      void printVector(std::vector<cv::Vec3d> vec);
-
       cv::Mat calculate_6_DOF(cv::Mat img);
+
+      void main_aruco_loop();
+
+      void camera_feed_to_queue();
+
+      // for drone
+      void open_video_cap(std::string udp_string, int capture_width, int capture_height);
+      // for wiered camera
+      void open_video_cap(int camera_port, int capture_width, int capture_height);
 
       int ID = -1;
       int correct_index = 0;
       bool Target_found = false;
 
-      bool imshow = false;
       int id_to_follow;
-      bool videoCap;
+
+      bool imshow = false;
+      bool save_run_video;
+      std::string save_run_path;
 
       float Tx;
       float Ty;
@@ -41,14 +50,26 @@ public:
       float yaw;
       float pitch;
 
-      cv::Mat frame;
 
 private:
       
-      bool stop;
+      std::vector<cv::Mat> getCameraCalibration(const std::string &path);
+      
+      int usleep_between_frames = 50000;
+
+      bool run_main_loop = true;
+      bool run_camera = true;
+
+      bool pause_capture_to_queue = false;
+
       float currentMarkerSize;
       std::string yamlCalibrationPath;
-      
+
+      // frame queue (1 pusher 1 consumer)
+      boost::lockfree::spsc_queue<std::vector<uchar>> frame_queue;
+
+      cv::VideoCapture capture;
+
       // vars for calculate_6_DOF()
 
       std::vector<cv::Mat> cameraParams;
@@ -63,7 +84,6 @@ private:
       // corner list of arucos in frame
       std::vector<std::vector<cv::Point2f>> corners;
 
-      std::vector<cv::Mat> getCameraCalibration(const std::string &path);
 
       double RADIANS_TO_DEGREESE = (180/3.141592653589793238463);
       double PI = 3.141592653589793238463;

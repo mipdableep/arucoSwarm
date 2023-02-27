@@ -48,7 +48,6 @@ std::vector<cv::Mat> aruco_utils::getCameraCalibration(const std::string &path) 
     return newCameraParams;
 }
 
-// TODO: implement "frame && !frame->empty()" to check the mat passed
 cv::Mat aruco_utils::calculate_6_DOF(cv::Mat img)
 {
     cv::aruco::detectMarkers(img, dictionary, corners, ids);
@@ -111,14 +110,106 @@ cv::Mat aruco_utils::calculate_6_DOF(cv::Mat img)
     yaw = -atan2(Rx, Rz) * RADIANS_TO_DEGREESE;
     pitch = 90 - atan2(Rz, Ry) * RADIANS_TO_DEGREESE;
 
+    Target_found = true;
+
     return img;
 }
 
-void aruco_utils::printVector(std::vector<cv::Vec3d> vec) {
-    // print all values of localTvecs
-    std::for_each(begin(vec), end(vec), [](cv::Vec3d &element) { std::cout << element << ","; });
-    if (!vec.empty()) {
-        std::cout << std::endl;
+void aruco_utils::main_aruco_loop(){
+    
+    std::cout<<"started main aruco loop"<<std::endl;
+
+    int frame_counter = 0;
+    std::vector<uchar> current_frame;
+
+    while (!capture.isOpened())
+        usleep(20000);
+
+    cv::Mat img;
+
+    int w = capture.get(3);
+    int h = capture.get(4);
+
+
+    while (run_main_loop)
+    {
+        // get current frame data
+        while (!frame_queue.pop(current_frame)) {
+            usleep(2000);
+        }
+        cv::Mat frame(h, w, CV_8UC3, current_frame.data());
+
+        if (frame.empty())
+            continue;
+
+        img = calculate_6_DOF(frame);
+
+        // TODO: imshow
+        if (imshow)
+            cv::imshow("frame", img);
+
+        // TODO: save video
+        if (save_run_video)
+            cv::imwrite(save_run_path + std::to_string(frame_counter) + ".jpg", img);
+
+        frame_counter ++;
+        usleep(usleep_between_frames);
+    }
+}
+
+/// @brief opens video capture with string
+/// @param udp_string cap.open(udp_string)
+/// @param capture_width new width, set to 0 (or less) for auto
+/// @param capture_height new height, set to 0 (or less) for auto
+void aruco_utils::open_video_cap(std::string udp_string, int capture_width, int capture_height)
+{
+    capture.open(udp_string);
+
+    if (capture_width > 0 && capture_height > 0){
+        capture.set(3, capture_width);
+        capture.set(4, capture_height);
+    }
+
+    std::thread camera_thread ([&] {camera_feed_to_queue();});
+}
+
+/// @brief opens video capture with port
+/// @param udp_string cap.open(udp_string)
+/// @param capture_width new width, set to 0 (or less) for auto
+/// @param capture_height new height, set to 0 (or less) for auto
+void aruco_utils::open_video_cap(int camera_port, int capture_width, int capture_height)
+{
+    capture.open(camera_port);
+
+    if (capture_width > 0 && capture_height > 0){
+        capture.set(3, capture_width);
+        capture.set(4, capture_height);
+    }
+
+    std::thread camera_thread ([&] {camera_feed_to_queue();});
+}
+
+
+void aruco_utils::camera_feed_to_queue() {
+
+    while (!capture.isOpened())
+        usleep(40000);
+
+    while (run_camera) {
+        if (pause_capture_to_queue) {
+            usleep(100000);
+            continue;
+        }
+        cv::Mat temp_frame;
+        capture.read(temp_frame);
+
+        std::vector<uchar> frame_vec;
+        // converting frame to vector, and pushing frame to queue
+        frame_vec.assign(
+            temp_frame.data,
+            temp_frame.data + temp_frame.total() * temp_frame.channels());
+
+        frame_queue.push(frame_vec);
     }
 }
 
@@ -128,4 +219,5 @@ aruco_utils::aruco_utils(std::string yamlCalibrationPath, float currentMarkerSiz
     this->id_to_follow = id_to_follow;
 
     cameraParams = getCameraCalibration(yamlCalibrationPath);
+    // TODO: add save_run path
 }
