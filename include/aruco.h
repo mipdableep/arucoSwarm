@@ -18,18 +18,18 @@
 #include <opencv2/highgui.hpp>
 
 
-class aruco_utils {
+class aruco {
    public:
-    aruco_utils(std::string &yamlCalibrationPath, int cameraPort,
+    aruco(std::string &yamlCalibrationPath, int cameraPort,
           float currentMarkerSize);
 
-    aruco_utils(std::string &yamlCalibrationPath, int cameraPort,
+    aruco(std::string &yamlCalibrationPath, int cameraPort,
           float currentMarkerSize, int cam_fps);
 
 
-    ~aruco_utils();
+    ~aruco();
 
-    aruco_utils(std::string &yamlCalibrationPath, std::string &cameraString,
+    aruco(std::string &yamlCalibrationPath, std::string &cameraString,
           float currentMarkerSize);
 
     void setHoldCamera(bool value) { *holdCamera = value; };
