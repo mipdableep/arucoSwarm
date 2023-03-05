@@ -50,7 +50,7 @@ with open('Camera Calibration/Drone4/Calibration.npy', 'rb') as f:
 
 
 # Aruco square size in cm
-aruco_size = 7.0
+aruco_size = 9.5
 
 
 # Detect all arucos (that in dictionary) in the given image
@@ -151,7 +151,8 @@ def computeErrorFunction (tvec, pvec, distance, angle):
 
     lr = calLR * (pyaw - angle)
     fb = calFB * (distance - prange)
-    ud = calUD * (cy + np.sqrt(cy ** 2 + cz ** 2) * np.sin(toRadian(cameraFixedAngle)))
+    # ud = calUD * (cy + np.sqrt(cy ** 2 + cz ** 2) * np.sin(toRadian(cameraFixedAngle)))
+    ud = calUD * cy
     cw = calCW * np.arctan2(cx, cz)
 
     lr = TelloUtils.fixValue(lr, TelloUtils.DEFAULT_CLIP)
@@ -335,17 +336,17 @@ thread3.join()
 
 sleep(1)
 
-while cv2.waitKey(1) != ord("q"):
-    tello1.track(522,  45, 100, camMtrix1, camDist1)
-    tello2.track(522, -45, 100, camMtrix2, camDist2)
-    tello3.track(522,   0, 141, camMtrix3, camDist3)
+while cv2.waitKey(50) != ord("q"):
+    tello1.track(100,  26,  55, camMtrix1, camDist1)
+    tello2.track(100,   0, 100, camMtrix2, camDist2)
+    tello3.track(100, -26,  55, camMtrix3, camDist3)
 
 '''
 
 time_stmp = dt.datetime.now()
 while cv2.waitKey(1) != ord("q") and time_stmp + dt.timedelta(seconds=15) > dt.datetime.now():
     tello1.track(522,  45,  80, camMtrix1, camDist1)
-    tello2.track(522, -45,  80, camMtrix2, camDist2)
+    tello2.track(522, -45,  80, camMtrix2, camDist2)111
     tello3.track(522,   0, 113, camMtrix3, camDist3)
     tello4._tello.send_rc_control(0, 0, 0, 0)
 
