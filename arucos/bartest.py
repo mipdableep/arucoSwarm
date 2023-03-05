@@ -50,7 +50,7 @@ with open('Camera Calibration/Drone4/Calibration.npy', 'rb') as f:
 
 
 # Aruco square size in cm
-aruco_size = 8.0
+aruco_size = 7.0
 
 
 # Detect all arucos (that in dictionary) in the given image
@@ -123,6 +123,46 @@ def drawGrid (inputImage : np.array, v_lines : int, h_lines : int, color=(0, 0, 
 
     return outputImage
 
+# Angle the camera points downword
+cameraFixedAngle = 12   # in dgree
+
+# Calibration values:
+calLR = -0.5
+calFB = -0.5
+calUD = -2.0
+calCW =  150
+
+##################################
+
+def toDegree(radian : float):
+    return radian * 180. / np.pi
+
+def toRadian(degree : float):
+    return degree * np.pi / 180.
+
+def computeErrorFunction (tvec, pvec, distance, angle):
+
+    px, py, pz = TelloUtils.extractVector(pvec)
+    cx, cy, cz = TelloUtils.extractVector(tvec)
+
+    pyaw = toDegree(np.arctan2(px, pz))
+    ppitch = toDegree(np.arctan2(py, np.sqrt(px ** 2 + pz ** 2)))
+    prange = np.sqrt(cx ** 2 + cy ** 2 + cz ** 2)
+
+    lr = calLR * (pyaw - angle)
+    fb = calFB * (distance - prange)
+    ud = calUD * (cy + np.sqrt(cy ** 2 + cz ** 2) * np.sin(toRadian(cameraFixedAngle)))
+    cw = calCW * np.arctan2(cx, cz)
+
+    lr = TelloUtils.fixValue(lr, TelloUtils.DEFAULT_CLIP)
+    fb = TelloUtils.fixValue(fb, TelloUtils.DEFAULT_CLIP)
+    ud = TelloUtils.fixValue(ud, TelloUtils.DEFAULT_CLIP)
+    cw = TelloUtils.fixValue(cw, TelloUtils.MAX_CLIP)
+    
+    return (lr, fb, ud, cw)
+
+
+
 class TelloObject:
 
     def __init__(self, address : str, vport : int):
@@ -145,24 +185,24 @@ class TelloObject:
 
     def track(self, arucoID : int, angle : float, distance : float, camMatrix, camDist, offset=(0, 0, 0, 0)):
 
-        self.ret, self.frame = self.cam.read()
+        ret, frame = self.cam.read()
 
-        if not self.ret:
+        if not ret:
             print ('Error retriving video stream')
             return
 
         # Detect arucos and extract thier positions
-        markerCorners, markerIds = detectAruco(self.frame)
+        markerCorners, markerIds = detectAruco(frame)
         rvecs, tvecs = extractArucoPosition(markerCorners, camMatrix, camDist)
 
         # Mark the arucos and draw thier pose
-        self.img = np.copy (self.frame)
+        img = np.copy (frame)
 
-        self.img = drawMarkers (self.img, markerCorners)
+        img = drawMarkers (img, markerCorners)
         #img = drawMarkers (img, markerCorners, markerIds)
-        self.img = drawAxes (self.img, rvecs, tvecs, camMatrix, camDist)
-        self.img = drawGrid (self.img, 5, 5, (255, 255, 255))
-        self.img = cv2.flip (self.img, 1)
+        img = drawAxes (img, rvecs, tvecs, camMatrix, camDist)
+        img = drawGrid (img, 5, 5, (255, 255, 255))
+        img = cv2.flip (img, 1)
 
         lr, fb, ud, cw = 0, 0, 0, 0
 
@@ -181,17 +221,7 @@ class TelloObject:
             zvec = np.matrix([[0.], [0.], [-1.]])
             pvec = rmat * zvec
 
-            px, py, pz = TelloUtils.extractVector(pvec)
-            cx, cy, cz = TelloUtils.extractVector(tvec)
-
-            pyaw = np.arctan2(px, pz) * 180. / np.pi
-            ppitch = np.arctan2(py, np.sqrt(px ** 2 + pz ** 2)) * 180. / np.pi
-            prange = np.sqrt(np.sum(tvecs[i][0] ** 2))
-
-            ud = TelloUtils.fixValue(-2.0 * (cy + np.sqrt(cy ** 2 + cz ** 2) * (30 / 180)))
-            cw = TelloUtils.fixValue( 150 * np.arctan2(cx, cz), 100)
-            lr = TelloUtils.fixValue(-0.5 * (pyaw - angle))
-            fb = TelloUtils.fixValue(-0.5 * (distance - prange))
+            lr, fb, ud, cw = computeErrorFunction(tvec, pvec, distance, angle)
 
             if False:
                 print ("--------------------------------------------------")
@@ -206,18 +236,32 @@ class TelloObject:
                 print ("Distance : " + str(np.around(prange, 0)) + "cm")
                 print ("Position : " + str(tvec.transpose()))
         
-        lr = TelloUtils.fixValue(lr + offset[0], 100)
-        fb = TelloUtils.fixValue(fb + offset[1], 100)
-        ud = TelloUtils.fixValue(ud + offset[2], 100)
-        cw = TelloUtils.fixValue(cw + offset[3], 100)
+        olr, ofb, oud, ocw = offset
+
+        lr = TelloUtils.fixValue(lr + olr, 100)
+        fb = TelloUtils.fixValue(fb + ofb, 100)
+        ud = TelloUtils.fixValue(ud + oud, 100)
+        cw = TelloUtils.fixValue(cw + ocw, 100)
 
         self._tello.send_rc_control(lr, fb, ud, cw)
+        filename = './arucos/' + self._address + '/' + dt.datetime.now().strftime("%Y%m%d_%H:%M:%S:%f") + '.jpg'
 
-        filename = './arucos/' + self._address + '/' + dt.datetime.now().strftime("%Y%m%d_%H:%M:%S:%s") + '.jpg'
-        cv2.imwrite(filename, self.img)
+        # font
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = int(1)
+        color = (0, 0, 255)
+        thickness = int(2)
+        
+        # Add text
+        img = cv2.putText(img, ("L/R : " + str(lr)), (10, 30), font, fontScale, color, thickness, cv2.LINE_AA)
+        img = cv2.putText(img, ("F/B : " + str(fb)), (10, 60), font, fontScale, color, thickness, cv2.LINE_AA)
+        img = cv2.putText(img, ("U/D : " + str(ud)), (10, 90), font, fontScale, color, thickness, cv2.LINE_AA)
+        img = cv2.putText(img, ("CCW : " + str(cw)), (10, 120), font, fontScale, color, thickness, cv2.LINE_AA)
 
-        self.img = cv2.resize(self.img, (720, 480))
-        cv2.imshow(self.title, self.img)
+        cv2.imwrite(filename, img)
+
+        img = cv2.resize(img, (720, 480))
+        cv2.imshow(self.title, img)
 
 
     def kill(self):
@@ -235,8 +279,6 @@ def kill_func(tello : TelloObject):
     tello.kill()
 
 
-
-
 '''
 !!!!!!!!!!! TOP VIEW !!!!!!!!!!!
 
@@ -248,14 +290,14 @@ DRONE 1     |     DRONE 2
 '''
 
 '''
-tello = TelloObject("10.3.141.211", 11112)
+tello = TelloObject("10.3.141.169", 11112)
 print (tello._tello.get_battery())
 
-tello.takeoff()
+tello.startCam()
 
-tello._tello.move_forward(200)
-
-tello._tello.land()
+time_stmp = dt.datetime.now()
+while cv2.waitKey(1) != ord("q"):
+    tello.track(522,  0,  100, camMtrix1, camDist1)
 
 exit()
 '''
@@ -263,12 +305,12 @@ exit()
 tello1 = TelloObject("10.3.141.169", 11112)
 tello2 = TelloObject("10.3.141.67",  11113)
 tello3 = TelloObject("10.3.141.117", 11114)
-tello4 = TelloObject("10.3.141.211", 11115)
+#tello4 = TelloObject("10.3.141.211", 11115)
 
 print (tello1._tello.get_battery())
 print (tello2._tello.get_battery())
 print (tello3._tello.get_battery())
-print (tello4._tello.get_battery())
+#print (tello4._tello.get_battery())
 
 tello1.startCam()
 tello2.startCam()
@@ -279,52 +321,66 @@ sleep(2)
 thread1 = threading.Thread(target=takeoff_func, args=(tello1,), name="tello1 takeoff")
 thread2 = threading.Thread(target=takeoff_func, args=(tello2,), name="tello2 takeoff")
 thread3 = threading.Thread(target=takeoff_func, args=(tello3,), name="tello3 takeoff")
-thread4 = threading.Thread(target=takeoff_func, args=(tello4,), name="tello4 takeoff")
+#thread4 = threading.Thread(target=takeoff_func, args=(tello4,), name="tello4 takeoff")
 
 thread1.start()
 thread2.start()
 thread3.start()
-thread4.start()
+#thread4.start()
 
 thread1.join()
 thread2.join()
 thread3.join()
-thread4.join()
+#thread4.join()
 
-sleep(2)
+sleep(1)
+
+while cv2.waitKey(1) != ord("q"):
+    tello1.track(522,  45, 100, camMtrix1, camDist1)
+    tello2.track(522, -45, 100, camMtrix2, camDist2)
+    tello3.track(522,   0, 141, camMtrix3, camDist3)
+
+'''
 
 time_stmp = dt.datetime.now()
 while cv2.waitKey(1) != ord("q") and time_stmp + dt.timedelta(seconds=15) > dt.datetime.now():
-    tello1.track(522,  40, 100, camMtrix1, camDist1)
-    tello2.track(522, -40, 100, camMtrix1, camDist2)
-    tello3.track(522,   0, 141, camMtrix1, camDist3)
+    tello1.track(522,  45,  80, camMtrix1, camDist1)
+    tello2.track(522, -45,  80, camMtrix2, camDist2)
+    tello3.track(522,   0, 113, camMtrix3, camDist3)
     tello4._tello.send_rc_control(0, 0, 0, 0)
 
+forword_speed = 30
+direction1 = (forword_speed * np.sin(toRadian( 45)), forword_speed * np.cos(toRadian( 45)), 0, 0)
+direction2 = (forword_speed * np.sin(toRadian(-45)), forword_speed * np.cos(toRadian(-45)), 0, 0)
+direction3 = (0, forword_speed, 0, 0)
+direction4 = (0, forword_speed, 0, 0)
+
 time_stmp = dt.datetime.now()
-while cv2.waitKey(1) != ord("q") and time_stmp + dt.timedelta(seconds=20) > dt.datetime.now():
-    tello1.track(522,  40, 100, camMtrix1, camDist1, (20 / np.sqrt(2), 20 / np.sqrt(2), 0, 0))
-    tello2.track(522, -40, 100, camMtrix1, camDist2, (-20 / np.sqrt(2), 20 / np.sqrt(2), 0, 0))
-    tello3.track(522,   0, 141, camMtrix1, camDist3, (0, 20, 0, 0))
-    tello4._tello.send_rc_control(0, 20, 0, 0)
+while cv2.waitKey(1) != ord("q") and time_stmp + dt.timedelta(seconds=10) > dt.datetime.now():
+    tello1.track(522,  45,  80, camMtrix1, camDist1, direction1)
+    tello2.track(522, -45,  80, camMtrix2, camDist2, direction2)
+    tello3.track(522,   0, 113, camMtrix3, camDist3, direction3)
+    tello4._tello.send_rc_control(direction4[0], direction4[1], direction4[2], direction4[3])
 
 time_stmp = dt.datetime.now()
 while cv2.waitKey(1) != ord("q") and time_stmp + dt.timedelta(seconds=5) > dt.datetime.now():
-    tello1.track(522,  40, 100, camMtrix1, camDist1)
-    tello2.track(522, -40, 100, camMtrix1, camDist2)
-    tello3.track(522,   0, 141, camMtrix1, camDist3)
+    tello1.track(522,  45,  80, camMtrix1, camDist1)
+    tello2.track(522, -45,  80, camMtrix2, camDist2)
+    tello3.track(522,   0, 113, camMtrix3, camDist3)
     tello4._tello.send_rc_control(0, 0, 0, 0)
+'''
 
 thread1 = threading.Thread(target=kill_func, args=(tello1,), name="tello1 kill")
 thread2 = threading.Thread(target=kill_func, args=(tello2,), name="tello2 kill")
 thread3 = threading.Thread(target=kill_func, args=(tello3,), name="tello3 kill")
-thread4 = threading.Thread(target=kill_func, args=(tello4,), name="tello4 kill")
+#thread4 = threading.Thread(target=kill_func, args=(tello4,), name="tello4 kill")
 
 thread1.start()
 thread2.start()
 thread3.start()
-thread4.start()
+#thread4.start()
 
 thread1.join()
 thread2.join()
 thread3.join()
-thread4.join()
+#thread4.join()

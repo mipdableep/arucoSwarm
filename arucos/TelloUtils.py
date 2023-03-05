@@ -1,5 +1,7 @@
 
 DEFAULT_CLIP = 40
+SAFTY_CLIP = 30
+MAX_CLIP = 100
 
 '''
 Fix the value to be competible with the tello SDK.
