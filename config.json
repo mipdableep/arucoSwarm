@@ -5,28 +5,29 @@
   "webcam": false,
   "rpiCamera": false,
   
-  "__comment__":"rpi input fps, set cam_fps to -1 to get default",
-  "cam_fps":-1,
+  "__comment__":"input fps, set cam_fps to -1 to get default",
+  "cam_fps":3,
   
   "cameraPort": 0,
 
   "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
 
   "__Comment":"save photos",
-  "videoCap":true,
+  "save_video":true,
+  "save_video_path":"/home/fares/rbd/projects/aruco_swarm/arucoSwarm/video_cap/",
 
   "__comment":"imshow will only take affect when running the code with the tello as img input",
-  "imshow":false,
+  "imshow":true,
+  "do_ncli_command": true,
 
-  "do_ncli_command": false,
 
-  "runServer": true,
+  "runServer": false,
   "serverHostIp": "10.3.141.188",
   "serverPort": 9090,
 
   "connect_to_drone":false,
 
-  "runtime_length": 100,
+  "runtime_length": 30,
 
   "DRONE_NUM":"drone-1"
 }

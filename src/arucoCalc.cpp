@@ -83,17 +83,6 @@ int arucoCalc::calculate_rc(double pos, int target, int rc_max, int rc_min, doub
         rc = std::clamp(rc, -rc_max, rc_max);
     }
 
-    if (rc == 0)
-        return rc;
-
-    int ret = std::abs(rc);
-
-    if (ret < 5)
-        return rc*3;
-
-    if (ret < 10)
-        return rc*1.5;
-
     return rc;
 }
 

@@ -44,9 +44,9 @@ class arucoCalc {
         double Z_ANGLE_TARGET;
 
         // devidors - rc +- target / devidor
-        double X_DEVIDOR = 4.5;
-        double Y_DEVIDOR = 4.5;
-        double Z_DEVIDOR = 4.5;
+        double X_DEVIDOR = 8;
+        double Y_DEVIDOR = 8;
+        double Z_DEVIDOR = 8;
 
         double Z_ROTATION_DEVIDOR = 2;
 

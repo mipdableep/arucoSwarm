@@ -11,17 +11,23 @@ find_package(Boost REQUIRED)
 
 include_directories(include)
 
-add_library(aruco2 src/aruco2.cpp)
-# add_library(drone_client src/drone_client.cc)
-# add_library(arucoCalc src/arucoCalc.cpp)
+add_library(arucoUtils src/arucoUtils.cpp)
+add_library(drone_client src/drone_client.cc)
+add_library(arucoCalc src/arucoCalc.cpp)
 # add_library(SerialTello src/SerialTello.cpp)
 
-target_link_libraries(aruco2 -lpthread ${OpenCV_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(arucoUtils -lpthread ${OpenCV_LIBS} ${Boost_LIBRARIES})
 
-add_executable(ArucoTest ArucoTest.cpp)
+add_executable(runAruco runAruco.cpp)
 
 target_link_libraries(
-    ArucoTest
-    aruco2
-)
+    runAruco
+    arucoUtils
+    ctello
+    # SerialTello
+    drone_client
+    arucoCalc
+    -lpthread
+    nlohmann_json::nlohmann_json)
+
 

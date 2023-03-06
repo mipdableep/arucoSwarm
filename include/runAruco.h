@@ -6,7 +6,7 @@
 #include <nlohmann/json.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "aruco.h"
+#include "../include/arucoUtils.h"
 // #include "SerialTello.h"
 #include "drone_client.hpp"
 #include "arucoCalc.hpp"

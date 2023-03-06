@@ -3,8 +3,8 @@
     {
         "isLeader": false,
     
-        "OON_target_id": 100,
-        "currentMarkerSize": 0.1,
+        "OON_target_id": 145,
+        "currentMarkerSize": 0.07,
     
         "OON_target_X": 0,
         "OON_target_Y": 160,

@@ -3,3 +3,4 @@ build/
 videocap/*
 .idea
 cmake-build-debug
+video_cap/

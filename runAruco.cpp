@@ -5,11 +5,12 @@ using namespace std::chrono_literals;
 // declare vars
 std::string command;
 
-void webcamTest(aruco_utils& detector, arucoCalc& calc){
+void webcamTest(aruco_utils &detector, arucoCalc &calc)
+{
 
     sleep(1);
 
-    //print target
+    // print target
     calc.get_target_vals();
 
     sleep(4);
@@ -17,137 +18,113 @@ void webcamTest(aruco_utils& detector, arucoCalc& calc){
     int tmpId = -1;
     bool commandFlag;
 
-    while (true) {
-        while (commandFlag && detector.ID != -1);
-
-        if (detector.ID != -1) {
-            tmpId = detector.ID;
-        }
-
-        if (detector.ID == -1 && tmpId != -1) {
-            // noLeaderLoop_v2(drone, detector, tello, tmpId);
-            std::cout<<"no leader" << std::endl;
-        }
-
-        else {
-            if (!detector.init || detector.ID != -1) {
-
-                calc.droneZRotate = detector.yaw;
-                calc.droneXPos = detector.rightLeft;
-                calc.droneYPos = detector.forward;
-                calc.droneZPos = detector.upDown;
-
-                // run rc calculations
-                X_rc = calc.calculate_x_rc();
-                Y_rc = calc.calculate_y_rc();
-                Z_rc = calc.calculate_z_rc();
-                Zr_rc = calc.calculate_z_rotation_rc();
-
-
-                std::string command = "rc ";
-
-                command += std::to_string((int)(X_rc));
-                command += " ";
-
-                command += std::to_string((int)(Y_rc));
-                command += " ";
-
-                command += std::to_string((int)(Z_rc));
-                command += " ";
-
-                command += std::to_string((int)(Zr_rc));
-
-                // tello.SendCommand(command);
-                std::cout << "OON command:  " << command << std::endl;
-
-            } else {
-                // tello.SendCommand("rc 0 0 0 0");
-                printf("rc 0 0 0 0");
-            }
-
-            sleep(1);
-            commandFlag = false;
-        }
-    }
-}
-
-void objectOrientedNavigation(aruco_utils& detector, ctello::Tello& tello, arucoCalc& calc) {
-    std::cout << "started OON\n" << std::endl;
+    std::cout << "started OON\n"
+              << std::endl;
     calc.get_target_vals();
 
     int loop_counter = 0;
 
-    while (run_OON) {
+    while (run_OON)
+    {
 
-        if ((!detector.init || detector.ID != -1) && detector.correct_index != -9) {
-
-            calc.droneZRotate = detector.yaw;
-            calc.droneXPos = detector.rightLeft;
-            calc.droneYPos = detector.forward;
-            calc.droneZPos = detector.upDown;
-
-            // run rc calculations
-            X_rc = calc.calculate_x_rc();
-            Y_rc = calc.calculate_y_rc();
-            Z_rc = calc.calculate_z_rc();
-            Zr_rc = calc.calculate_z_rotation_rc();
-
-
-            std::string command = "rc ";
-
-            command += std::to_string((int)(X_rc));
-            command += " ";
-
-            command += std::to_string((int)(Y_rc));
-            command += " ";
-
-            command += std::to_string((int)(Z_rc));
-            command += " ";
-
-            command += std::to_string((int)(Zr_rc));
-
-            tello.SendCommand(command);
-            std::cout << "OON command:  " << command << std::endl;
-
-            } else {
-                tello.SendCommand("rc 0 0 0 0");
-            }
-
+        if (detector.correct_index == -9 || !detector.Target_found)
+        {
             usleep(1000000);
+            loop_counter++;
+            continue;
+        }
 
-            loop_counter ++;        
+        calc.droneZRotate = detector.yaw;
+        calc.droneXPos = detector.Tx;
+        calc.droneYPos = detector.Ty;
+        calc.droneZPos = detector.Tz;
+
+        // run rc calculations
+        X_rc = calc.calculate_x_rc();
+        Y_rc = calc.calculate_y_rc();
+        Z_rc = calc.calculate_z_rc();
+        Zr_rc = calc.calculate_z_rotation_rc();
+
+        std::string command = "rc ";
+
+        command += std::to_string((int)(X_rc));
+        command += " ";
+
+        command += std::to_string((int)(Y_rc));
+        command += " ";
+
+        command += std::to_string((int)(Z_rc));
+        command += " ";
+
+        command += std::to_string((int)(Zr_rc));
+
+        std::cout << "OON command:  " << command << std::endl;
+
+        usleep(1000000);
+        loop_counter++;
     }
+}
+
+void objectOrientedNavigation(aruco_utils &detector, ctello::Tello &tello, arucoCalc &calc)
+{
+    std::cout << "started OON\n"
+              << std::endl;
+    calc.get_target_vals();
+
+    int loop_counter = 0;
+
+    while (run_OON)
+    {
+
+        if (detector.correct_index == -9 || !detector.Target_found)
+        {
+            tello.SendCommand("rc 0 0 0 0");
+            usleep(1000000);
+            loop_counter++;
+            continue;
+        }
+
+        calc.droneZRotate = detector.yaw;
+        calc.droneXPos = detector.Tx;
+        calc.droneYPos = detector.Ty;
+        calc.droneZPos = detector.Tz;
+
+        // run rc calculations
+        X_rc = calc.calculate_x_rc();
+        Y_rc = calc.calculate_y_rc();
+        Z_rc = calc.calculate_z_rc();
+        Zr_rc = calc.calculate_z_rotation_rc();
+
+        std::string command = "rc ";
+
+        command += std::to_string((int)(X_rc));
+        command += " ";
+
+        command += std::to_string((int)(Y_rc));
+        command += " ";
+
+        command += std::to_string((int)(Z_rc));
+        command += " ";
+
+        command += std::to_string((int)(Zr_rc));
+
+        tello.SendCommand(command);
+        std::cout << "OON command:  " << command << std::endl;
+
+        usleep(1000000);
+        loop_counter++;
+    }
+
     tello.SendCommand("rc 0 0 0 0");
     usleep(200000);
     tello.SendCommand("rc 0 0 0 0");
 }
 
-void noLeaderLoop(aruco_utils& detector, ctello::Tello& tello,
-                  int& tmpId) {
-    std::cout << "in no leader loop" << std::endl;
-    int sleepAmount = 2;
-    // wait to see if problem solevs itself
-    tello.SendCommand("rc 0 0 0 0");
-    printf("sleeping: %d seconds", sleepAmount);
-    sleep(sleepAmount);
+void change_to_tello_wifi(const std::string tello_conf_path)
+{
 
-    int i = 0;
-    while (detector.ID == -1 && i < 50) {
-        tello.SendCommand("rc 0 0 0 0");
-        std::cout << "Searching for leader" << std::endl;
-        tello.SendCommand("rc 0 0 0 25");
-        i++;
-        if (detector.ID != tmpId && detector.ID != -1) detector.init = true;
-        sleep(2);
-    }
+    std::cout << "in: change_to_tello_wifi()" << std::endl;
 
-    if (detector.ID == -1) tello.SendCommandWithResponse("land");
-}
-
-void change_to_tello_wifi(const std::string tello_conf_path) {
-
-    std::cout<< "in: change_to_tello_wifi()" << std::endl;
-    
     const std::string kill_connection_cmd = "sudo killall wpa_supplicant";
     const std::string connection_cmd =
         "sudo wpa_supplicant -i wlan0 -B -c " + tello_conf_path;
@@ -158,22 +135,35 @@ void change_to_tello_wifi(const std::string tello_conf_path) {
     std::this_thread::sleep_for(10s);
 }
 
-void timer_limiter(aruco_utils& detector, ctello::Tello& tello, bool& run_OON, int seconds_time_amount){
+void timer_limiter(aruco_utils &detector, ctello::Tello &tello, bool &run_OON, int seconds_time_amount)
+{
+    std::cout <<"runtime len: "<<seconds_time_amount<<std::endl;
+    if (seconds_time_amount == -1){
+        while (detector.exit != 'q')
+            sleep(1);
+    }
+
+    else{
     while (seconds_time_amount > 0)
-    {
-        sleep(1);
-        seconds_time_amount --;
-        if (seconds_time_amount%5 == 0)
-            std::cout << "time left: " << seconds_time_amount << std::endl;
+        {
+            sleep(1);
+            seconds_time_amount--;
+            if (seconds_time_amount % 5 == 0)
+                std::cout << "time left: " << seconds_time_amount << std::endl;
+            
+            // if q pressed on imshow
+            if (detector.exit == 'q')
+                seconds_time_amount = -1;
+        }
     }
     run_OON = false;
     detector.~aruco_utils();
     usleep(300000);
     tello.SendCommand("land");
-
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[])
+{
 
     std::ifstream programGlobal("../config.json");
     std::ifstream programDrone("../drone_config.json");
@@ -181,23 +171,23 @@ int main(int argc, char* argv[]) {
     nlohmann::json global_vars;
     programGlobal >> global_vars;
     programGlobal.close();
-    
+
     nlohmann::json drone_vars;
     programDrone >> drone_vars;
     programDrone.close();
-
 
     //* drone number - for drone-config
     std::string DRONE_NUM = global_vars["DRONE_NUM"];
 
     int runtime_length = global_vars["runtime_length"];
-    
+
     int cam_fps = global_vars["cam_fps"];
     bool isWebcam = global_vars["webcam"];
     bool rpiCamera = global_vars["rpiCamera"];
-    
-    bool videoCap = global_vars["videoCap"];
+
+    bool save_video = global_vars["save_video"];
     bool do_imshow = global_vars["imshow"];
+    std::string save_video_path = global_vars["save_video_path"];
 
     bool runServer = global_vars["runServer"];
     bool connect_to_drone = global_vars["connect_to_drone"];
@@ -210,7 +200,7 @@ int main(int argc, char* argv[]) {
 
     const std::string tello_conf_path = drone_vars[DRONE_NUM]["tello_conf_path"];
 
-    //OON target location:
+    // OON target location:
     int OON_target_X = drone_vars[DRONE_NUM]["OON_target_X"];
     int OON_target_Y = drone_vars[DRONE_NUM]["OON_target_Y"];
     int OON_target_Z = drone_vars[DRONE_NUM]["OON_target_Z"];
@@ -218,58 +208,41 @@ int main(int argc, char* argv[]) {
     // checking the img input device for correct calibration
     std::string yamlCalibrationPath;
 
-    if (isWebcam) {
+    if (isWebcam)
+    {
         yamlCalibrationPath = global_vars["webcamYamlCalibrationPath"];
-    } else if (rpiCamera) {
+    }
+    else if (rpiCamera)
+    {
         yamlCalibrationPath = global_vars["rpiCalibrationPath"];
-    }else{
+    }
+    else
+    {
         yamlCalibrationPath = global_vars["yamlCalibrationPath"];
     }
 
-    if (isWebcam) {
+    if (isWebcam)
+    {
         int cameraPort = global_vars["cameraPort"];
         aruco_utils detector(yamlCalibrationPath, cameraPort, currentMarkerSize);
         detector.imshow = true;
-        detector.videoCap = false;
+        detector.save_video = false;
         detector.id_to_follow = OON_TARGET_ID;
         arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
-        std::thread movementThread([&] { webcamTest(detector, calc); });
+
+        std::thread markerThread([&]
+                                 { detector.open_video_cap(cameraPort,0,0); });
+        std::thread movementThread([&]
+                                   { webcamTest(detector, calc); });
         movementThread.join();
+        markerThread.join();
     }
-/*
-    else if (rpiCamera){
-        if (runServer){
-            DroneClient client(droneName, argv[1], std::stoi(argv[2]));
-            client.connect_to_server();
-            client.wait_for_takeoff();
-        }
 
-        SerialTello tello("");
+    else
+    { // regular run with wifi connection
 
-        sleep(2);
-
-        tello.SendCommandWithResponse("takeoff");
-
-        tello.SendCommand("rc 0 0 0 0");
-
-        arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
-        //camera at port 0
-        aruco detector(yamlCalibrationPath, 0, currentMarkerSize, cam_fps);
-        detector.imshow = false;
-        detector.videoCap = videoCap;
-        detector.id_to_follow = drone_vars["OON_target_id"];
-        std::thread movementThread([&] {objectOrientedNavigation(detector, tello, calc);
-        });1.5
-1.5
-1.5
-
-        movementThread.join();
-    }
-*/
-
-    else { //regular run with wifi connection
-
-        if (runServer){
+        if (runServer)
+        {
             int serverPort = global_vars["serverPort"];
             std::string serverHostIp = global_vars["serverHostIp"];
 
@@ -278,11 +251,14 @@ int main(int argc, char* argv[]) {
             client.wait_for_takeoff();
             change_to_tello_wifi(tello_conf_path);
         }
-        
+
         if (!runServer && connect_to_drone)
             change_to_tello_wifi(tello_conf_path);
 
-        if (do_ncli_command){
+        droneName = "TELLO-98F041";
+
+        if (do_ncli_command)
+        {
             std::string commandString = "nmcli c up " + droneName;
             const char *command = commandString.c_str();
             system(command);
@@ -293,26 +269,39 @@ int main(int argc, char* argv[]) {
 
         sleep(2);
 
-        tello.SendCommandWithResponse("takeoff");
+        // tello.SendCommandWithResponse("takeoff");
 
         tello.SendCommand("rc 0 0 0 0");
         std::string cameraString = global_vars["cameraString"];
 
         arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
-        aruco_utils detector(yamlCalibrationPath, cameraString, currentMarkerSize);
+        aruco_utils detector(yamlCalibrationPath, currentMarkerSize, OON_TARGET_ID);
         detector.imshow = do_imshow;
-        detector.videoCap = videoCap;
+        detector.save_video = save_video;
+        detector.save_run_path = save_video_path;
         detector.id_to_follow = OON_TARGET_ID;
-        std::cout<<"1"<<std::endl;
-        std::thread movementThread([&] {objectOrientedNavigation(detector, tello, calc);
-        });
-        std::thread countdownThread([&] {timer_limiter(detector, tello, run_OON, runtime_length);
-        });
+
+        std::thread videoThread([&]
+                                { detector.open_video_cap(cameraString,0,0); });
+        std::thread markerThread([&]
+                                 { detector.main_aruco_loop(); });
+        std::thread movementThread([&]
+                                   { objectOrientedNavigation(detector, tello, calc); });
+        std::thread countdownThread([&]
+                                    { timer_limiter(detector, tello, run_OON, runtime_length); });
+        videoThread.join();
+        markerThread.join();
         movementThread.join();
         countdownThread.join();
+
+        if (do_ncli_command)
+        {
+            std::string commandString = "nmcli c up rpi-hotspot";
+            const char *command = commandString.c_str();
+            system(command);
+        }
 
         // if exit or return 0 is in the first scope it outputs "std::system_error - what():  Invalid argument"
         exit(0);
     }
-    
 }

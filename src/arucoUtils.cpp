@@ -98,8 +98,6 @@ cv::Mat aruco_utils::calculate_6_DOF(cv::Mat img)
 
     cv::Vec3d R_vec (R_vec_mult.at<double>(0), R_vec_mult.at<double>(1), R_vec_mult.at<double>(2));
 
-    std::cout<<"got to end" << std::endl;
-
     float Rx = R_vec[0];
     float Ry = R_vec[1];
     float Rz = R_vec[2];
@@ -116,7 +114,6 @@ cv::Mat aruco_utils::calculate_6_DOF(cv::Mat img)
 }
 
 void aruco_utils::main_aruco_loop(){
-    
     std::cout<<"started main aruco loop"<<std::endl;
 
     int frame_counter = 0;
@@ -135,7 +132,7 @@ void aruco_utils::main_aruco_loop(){
     {
         // get current frame data
         while (!frame_queue.pop(current_frame)) {
-            usleep(2000);
+            usleep(200);
         }
         cv::Mat frame(h, w, CV_8UC3, current_frame.data());
 
@@ -145,11 +142,13 @@ void aruco_utils::main_aruco_loop(){
         img = calculate_6_DOF(frame);
 
         // TODO: imshow
-        if (imshow)
+        if (imshow){
             cv::imshow("frame", img);
+            exit = cv::waitKey(1);
+        }
 
         // TODO: save video
-        if (save_run_video)
+        if (save_video && frame_counter%7 == 0)
             cv::imwrite(save_run_path + std::to_string(frame_counter) + ".jpg", img);
 
         frame_counter ++;
@@ -163,6 +162,7 @@ void aruco_utils::main_aruco_loop(){
 /// @param capture_height new height, set to 0 (or less) for auto
 void aruco_utils::open_video_cap(std::string udp_string, int capture_width, int capture_height)
 {
+    std::cout << "started open_video_cap" << std::endl;
     capture.open(udp_string);
 
     if (capture_width > 0 && capture_height > 0){
@@ -170,7 +170,7 @@ void aruco_utils::open_video_cap(std::string udp_string, int capture_width, int 
         capture.set(4, capture_height);
     }
 
-    std::thread camera_thread ([&] {camera_feed_to_queue();});
+    camera_feed_to_queue();
 }
 
 /// @brief opens video capture with port
@@ -179,6 +179,7 @@ void aruco_utils::open_video_cap(std::string udp_string, int capture_width, int 
 /// @param capture_height new height, set to 0 (or less) for auto
 void aruco_utils::open_video_cap(int camera_port, int capture_width, int capture_height)
 {
+    std::cout << "started open_video_cap" << std::endl;
     capture.open(camera_port);
 
     if (capture_width > 0 && capture_height > 0){
@@ -186,11 +187,13 @@ void aruco_utils::open_video_cap(int camera_port, int capture_width, int capture
         capture.set(4, capture_height);
     }
 
-    std::thread camera_thread ([&] {camera_feed_to_queue();});
+    camera_feed_to_queue();
 }
 
 
 void aruco_utils::camera_feed_to_queue() {
+
+    std::cout << "started camera to queue" << std::endl;
 
     while (!capture.isOpened())
         usleep(40000);
@@ -213,11 +216,18 @@ void aruco_utils::camera_feed_to_queue() {
     }
 }
 
-aruco_utils::aruco_utils(std::string yamlCalibrationPath, float currentMarkerSize, int id_to_follow) {
+// * this part is important - " : frame_queue(3)" - initialization of boost::lockfree::spsc_queue
+aruco_utils::aruco_utils(std::string yamlCalibrationPath, float currentMarkerSize, int id_to_follow) : frame_queue(3) {
     this->yamlCalibrationPath = yamlCalibrationPath;
     this->currentMarkerSize = currentMarkerSize;
     this->id_to_follow = id_to_follow;
 
     cameraParams = getCameraCalibration(yamlCalibrationPath);
     // TODO: add save_run path
+}
+
+aruco_utils::~aruco_utils(){
+    run_camera = false;
+    run_main_loop = false;
+
 }

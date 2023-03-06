@@ -21,6 +21,7 @@ class aruco_utils
 {
 public:
       aruco_utils(std::string yamlCalibrationPath, float currentMarkerSize, int id_to_follow);
+      ~aruco_utils();
 
       cv::Mat calculate_6_DOF(cv::Mat img);
 
@@ -40,7 +41,7 @@ public:
       int id_to_follow;
 
       bool imshow = false;
-      bool save_run_video;
+      bool save_video;
       std::string save_run_path;
 
       float Tx;
@@ -49,6 +50,8 @@ public:
 
       float yaw;
       float pitch;
+
+      bool exit;
 
 
 private:
