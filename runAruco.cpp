@@ -163,15 +163,14 @@ void timer_limiter(aruco_utils &detector, ctello::Tello &tello, bool &run_OON, i
 void exit_all(aruco_utils& detector, bool& run_OON, ctello::Tello& tello)
 {
     run_OON = false;
-    detector.~aruco_utils();
-    usleep(300000);
+    detector.close();
     tello.SendCommand("land");
 }
 
 void exit_all(aruco_utils& detector, bool& run_OON)
 {
     run_OON = false;
-    detector.~aruco_utils();
+    detector.close();
 }
 
 int main(int argc, char *argv[])
@@ -187,7 +186,7 @@ int main(int argc, char *argv[])
     std::string G = "global-config";
 
     //* drone number - for drone-config
-    std::string DRONE_NUM = conf[G]["DRONE_NUM"];
+    std::string DEVICE = conf[G]["DEVICE"];
 
     // run settings
     int  runtime_length = conf[G]["runtime_length"];
@@ -195,7 +194,7 @@ int main(int argc, char *argv[])
     bool send_takeoff   = conf[G]["send_takeoff"];
 
     // capture settings
-    bool isWebcam  = conf[G]["webcam"];
+    bool isWebcam  = DEVICE == "webcam";
     int cameraPort = conf[G]["cameraPort"];
 
     std::string cameraString = conf[G]["cameraString"];
@@ -213,24 +212,20 @@ int main(int argc, char *argv[])
     bool do_ncli_command     = conf[G]["do_ncli_command"];
 
     // calibration settings
-    std::string yamlCalibrationPath;
-    if (isWebcam)
-        yamlCalibrationPath = conf[G]["webcamYamlCalibrationPath"];
-    else
-        yamlCalibrationPath = conf[G]["yamlCalibrationPath"];
+    std::string yamlCalibrationPath = conf[DEVICE]["calibration_path"];
 
 
-    bool isLeader           = conf[DRONE_NUM]["isLeader"];
-    int OON_TARGET_ID       = conf[DRONE_NUM]["OON_target_id"];
-    std::string droneName   = conf[DRONE_NUM]["DroneName"];
-    float currentMarkerSize = conf[DRONE_NUM]["currentMarkerSize"];
+    bool isLeader           = conf[DEVICE]["isLeader"];
+    int OON_TARGET_ID       = conf[DEVICE]["OON_target_id"];
+    std::string droneName   = conf[DEVICE]["DroneName"];
+    float currentMarkerSize = conf[DEVICE]["currentMarkerSize"];
 
-    const std::string tello_conf_path = conf[DRONE_NUM]["tello_conf_path"];
+    const std::string tello_conf_path = conf[DEVICE]["tello_conf_path"];
 
     // OON target location:
-    int OON_target_X        = conf[DRONE_NUM]["OON_target_X"];
-    int OON_target_Y        = conf[DRONE_NUM]["OON_target_Y"];
-    int OON_target_Z        = conf[DRONE_NUM]["OON_target_Z"];
+    int OON_target_X        = conf[DEVICE]["OON_target_X"];
+    int OON_target_Y        = conf[DEVICE]["OON_target_Y"];
+    int OON_target_Z        = conf[DEVICE]["OON_target_Z"];
 
 
     
@@ -249,6 +244,11 @@ int main(int argc, char *argv[])
         std::thread videoThread   ([&]{ detector.open_video_cap(cameraPort,0,0); });
         std::thread markerThread  ([&]{ detector.main_aruco_loop(); });
         std::thread movementThread([&]{ webcamTest(detector, calc); });
+
+        while (!detector.exit)
+            sleep(1);
+        exit_all(detector, run_OON);
+        sleep(1);
 
         videoThread.join();
         markerThread.join();

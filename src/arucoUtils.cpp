@@ -127,7 +127,6 @@ void aruco_utils::main_aruco_loop(){
     int w = capture.get(3);
     int h = capture.get(4);
 
-
     while (run_main_loop)
     {
         // get current frame data
@@ -144,7 +143,7 @@ void aruco_utils::main_aruco_loop(){
         // TODO: imshow
         if (imshow){
             cv::imshow("frame", img);
-            exit = (cv::waitKey(1) == (int)'q' ? true : false);
+            exit = cv::waitKey(5) == 'q'? true : exit;
         }
 
         // TODO: save video
@@ -226,8 +225,9 @@ aruco_utils::aruco_utils(std::string yamlCalibrationPath, float currentMarkerSiz
     // TODO: add save_run path
 }
 
-aruco_utils::~aruco_utils(){
+void aruco_utils::close(){
     run_camera = false;
     run_main_loop = false;
-
+    capture.release();
+    usleep(150000);
 }

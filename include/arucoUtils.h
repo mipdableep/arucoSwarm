@@ -21,7 +21,8 @@ class aruco_utils
 {
 public:
       aruco_utils(std::string yamlCalibrationPath, float currentMarkerSize, int id_to_follow);
-      ~aruco_utils();
+      
+      void close();
 
       cv::Mat calculate_6_DOF(cv::Mat img);
 

@@ -1,11 +1,7 @@
 {
     "global-config":
     {
-        "yamlCalibrationPath"      : "../calib/tello_camera.yaml",
-        "webcamYamlCalibrationPath": "../calib/webcam.yaml",
-      
-        "webcam": false,
-        
+        "webcam"       : false,
         "cameraPort"   : 0,
         "cameraString" : "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
       
@@ -21,13 +17,30 @@
         "serverPort"       : 9090,
         
         "connect_to_drone" : false,
-      
+        
         "runtime_length" : 50,
         "rc_devidor"     : 5,
-      
-        "DRONE_NUM":"drone-1"
+        
+        "DEVICE":"webcam"
     },
     
+    "webcam":
+    {
+        "isLeader": false,
+    
+        "OON_target_id": 145,
+        "currentMarkerSize": 0.07,
+    
+        "OON_target_X": 0,
+        "OON_target_Y": 100,
+        "OON_target_Z": 0,
+    
+        "DroneName": "NULL",
+        "tello_conf_path":"NULL",
+
+        "calibration_path": "../calib/webcam.yaml"
+    },
+
     "drone-1":
     {
         "isLeader": false,
@@ -41,7 +54,9 @@
     
         "__comment__":"the DroneName will be the name that will apear on the server host",
         "DroneName": "drone-1",
-        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone1.conf"
+        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone1.conf",
+
+        "calibration_path": "../calib/tello_camera.yaml"
     },
 
     "drone-2":
@@ -57,7 +72,9 @@
     
         "__comment__":"the DroneName will be the name that will apear on the server host",
         "DroneName": "drone-2",
-        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone2.conf"
+        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone2.conf",
+
+        "calibration_path": "../calib/tello_camera.yaml"
     },
 
     "drone-3":
@@ -73,7 +90,9 @@
     
         "__comment__":"the DroneName will be the name that will apear on the server host",
         "DroneName": "drone-3",
-        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone3.conf"
+        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone3.conf",
+
+        "calibration_path": "../calib/tello_camera.yaml"
     },
 
     "drone-4":
@@ -89,6 +108,9 @@
     
         "__comment__":"the DroneName will be the name that will apear on the server host",
         "DroneName": "drone-4",
-        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone4.conf"
+        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone4.conf",
+
+        "calibration_path": "../calib/tello_camera.yaml"
     }
+
 }
