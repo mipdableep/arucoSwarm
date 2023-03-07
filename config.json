@@ -1,33 +1,94 @@
 {
-  "yamlCalibrationPath": "../calib/tello_camera.yaml",
-  "rpiCalibrationPath": "../calib/rpicamcalib.yaml",
-  "webcamYamlCalibrationPath": "../calib/webcamCalib.yaml",
-  "webcam": false,
-  "rpiCamera": false,
-  
-  "__comment__":"input fps, set cam_fps to -1 to get default",
-  "cam_fps":3,
-  
-  "cameraPort": 0,
+    "global-config":
+    {
+        "yamlCalibrationPath"      : "../calib/tello_camera.yaml",
+        "webcamYamlCalibrationPath": "../calib/webcam.yaml",
+      
+        "webcam": false,
+        
+        "cameraPort"   : 0,
+        "cameraString" : "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
+      
+        "imshow"     : true,
+        "save_video" : false,
+        "save_video_path":"/home/fares/rbd/projects/aruco_swarm/arucoSwarm/video_cap/",
+        
+        "do_ncli_command"  : true,
+        "send_takeoff"     : true,
+        
+        "runServer"        : false,
+        "serverHostIp"     :"10.3.141.188",
+        "serverPort"       : 9090,
+        
+        "connect_to_drone" : false,
+      
+        "runtime_length" : 50,
+        "rc_devidor"     : 5,
+      
+        "DRONE_NUM":"drone-1"
+    },
+    
+    "drone-1":
+    {
+        "isLeader": false,
+    
+        "OON_target_id": 145,
+        "currentMarkerSize": 0.07,
+    
+        "OON_target_X": 0,
+        "OON_target_Y": 100,
+        "OON_target_Z": 0,
+    
+        "__comment__":"the DroneName will be the name that will apear on the server host",
+        "DroneName": "drone-1",
+        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone1.conf"
+    },
 
-  "cameraString": "udp://0.0.0.0:11111?overrun_nonfatal=1&fifo_size=5000",
+    "drone-2":
+    {
+        "isLeader": false,
 
-  "__Comment":"save photos",
-  "save_video":true,
-  "save_video_path":"/home/fares/rbd/projects/aruco_swarm/arucoSwarm/video_cap/",
+        "OON_target_id": 1,
+        "currentMarkerSize": 0.08,
+    
+        "OON_target_X": -25,
+        "OON_target_Y": 75,
+        "OON_target_Z": 0,
+    
+        "__comment__":"the DroneName will be the name that will apear on the server host",
+        "DroneName": "drone-2",
+        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone2.conf"
+    },
 
-  "__comment":"imshow will only take affect when running the code with the tello as img input",
-  "imshow":true,
-  "do_ncli_command": true,
+    "drone-3":
+    {
+        "isLeader": false,
 
+        "OON_target_id": 1,
+        "currentMarkerSize": 0.08,
+    
+        "OON_target_X": 0,
+        "OON_target_Y": 95,
+        "OON_target_Z": 0,
+    
+        "__comment__":"the DroneName will be the name that will apear on the server host",
+        "DroneName": "drone-3",
+        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone3.conf"
+    },
 
-  "runServer": false,
-  "serverHostIp": "10.3.141.188",
-  "serverPort": 9090,
+    "drone-4":
+    {
+        "isLeader": false,
 
-  "connect_to_drone":false,
-
-  "runtime_length": 30,
-
-  "DRONE_NUM":"drone-1"
+        "OON_target_id": 1,
+        "currentMarkerSize": 0.08,
+    
+        "OON_target_X": 25,
+        "OON_target_Y": 75,
+        "OON_target_Z": 0,
+    
+        "__comment__":"the DroneName will be the name that will apear on the server host",
+        "DroneName": "drone-4",
+        "tello_conf_path":"/home/pi/arucoSwarm/tello_supllicants/drone4.conf"
+    }
 }

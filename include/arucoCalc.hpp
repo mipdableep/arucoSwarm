@@ -15,11 +15,11 @@ class arucoCalc {
 
         void get_target_vals();
         
-        void chagneDevidor(int dev_x, int dev_y, int dev_z);
-        void chagneDevidor(int dev);
+        void setDevidors(int dev_x, int dev_y, int dev_z);
+        void setDevidors(int dev);
 
-        void changeMax(int max_x, int max_y, int max_z);
-        void changeMax(int max);
+        void setMaxRc(int max_x, int max_y, int max_z);
+        void setMaxRc(int max);
 
         /// variables
         double droneZRotate, droneXPos, droneYPos, droneZPos;
@@ -44,9 +44,9 @@ class arucoCalc {
         double Z_ANGLE_TARGET;
 
         // devidors - rc +- target / devidor
-        double X_DEVIDOR = 8;
-        double Y_DEVIDOR = 8;
-        double Z_DEVIDOR = 8;
+        double X_DEVIDOR = 1;
+        double Y_DEVIDOR = 1;
+        double Z_DEVIDOR = 1;
 
         double Z_ROTATION_DEVIDOR = 2;
 

@@ -103,8 +103,8 @@ cv::Mat aruco_utils::calculate_6_DOF(cv::Mat img)
     float Rz = R_vec[2];
 
     Tx = -T_vec[0]*100;
-    Ty = -T_vec[1]*100;
-    Tz = T_vec[2]*100;
+    Tz = -T_vec[1]*100;
+    Ty = T_vec[2]*100;
     yaw = -atan2(Rx, Rz) * RADIANS_TO_DEGREESE;
     pitch = 90 - atan2(Rz, Ry) * RADIANS_TO_DEGREESE;
 
@@ -144,7 +144,7 @@ void aruco_utils::main_aruco_loop(){
         // TODO: imshow
         if (imshow){
             cv::imshow("frame", img);
-            exit = cv::waitKey(1);
+            exit = (cv::waitKey(1) == (int)'q' ? true : false);
         }
 
         // TODO: save video

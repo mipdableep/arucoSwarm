@@ -22,25 +22,25 @@ void arucoCalc::get_target_vals(){ std::cout<<std::endl;
     std::cout<< "Z_TARGET: " << Z_ANGLE_TARGET << std::endl << std::endl;
 }
 
-void arucoCalc::chagneDevidor(int dev_x, int dev_y, int dev_z){
+void arucoCalc::setDevidors(int dev_x, int dev_y, int dev_z){
     X_DEVIDOR = dev_x;
     Y_DEVIDOR = dev_y;
     Z_DEVIDOR = dev_z;
 }
 
-void arucoCalc::chagneDevidor(int dev){
+void arucoCalc::setDevidors(int dev){
     X_DEVIDOR = dev;
     Y_DEVIDOR = dev;
     Z_DEVIDOR = dev;
 }
 
-void arucoCalc::changeMax(int max_x, int max_y, int max_z){
+void arucoCalc::setMaxRc(int max_x, int max_y, int max_z){
     X_MAX_RC = max_x;
     Y_MAX_RC = max_y;
     Z_MAX_RC = max_z;
 }
 
-void arucoCalc::changeMax(int max){
+void arucoCalc::setMaxRc(int max){
     X_MAX_RC = max;
     Y_MAX_RC = max;
     Z_MAX_RC = max;
@@ -99,7 +99,7 @@ int arucoCalc::calculate_x_rc() {
 }
 
 int arucoCalc::calculate_z_rotation_rc() {
-    return (droneZRotate)/Z_ROTATION_DEVIDOR;
+    return -(droneZRotate)/Z_ROTATION_DEVIDOR;
 }
 
 // int arucoCalc::calculate_y_rc() {

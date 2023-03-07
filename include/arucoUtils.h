@@ -30,9 +30,9 @@ public:
       void camera_feed_to_queue();
 
       // for drone
-      void open_video_cap(std::string udp_string, int capture_width, int capture_height);
+      void open_video_cap(std::string udp_string, int capture_width = 0, int capture_height = 0);
       // for wiered camera
-      void open_video_cap(int camera_port, int capture_width, int capture_height);
+      void open_video_cap(int camera_port, int capture_width = 0, int capture_height = 0);
 
       int ID = -1;
       int correct_index = 0;
@@ -51,7 +51,7 @@ public:
       float yaw;
       float pitch;
 
-      bool exit;
+      bool exit = false;
 
 
 private:

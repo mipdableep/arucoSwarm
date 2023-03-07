@@ -7,17 +7,6 @@ std::string command;
 
 void webcamTest(aruco_utils &detector, arucoCalc &calc)
 {
-
-    sleep(1);
-
-    // print target
-    calc.get_target_vals();
-
-    sleep(4);
-
-    int tmpId = -1;
-    bool commandFlag;
-
     std::cout << "started OON\n"
               << std::endl;
     calc.get_target_vals();
@@ -27,17 +16,25 @@ void webcamTest(aruco_utils &detector, arucoCalc &calc)
     while (run_OON)
     {
 
+        // if the correct index was not found print and go back
         if (detector.correct_index == -9 || !detector.Target_found)
         {
-            usleep(1000000);
+            std::cout<<"not found"<<std::endl;
+            usleep(500000);
             loop_counter++;
             continue;
         }
+
 
         calc.droneZRotate = detector.yaw;
         calc.droneXPos = detector.Tx;
         calc.droneYPos = detector.Ty;
         calc.droneZPos = detector.Tz;
+
+        std::cout<< "yaw:  " << detector.yaw << std::endl;
+        std::cout<< "Tx:  " << detector.Tx << std::endl;
+        std::cout<< "Ty:  " << detector.Ty << std::endl;
+        std::cout<< "Tz:  " << detector.Tz << std::endl;
 
         // run rc calculations
         X_rc = calc.calculate_x_rc();
@@ -63,6 +60,7 @@ void webcamTest(aruco_utils &detector, arucoCalc &calc)
         usleep(1000000);
         loop_counter++;
     }
+
 }
 
 void objectOrientedNavigation(aruco_utils &detector, ctello::Tello &tello, arucoCalc &calc)
@@ -138,104 +136,124 @@ void change_to_tello_wifi(const std::string tello_conf_path)
 void timer_limiter(aruco_utils &detector, ctello::Tello &tello, bool &run_OON, int seconds_time_amount)
 {
     std::cout <<"runtime len: "<<seconds_time_amount<<std::endl;
+
     if (seconds_time_amount == -1){
-        while (detector.exit != 'q')
+        while (!detector.exit)
             sleep(1);
+        exit_all(detector, run_OON, tello);
+        return;
     }
 
-    else{
+
     while (seconds_time_amount > 0)
-        {
-            sleep(1);
-            seconds_time_amount--;
-            if (seconds_time_amount % 5 == 0)
-                std::cout << "time left: " << seconds_time_amount << std::endl;
-            
-            // if q pressed on imshow
-            if (detector.exit == 'q')
-                seconds_time_amount = -1;
-        }
+    {
+        sleep(1);
+        seconds_time_amount--;
+        if (seconds_time_amount % 5 == 0)
+            std::cout << "time left: " << seconds_time_amount << std::endl;
+        
+        // if q pressed on imshow
+        if (detector.exit)
+            seconds_time_amount = 0;
     }
+
+    exit_all(detector, run_OON, tello);
+}
+
+void exit_all(aruco_utils& detector, bool& run_OON, ctello::Tello& tello)
+{
     run_OON = false;
     detector.~aruco_utils();
     usleep(300000);
     tello.SendCommand("land");
 }
 
+void exit_all(aruco_utils& detector, bool& run_OON)
+{
+    run_OON = false;
+    detector.~aruco_utils();
+}
+
 int main(int argc, char *argv[])
 {
 
-    std::ifstream programGlobal("../config.json");
-    std::ifstream programDrone("../drone_config.json");
+    std::ifstream config("../config.json");
 
-    nlohmann::json global_vars;
-    programGlobal >> global_vars;
-    programGlobal.close();
+    nlohmann::json conf;
+    config >> conf;
+    config.close();
 
-    nlohmann::json drone_vars;
-    programDrone >> drone_vars;
-    programDrone.close();
+    // global conf str
+    std::string G = "global-config";
 
     //* drone number - for drone-config
-    std::string DRONE_NUM = global_vars["DRONE_NUM"];
+    std::string DRONE_NUM = conf[G]["DRONE_NUM"];
 
-    int runtime_length = global_vars["runtime_length"];
+    // run settings
+    int  runtime_length = conf[G]["runtime_length"];
+    int  rc_devidor     = conf[G]["rc_devidor"];
+    bool send_takeoff   = conf[G]["send_takeoff"];
 
-    int cam_fps = global_vars["cam_fps"];
-    bool isWebcam = global_vars["webcam"];
-    bool rpiCamera = global_vars["rpiCamera"];
+    // capture settings
+    bool isWebcam  = conf[G]["webcam"];
+    int cameraPort = conf[G]["cameraPort"];
 
-    bool save_video = global_vars["save_video"];
-    bool do_imshow = global_vars["imshow"];
-    std::string save_video_path = global_vars["save_video_path"];
+    std::string cameraString = conf[G]["cameraString"];
 
-    bool runServer = global_vars["runServer"];
-    bool connect_to_drone = global_vars["connect_to_drone"];
-    bool do_ncli_command = global_vars["do_ncli_command"];
+    // video settings
+    bool do_imshow  = conf[G]["imshow"];
+    bool save_video = conf[G]["save_video"];
+    std::string save_video_path = conf[G]["save_video_path"];
 
-    bool isLeader = drone_vars[DRONE_NUM]["isLeader"];
-    int OON_TARGET_ID = drone_vars[DRONE_NUM]["OON_target_id"];
-    std::string droneName = drone_vars[DRONE_NUM]["DroneName"];
-    float currentMarkerSize = drone_vars[DRONE_NUM]["currentMarkerSize"];
+    // connection settings
+    bool runServer           = conf[G]["runServer"];
+    int serverPort           = conf[G]["serverPort"];
+    std::string serverHostIp = conf[G]["serverHostIp"];
+    bool connect_to_drone    = conf[G]["connect_to_drone"];
+    bool do_ncli_command     = conf[G]["do_ncli_command"];
 
-    const std::string tello_conf_path = drone_vars[DRONE_NUM]["tello_conf_path"];
+    // calibration settings
+    std::string yamlCalibrationPath;
+    if (isWebcam)
+        yamlCalibrationPath = conf[G]["webcamYamlCalibrationPath"];
+    else
+        yamlCalibrationPath = conf[G]["yamlCalibrationPath"];
+
+
+    bool isLeader           = conf[DRONE_NUM]["isLeader"];
+    int OON_TARGET_ID       = conf[DRONE_NUM]["OON_target_id"];
+    std::string droneName   = conf[DRONE_NUM]["DroneName"];
+    float currentMarkerSize = conf[DRONE_NUM]["currentMarkerSize"];
+
+    const std::string tello_conf_path = conf[DRONE_NUM]["tello_conf_path"];
 
     // OON target location:
-    int OON_target_X = drone_vars[DRONE_NUM]["OON_target_X"];
-    int OON_target_Y = drone_vars[DRONE_NUM]["OON_target_Y"];
-    int OON_target_Z = drone_vars[DRONE_NUM]["OON_target_Z"];
+    int OON_target_X        = conf[DRONE_NUM]["OON_target_X"];
+    int OON_target_Y        = conf[DRONE_NUM]["OON_target_Y"];
+    int OON_target_Z        = conf[DRONE_NUM]["OON_target_Z"];
 
-    // checking the img input device for correct calibration
-    std::string yamlCalibrationPath;
 
-    if (isWebcam)
-    {
-        yamlCalibrationPath = global_vars["webcamYamlCalibrationPath"];
-    }
-    else if (rpiCamera)
-    {
-        yamlCalibrationPath = global_vars["rpiCalibrationPath"];
-    }
-    else
-    {
-        yamlCalibrationPath = global_vars["yamlCalibrationPath"];
-    }
+    
 
     if (isWebcam)
     {
-        int cameraPort = global_vars["cameraPort"];
-        aruco_utils detector(yamlCalibrationPath, cameraPort, currentMarkerSize);
+        aruco_utils detector(yamlCalibrationPath, currentMarkerSize, cameraPort);
         detector.imshow = true;
         detector.save_video = false;
         detector.id_to_follow = OON_TARGET_ID;
+        
         arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
+        calc.setDevidors(rc_devidor);
 
-        std::thread markerThread([&]
-                                 { detector.open_video_cap(cameraPort,0,0); });
-        std::thread movementThread([&]
-                                   { webcamTest(detector, calc); });
-        movementThread.join();
+
+        std::thread videoThread   ([&]{ detector.open_video_cap(cameraPort,0,0); });
+        std::thread markerThread  ([&]{ detector.main_aruco_loop(); });
+        std::thread movementThread([&]{ webcamTest(detector, calc); });
+
+        videoThread.join();
         markerThread.join();
+        movementThread.join();
+
     }
 
     else
@@ -243,8 +261,6 @@ int main(int argc, char *argv[])
 
         if (runServer)
         {
-            int serverPort = global_vars["serverPort"];
-            std::string serverHostIp = global_vars["serverHostIp"];
 
             DroneClient client(droneName, serverHostIp, serverPort);
             client.connect_to_server();
@@ -255,10 +271,12 @@ int main(int argc, char *argv[])
         if (!runServer && connect_to_drone)
             change_to_tello_wifi(tello_conf_path);
 
-        droneName = "TELLO-98F041";
 
         if (do_ncli_command)
         {
+            // ! REMOVE!
+            droneName = "TELLO-98F041";
+
             std::string commandString = "nmcli c up " + droneName;
             const char *command = commandString.c_str();
             system(command);
@@ -269,26 +287,25 @@ int main(int argc, char *argv[])
 
         sleep(2);
 
-        // tello.SendCommandWithResponse("takeoff");
+        if (send_takeoff)
+            tello.SendCommandWithResponse("takeoff");
 
         tello.SendCommand("rc 0 0 0 0");
-        std::string cameraString = global_vars["cameraString"];
 
-        arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
         aruco_utils detector(yamlCalibrationPath, currentMarkerSize, OON_TARGET_ID);
         detector.imshow = do_imshow;
         detector.save_video = save_video;
         detector.save_run_path = save_video_path;
         detector.id_to_follow = OON_TARGET_ID;
 
-        std::thread videoThread([&]
-                                { detector.open_video_cap(cameraString,0,0); });
-        std::thread markerThread([&]
-                                 { detector.main_aruco_loop(); });
-        std::thread movementThread([&]
-                                   { objectOrientedNavigation(detector, tello, calc); });
-        std::thread countdownThread([&]
-                                    { timer_limiter(detector, tello, run_OON, runtime_length); });
+        arucoCalc calc(OON_target_X, OON_target_Y, OON_target_Z);
+        calc.setDevidors(rc_devidor);
+
+        std::thread markerThread   ([&]{ detector.main_aruco_loop(); });
+        std::thread videoThread    ([&]{ detector.open_video_cap(cameraString); });
+
+        std::thread movementThread ([&]{ objectOrientedNavigation(detector, tello, calc); });
+        std::thread countdownThread([&]{ timer_limiter(detector, tello, run_OON, runtime_length); });
         videoThread.join();
         markerThread.join();
         movementThread.join();
