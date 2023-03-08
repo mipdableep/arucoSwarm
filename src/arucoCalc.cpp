@@ -55,7 +55,27 @@ int arucoCalc::calculate_rc(double pos, int target, int rc_max, int rc_min, doub
         rc = std::clamp(rc, -rc_max, rc_max);
     }
 
+    // TODO: clamp vals below 3 or 5 up
+
     return rc;
+}
+
+void arucoCalc::rotate_x_y_for_angle(){
+    // TODO: FIX!!!
+
+    int Xpos = droneXPos - X_TARGET;
+    int Ypos = droneYPos - Y_TARGET;
+    double a = droneZRotate;
+
+    Eigen::Matrix2d rotation;
+    rotation << cos(a), -sin(a),
+                sin(a), cos(a);
+    
+    Eigen::Matrix<double,1,2> loc_vec;
+    loc_vec << Xpos, Ypos;
+
+    
+    
 }
 
 int arucoCalc::calculate_y_rc() {
@@ -71,5 +91,5 @@ int arucoCalc::calculate_x_rc() {
 }
 
 int arucoCalc::calculate_z_rotation_rc() {
-    return -(droneZRotate)/Z_ROTATION_DEVIDOR;
+    return -(Z_ANGLE_TARGET-droneZRotate)/Z_ROTATION_DEVIDOR;
 }

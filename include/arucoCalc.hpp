@@ -1,6 +1,8 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <opencv2/opencv.hpp>
+#include <Eigen/Dense>
 
 class arucoCalc {
     public:
@@ -12,6 +14,8 @@ class arucoCalc {
         int calculate_z_rc();
         int calculate_x_rc();
         int calculate_z_rotation_rc();
+
+        void rotate_x_y_for_angle();
 
         void get_target_vals();
         
