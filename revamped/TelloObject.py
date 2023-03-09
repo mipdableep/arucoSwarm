@@ -34,19 +34,20 @@ class TelloObject:
     def kill(self):
         self._tello.streamoff()
         self._tello.land()
+        self.cam.release()
         
     def getBattery(self):
         print(self._tello.get_battery())
 
-    def trackLoop(self):
+    def trackLoop(self, bias=[0,0,0]):
 
         ret, frame = self.cam.read()
 
         if not ret:
             print ('Error retriving video stream')
             return
-
-        status, lr, fb, ud, cw = self._arucoTool.arucofunc(frame, self._distance, self._angle)
+    
+        status, lr, fb, ud, cw = self._arucoTool.arucofunc(frame, self._distance, self._angle, bias)
         
         if status == -9:
             print ("target aruco not found")
@@ -75,3 +76,24 @@ class TelloObject:
 
         img = cv2.resize(img, (720, 480))
         cv2.imshow(self.title, img)
+
+    
+    # Util -> polar coordinate to rectangular coordinate
+    def rect (angle, radius):
+        return np.array([radius * np.cos(angle), radius * np.sin(angle)])
+
+
+    def rotate (self, angle, radius, arc, speed):
+
+        angle, arc = np.deg2rad(angle), np.deg2rad(arc)
+
+        # Center of the circle of rotation
+        pivot = self.rect(angle, radius)
+
+        # Calculate midpoint (p1) and endpoint (p2)
+        p1 = pivot + self.rect (-np.pi + arc/2 + angle, radius)
+        p2 = pivot + self.rect (-np.pi +  arc  + angle, radius)
+
+        self._tello.curve_xyz_speed(int(p1[0]), int(p1[1]), 0, int(p2[0]), int(p2[1]), 0, speed)
+    
+

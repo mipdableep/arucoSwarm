@@ -13,7 +13,7 @@ class SwarmControl:
         Args:
             leader (TelloObject): leader role tello
             drones (list[tello]): list of tello drone objects
-        """        
+        """
         self._leader = leader
         self._drones = drones
         self._allDrones = drones.append(leader)

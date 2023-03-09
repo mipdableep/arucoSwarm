@@ -1,6 +1,9 @@
 import cv2
 import numpy as np
 
+# Tello camera points 12 degree downwards
+cameraFixedAngle = 12
+
 # setup
 dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
 # Set detection parameters
@@ -23,9 +26,9 @@ class ArucoTools:
         self._directionCalib = {"LR" : -0.5,
                                 "FB" : -0.5,
                                 "UD" : -2.0,
-                                "CW" :  150 }
+                                "CW" :  2.5 }
 
-    def arucofunc(self, img:cv2.Mat, distance, angle):
+    def arucofunc(self, img:cv2.Mat, distance, angle, bias):
         # Detect the arucos in the image
         markerCorners, markerIds, _ = detector.detectMarkers(img)
         # draw the markers
@@ -65,14 +68,21 @@ class ArucoTools:
         pyaw = R2D(np.arctan2(px, pz))
         prange = np.sqrt(cx ** 2 + cy ** 2 + cz ** 2)
 
+        cpitch_bais = np.sqrt(cy ** 2 + cz ** 2) * np.sin(D2R(cameraFixedAngle))
+        cyaw = R2D(np.arctan2(cx, cz))
+
         # directional commands and vals
-        lr = self._directionCalib["LR"] * (pyaw - angle)
+        lr = self._directionCalib["LR"] * (pyaw - cyaw - angle)
         fb = self._directionCalib["FB"] * (distance - prange)
-        ud = self._directionCalib["UD"] * cy
-        cw = self._directionCalib["CW"] * np.arctan2(cx, cz)
+        ud = self._directionCalib["UD"] * (cy + cpitch_bais)
+        cw = self._directionCalib["CW"] * (cyaw)
         
         for i in [lr, fb, ud]:
             i = np.clip(i, -self._CLIP, self._CLIP)
+
+        lr += bias[0] * 
+        fb += bias[1] * np.
+        ud += bias[2]
         
         cw = np.clip(cw, -self._YAW_CLIP, self._YAW_CLIP)
         
@@ -84,7 +94,7 @@ def R2D(radians):
     radians to degrees
 
     Args:
-        radians : input
+        radians (float) : input
     """        
     return radians * 180. / np.pi
     

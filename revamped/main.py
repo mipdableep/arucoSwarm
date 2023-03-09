@@ -19,9 +19,10 @@ SC.do_for_all("startCam()")
 
 sleep(2)
 
-SC.do_for_all_in_threads("startCam()")
-
-sleep(2)
+# Ask Ido : why two times startCam ?
+# SC.do_for_all_in_threads("startCam()")
+#
+# sleep(2)
 
 SC.do_for_all_in_threads("takeoff()")
 
