@@ -30,7 +30,7 @@ class TelloObject:
         self.title = "TELLO-" + self._address
 
     def takeoff(self):
-        self._tello.takeoff()
+        # self._tello.takeoff()
         pass
 
     def kill(self):
@@ -47,23 +47,21 @@ class TelloObject:
 
         if not ret:
             print ('Error retriving video stream')
-            return
+            return lr, fb, ud
     
         status, lr, fb, ud, cw, img = self._arucoTool.arucofunc(input_frame, self._distance, self._angle, bias)
         
-        if status == -9:
-            print ("target aruco not found")
-            cv2.imshow(self.title, input_frame)
-            return
-
-        # !
-        # TODO: add bias from leader
-        # !
-
         lr = int(lr)
         fb = int(fb)
         ud = int(ud)
         cw = int(cw)
+
+        if status == -9:
+            print ("target aruco not found")
+            self._tello.send_rc_control(lr, fb, ud, cw)
+            frame = cv2.resize(input_frame, (720, 480))
+            cv2.imshow(self.title, frame)
+            return lr, fb, ud
 
         self._tello.send_rc_control(lr, fb, ud, cw)
         filename = './arucos/' + self._address + '/' + dt.datetime.now().strftime("%Y%m%d_%H:%M:%S:%f") + '.jpg'
@@ -84,6 +82,8 @@ class TelloObject:
 
         img = cv2.resize(img, (720, 480))
         cv2.imshow(self.title, img)
+
+        return lr, fb, ud
 
     
     # Util -> polar coordinate to rectangular coordinate

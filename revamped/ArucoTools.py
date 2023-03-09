@@ -27,6 +27,16 @@ class ArucoTools:
                                 "FB" : -0.5,
                                 "UD" : -2.0,
                                 "CW" :  2.5 }
+    
+
+    def rebias (self, bias, angle):
+        [b_lr, b_fb, b_ud] = bias
+
+        lr = b_lr * np.cos(angle) - b_fb * np.sin(angle)
+        fb = b_lr * np.sin(angle) + b_fb * np.cos(angle)
+        ud = b_ud
+
+        return [lr, fb, ud]
 
     def arucofunc(self, img:cv2.Mat, distance, angle, bias):
         # Detect the arucos in the image
@@ -34,8 +44,11 @@ class ArucoTools:
         # draw the markers
         cv2.aruco.drawDetectedMarkers(img, markerCorners, markerIds)
         
+        lr, fb, ud = self.rebias(bias, D2R(angle))
+        cw = 0
+
         if markerIds is None:
-            return -9, 0, 0, 0, 0, 0
+            return -9, lr, fb, ud, cw, 0
 
         idFound = False
         targetIndex = -1
@@ -46,12 +59,12 @@ class ArucoTools:
                 targetIndex = index
         
         if not idFound:
-            return -9, 0, 0, 0, 0, 0
+            return -9, lr, fb, ud, cw, 0
         
         rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(markerCorners[targetIndex], self._TargetSize, self._camMatrix, self._camDist)
 
         if rvecs is None:
-            return -9, 0, 0, 0, 0, 0
+            return -9, lr, fb, ud, cw, 0
         
         rvec = rvecs[0][0]
         tvec = tvecs[0].transpose()
@@ -81,13 +94,18 @@ class ArucoTools:
         cyaw = R2D(np.arctan2(cx, cz))
 
         # directional commands and vals
-        lr = self._directionCalib["LR"] * (pyaw - cyaw - angle)
+        lr = self._directionCalib["LR"] * ((pyaw - cyaw - angle))
         fb = self._directionCalib["FB"] * (distance - prange)
         ud = self._directionCalib["UD"] * (cy + cpitch_bais)
         cw = self._directionCalib["CW"] * (cyaw)
         
         for i in [lr, fb, ud]:
             i = np.clip(i, -self._CLIP, self._CLIP)
+
+        bias = self.rebias (bias, D2R(pyaw - cyaw))
+        lr += bias[0]
+        fb += bias[1]
+        ud += bias[2]
         
         cw = np.clip(cw, -self._YAW_CLIP, self._YAW_CLIP)
         
