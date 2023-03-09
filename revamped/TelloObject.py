@@ -6,9 +6,14 @@ from ArucoTools import ArucoTools
 
 class TelloObject:
 
-    def __init__(self, address : str, vport : int, arucoTool : ArucoTools):
+    def __init__(self, address : str, vport : int, angle, distance, arucoTool : ArucoTools):
+        # connection vals
         self._vport = vport
         self._address = address
+        
+        # location vals
+        self._angle = angle
+        self._distance = distance
         
         self._arucoTool = arucoTool
         
@@ -17,11 +22,21 @@ class TelloObject:
         self._tello.set_network_ports(8890, vport)
         self._tello.set_video_bitrate(Tello.BITRATE_1MBPS)
         self._tello.streamon()
-        return
+        
     
     def startCam(self):
         self.cam = VCS.VideoCapture("udp://" + self._address + ":" + str(self._vport))
         self.title = "TELLO-" + self._address
+
+    def takeoff(self):
+        self._tello.takeoff()
+
+    def kill(self):
+        self._tello.streamoff()
+        self._tello.land()
+        
+    def getBattery(self):
+        print(self._tello.get_battery())
 
     def trackLoop(self):
 
@@ -31,7 +46,7 @@ class TelloObject:
             print ('Error retriving video stream')
             return
 
-        status, lr, fb, ud, cw = self._arucoTool.arucofunc(frame)
+        status, lr, fb, ud, cw = self._arucoTool.arucofunc(frame, self._distance, self._angle)
         
         if status == -9:
             print ("target aruco not found")
@@ -60,8 +75,3 @@ class TelloObject:
 
         img = cv2.resize(img, (720, 480))
         cv2.imshow(self.title, img)
-
-
-    def kill(self):
-        self._tello.streamoff()
-        self._tello.land()

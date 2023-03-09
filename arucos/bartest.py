@@ -162,6 +162,7 @@ def computeErrorFunction (tvec, pvec, distance, angle):
     
     return (lr, fb, ud, cw)
 
+a1 = ArucoTools(100, 9.5, "Camera Calibration/Drone1/Calibration.npy")
 
 
 class TelloObject:
