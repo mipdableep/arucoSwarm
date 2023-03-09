@@ -34,10 +34,19 @@ class ArucoTools:
         # draw the markers
         cv2.aruco.drawDetectedMarkers(img, markerCorners, markerIds)
         
-        if self._TargetID not in markerIds:
+        if markerIds is None:
             return -9, 0, 0, 0, 0
+
+        idFound = False
+        targetIndex = -1
+
+        for index, id in enumerate(markerIds):
+            if id == self._TargetID:
+                idFound = True
+                targetIndex = index
         
-        targetIndex = markerIds.index(self._TargetID)
+        if not idFound:
+            return -9, 0, 0, 0, 0
         
         rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(markerCorners[targetIndex], self._TargetSize, self._camMatrix, self._camDist)
 
@@ -79,10 +88,6 @@ class ArucoTools:
         
         for i in [lr, fb, ud]:
             i = np.clip(i, -self._CLIP, self._CLIP)
-
-        lr += bias[0] * 
-        fb += bias[1] * np.
-        ud += bias[2]
         
         cw = np.clip(cw, -self._YAW_CLIP, self._YAW_CLIP)
         

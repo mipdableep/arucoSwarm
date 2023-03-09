@@ -3,6 +3,7 @@ import numpy as np
 from djitellopy import Tello
 import VCS
 from ArucoTools import ArucoTools
+import datetime as dt
 
 class TelloObject:
 
@@ -67,9 +68,9 @@ class TelloObject:
         thickness = int(2)
         
         # Add text
-        img = cv2.putText(img, ("L/R : " + str(lr)), (10, 30), font, fontScale, color, thickness, cv2.LINE_AA)
-        img = cv2.putText(img, ("F/B : " + str(fb)), (10, 60), font, fontScale, color, thickness, cv2.LINE_AA)
-        img = cv2.putText(img, ("U/D : " + str(ud)), (10, 90), font, fontScale, color, thickness, cv2.LINE_AA)
+        img = cv2.putText(img, ("L/R : " + str(lr)), (10,  30), font, fontScale, color, thickness, cv2.LINE_AA)
+        img = cv2.putText(img, ("F/B : " + str(fb)), (10,  60), font, fontScale, color, thickness, cv2.LINE_AA)
+        img = cv2.putText(img, ("U/D : " + str(ud)), (10,  90), font, fontScale, color, thickness, cv2.LINE_AA)
         img = cv2.putText(img, ("CCW : " + str(cw)), (10, 120), font, fontScale, color, thickness, cv2.LINE_AA)
 
         cv2.imwrite(filename, img)

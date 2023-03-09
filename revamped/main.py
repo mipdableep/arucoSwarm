@@ -24,7 +24,7 @@ sleep(2)
 #
 # sleep(2)
 
-SC.do_for_all_in_threads("takeoff()")
+SC.do_for_all_in_threads("takeoff")
 
 sleep(1)
 
@@ -33,4 +33,4 @@ while cv2.waitKey(50) != ord("q"):
     tello2.trackLoop()
     tello3.trackLoop()
     
-SC.do_for_all_in_threads("kill()")
+SC.do_for_all_in_threads("kill")

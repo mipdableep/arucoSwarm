@@ -39,8 +39,6 @@ class SwarmControl:
 
             parts = method_str.split('(')
             method_name = parts[0]
-            args_str = parts[1][:-1]
 
-            args = tuple(map(str.strip, args_str.split(',')))
             method = getattr(T, method_name)
-            method(*args)
+            method()
