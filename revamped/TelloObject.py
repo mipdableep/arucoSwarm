@@ -31,6 +31,7 @@ class TelloObject:
 
     def takeoff(self):
         self._tello.takeoff()
+        pass
 
     def kill(self):
         self._tello.streamoff()
@@ -42,21 +43,27 @@ class TelloObject:
 
     def trackLoop(self, bias=[0,0,0]):
 
-        ret, frame = self.cam.read()
+        ret, input_frame = self.cam.read()
 
         if not ret:
             print ('Error retriving video stream')
             return
     
-        status, lr, fb, ud, cw = self._arucoTool.arucofunc(frame, self._distance, self._angle, bias)
+        status, lr, fb, ud, cw, img = self._arucoTool.arucofunc(input_frame, self._distance, self._angle, bias)
         
         if status == -9:
             print ("target aruco not found")
+            cv2.imshow(self.title, input_frame)
             return
 
         # !
         # TODO: add bias from leader
         # !
+
+        lr = int(lr)
+        fb = int(fb)
+        ud = int(ud)
+        cw = int(cw)
 
         self._tello.send_rc_control(lr, fb, ud, cw)
         filename = './arucos/' + self._address + '/' + dt.datetime.now().strftime("%Y%m%d_%H:%M:%S:%f") + '.jpg'

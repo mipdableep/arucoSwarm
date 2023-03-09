@@ -35,7 +35,7 @@ class ArucoTools:
         cv2.aruco.drawDetectedMarkers(img, markerCorners, markerIds)
         
         if markerIds is None:
-            return -9, 0, 0, 0, 0
+            return -9, 0, 0, 0, 0, 0
 
         idFound = False
         targetIndex = -1
@@ -46,15 +46,15 @@ class ArucoTools:
                 targetIndex = index
         
         if not idFound:
-            return -9, 0, 0, 0, 0
+            return -9, 0, 0, 0, 0, 0
         
         rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(markerCorners[targetIndex], self._TargetSize, self._camMatrix, self._camDist)
 
         if rvecs is None:
-            return -9, 0, 0, 0, 0
+            return -9, 0, 0, 0, 0, 0
         
-        rvec = rvecs[targetIndex][0]
-        tvec = tvecs[targetIndex].transpose()
+        rvec = rvecs[0][0]
+        tvec = tvecs[0].transpose()
         
         # Drae 3D axes on the aruco to understand better thier pose. (3.5 cm - axes length, 2 - axes weidth)
         cv2.drawFrameAxes(img, self._camMatrix, self._camDist, rvec, tvec, 3.5, 2)
@@ -91,7 +91,7 @@ class ArucoTools:
         
         cw = np.clip(cw, -self._YAW_CLIP, self._YAW_CLIP)
         
-        return 0, lr, fb, ud, cw
+        return 0, lr, fb, ud, cw, img
 
 
 def R2D(radians):
