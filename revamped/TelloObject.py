@@ -7,7 +7,7 @@ import datetime as dt
 
 class TelloObject:
 
-    def __init__(self, address : str, vport : int, angle, distance, arucoTool : ArucoTools):
+    def __init__(self, address : str, vport : int, angle, distance, hight, arucoTool : ArucoTools):
         # connection vals
         self._vport = vport
         self._address = address
@@ -15,6 +15,7 @@ class TelloObject:
         # location vals
         self._angle = angle
         self._distance = distance
+        self._hight = hight
         
         self._arucoTool = arucoTool
         
@@ -30,7 +31,7 @@ class TelloObject:
         self.title = "TELLO-" + self._address
 
     def takeoff(self):
-        # self._tello.takeoff()
+        self._tello.takeoff()
         pass
 
     def kill(self):
@@ -49,7 +50,7 @@ class TelloObject:
             print ('Error retriving video stream')
             return lr, fb, ud
     
-        status, lr, fb, ud, cw, img = self._arucoTool.arucofunc(input_frame, self._distance, self._angle, bias)
+        status, lr, fb, ud, cw, img = self._arucoTool.arucofunc(input_frame, self._distance, self._angle, self._hight, bias)
         
         lr = int(lr)
         fb = int(fb)

@@ -13,7 +13,7 @@ detector = cv2.aruco.ArucoDetector(dictionary, detectorParams)
 
 class ArucoTools:
 
-    def __init__(self, TargetID, TargetSize, calibPath):
+    def __init__(self, TargetID, TargetSize, clip, calibPath):
         self._TargetID = TargetID
         self._TargetSize = TargetSize
         
@@ -21,12 +21,12 @@ class ArucoTools:
             self._camMatrix = np.load(f)
             self._camDist = np.load(f)
         
-        self._CLIP = 30
+        self._CLIP = clip
         self._YAW_CLIP = 100
         self._directionCalib = {"LR" : -0.5,
                                 "FB" : -0.5,
                                 "UD" : -2.0,
-                                "CW" :  2.5 }
+                                "CW" :  2.0 }
     
 
     def rebias (self, bias, angle):
@@ -38,7 +38,7 @@ class ArucoTools:
 
         return [lr, fb, ud]
 
-    def arucofunc(self, img:cv2.Mat, distance, angle, bias):
+    def arucofunc(self, img:cv2.Mat, distance, angle, hight, bias):
         # Detect the arucos in the image
         markerCorners, markerIds, _ = detector.detectMarkers(img)
         # draw the markers
@@ -94,15 +94,15 @@ class ArucoTools:
         cyaw = R2D(np.arctan2(cx, cz))
 
         # directional commands and vals
-        lr = self._directionCalib["LR"] * ((pyaw - cyaw - angle))
+        lr = self._directionCalib["LR"] * ((pyaw - angle))
         fb = self._directionCalib["FB"] * (distance - prange)
-        ud = self._directionCalib["UD"] * (cy + cpitch_bais)
+        ud = self._directionCalib["UD"] * (hight + cy + cpitch_bais)
         cw = self._directionCalib["CW"] * (cyaw)
         
         for i in [lr, fb, ud]:
             i = np.clip(i, -self._CLIP, self._CLIP)
 
-        bias = self.rebias (bias, D2R(pyaw - cyaw))
+        bias = self.rebias (bias, D2R(pyaw))
         lr += bias[0]
         fb += bias[1]
         ud += bias[2]
