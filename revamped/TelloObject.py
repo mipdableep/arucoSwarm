@@ -7,20 +7,21 @@ import datetime as dt
 
 class TelloObject:
 
-    def __init__(self, address : str, vport : int, angle, distance, hight, arucoTool : ArucoTools, num):
+    def __init__(self, address : str, vport : int, angle, distance, hight, arucoTool : ArucoTools, num, isLeader = False):
         # connection vals
         self._vport = vport
         self._address = address
         
         self.num = num
-        
+        self._isLeader = isLeader
         # location vals
         self._angle = angle
         self._distance = distance
         self._hight = hight
         
         self._arucoTool = arucoTool
-        self._counter = 0
+        self._FrameCounter = 0
+        self._nlc = 0
         
         
         self._tello = Tello(address)
@@ -63,17 +64,44 @@ class TelloObject:
         ud = int(ud)
         cw = int(cw)
 
-        if status == -9:
+        if status == -9 and self._isLeader:
             print ("target aruco not found")
             self._tello.send_rc_control(lr, fb, ud, cw)
             frame = cv2.resize(input_frame, (720, 480))
             cv2.imshow(self.title, frame)
             return lr, fb, ud
 
-        self._tello.send_rc_control(lr, fb, ud, cw)
-        filename = './video/' + str(self.num) + '/' + str(self._counter) + '.jpg'
+        elif status == -9:
+            print ("target aruco not found")
+            self._nlc += 1
+            
+            if self._nlc > 5 and self._nlc < 20:
+                self._tello.send_rc_control(lr, fb, ud, cw + 12)
 
-        self._counter += 1
+            elif self._nlc > 20 and self._nlc < 50:
+                self._tello.send_rc_control(lr, fb, ud, cw - 12)
+            
+            elif self._nlc > 50 and self._nlc < 65:
+                self._tello.send_rc_control(lr, fb, ud, cw + 12)
+                
+            elif self._nlc > 65:
+                self._tello.send_rc_control(lr, fb, ud, cw)
+                self._nlc = 5
+                
+            else:
+                self._tello.send_rc_control(lr, fb, ud, cw)
+                frame = cv2.resize(input_frame, (720, 480))
+                cv2.imshow(self.title, frame)
+            
+            return lr, fb, ud
+
+
+        self._nlc = 0
+
+        self._tello.send_rc_control(lr, fb, ud, cw)
+        filename = './video/' + str(self.num) + '/' + str(self._FrameCounter) + '.jpg'
+
+        self._FrameCounter += 1
         
         cv2.imwrite(filename, img)
 
