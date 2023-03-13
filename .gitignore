@@ -4,3 +4,9 @@ videocap/*
 .idea
 cmake-build-debug
 revamped/__pycache__/
+
+video/
+arucos/archive1/
+arucos/archive2/
+arucos/archive3/
+arucos/archive4/

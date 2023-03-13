@@ -13,9 +13,10 @@ detector = cv2.aruco.ArucoDetector(dictionary, detectorParams)
 
 class ArucoTools:
 
-    def __init__(self, TargetID, TargetSize, clip, calibPath):
+    def __init__(self, TargetID, TargetSize, clip, calibPath, num):
         self._TargetID = TargetID
         self._TargetSize = TargetSize
+        self.num = num
         
         with open(calibPath, 'rb') as f:
             self._camMatrix = np.load(f)
@@ -99,15 +100,35 @@ class ArucoTools:
         ud = self._directionCalib["UD"] * (hight + cy + cpitch_bais)
         cw = self._directionCalib["CW"] * (cyaw)
         
-        for i in [lr, fb, ud]:
-            i = np.clip(i, -self._CLIP, self._CLIP)
-
+        lr = np.clip(lr, -self._CLIP, self._CLIP)
+        fb = np.clip(fb, -self._CLIP, self._CLIP)
+        ud = np.clip(ud, -self._CLIP, self._CLIP)
+        cw = np.clip(cw, -self._CLIP, self._CLIP)
+        
+        
         bias = self.rebias (bias, D2R(pyaw))
         lr += bias[0]
         fb += bias[1]
         ud += bias[2]
         
         cw = np.clip(cw, -self._YAW_CLIP, self._YAW_CLIP)
+        
+        print("drone", self.num, ":rc -  ", " ",)
+        
+        # font
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = int(1)
+        color = (0, 0, 255)
+        thickness = int(2)
+        
+        # Add text
+        img = cv2.putText(img, ("L/R : " + str(lr)), (10,  30), font, fontScale, color, thickness, cv2.LINE_AA)
+        img = cv2.putText(img, ("F/B : " + str(fb)), (10,  60), font, fontScale, color, thickness, cv2.LINE_AA)
+        img = cv2.putText(img, ("U/D : " + str(ud)), (10,  90), font, fontScale, color, thickness, cv2.LINE_AA)
+        img = cv2.putText(img, ("CCW : " + str(cw)), (10, 120), font, fontScale, color, thickness, cv2.LINE_AA)
+        
+        img = cv2.putText(img, ("dist: " + str(prange)), (10, 180), font, fontScale, color, thickness, cv2.LINE_AA)
+        img = cv2.putText(img, ("angle: " + str(pyaw)), (10, 210), font, fontScale, color, thickness, cv2.LINE_AA)
         
         return 0, lr, fb, ud, cw, img
 

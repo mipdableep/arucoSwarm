@@ -7,10 +7,12 @@ import datetime as dt
 
 class TelloObject:
 
-    def __init__(self, address : str, vport : int, angle, distance, hight, arucoTool : ArucoTools):
+    def __init__(self, address : str, vport : int, angle, distance, hight, arucoTool : ArucoTools, num):
         # connection vals
         self._vport = vport
         self._address = address
+        
+        self.num = num
         
         # location vals
         self._angle = angle
@@ -18,6 +20,8 @@ class TelloObject:
         self._hight = hight
         
         self._arucoTool = arucoTool
+        self._counter = 0
+        
         
         self._tello = Tello(address)
         self._tello.connect()
@@ -34,13 +38,15 @@ class TelloObject:
         self._tello.takeoff()
         pass
 
-    def kill(self):
+    def streamOff(self):
         self._tello.streamoff()
+
+    def kill(self):
         self._tello.land()
         self.cam.release()
         
     def getBattery(self):
-        print(self._tello.get_battery())
+        print(self.num, ": ", self._tello.get_battery())
 
     def trackLoop(self, bias=[0,0,0]):
 
@@ -65,20 +71,10 @@ class TelloObject:
             return lr, fb, ud
 
         self._tello.send_rc_control(lr, fb, ud, cw)
-        filename = './arucos/' + self._address + '/' + dt.datetime.now().strftime("%Y%m%d_%H:%M:%S:%f") + '.jpg'
+        filename = './video/' + str(self.num) + '/' + str(self._counter) + '.jpg'
 
-        # font
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        fontScale = int(1)
-        color = (0, 0, 255)
-        thickness = int(2)
+        self._counter += 1
         
-        # Add text
-        img = cv2.putText(img, ("L/R : " + str(lr)), (10,  30), font, fontScale, color, thickness, cv2.LINE_AA)
-        img = cv2.putText(img, ("F/B : " + str(fb)), (10,  60), font, fontScale, color, thickness, cv2.LINE_AA)
-        img = cv2.putText(img, ("U/D : " + str(ud)), (10,  90), font, fontScale, color, thickness, cv2.LINE_AA)
-        img = cv2.putText(img, ("CCW : " + str(cw)), (10, 120), font, fontScale, color, thickness, cv2.LINE_AA)
-
         cv2.imwrite(filename, img)
 
         img = cv2.resize(img, (720, 480))

@@ -12,63 +12,41 @@ def rotate_func (tello : TelloObject, ang, radius, arc):
 def rotate_self (tello : TelloObject, ang):
     tello._tello.rotate_clockwise (ang)
 
-a1 = ArucoTools(549, 15.0, 30, "Camera Calibration/Calib1/Calibration.npy")
-a2 = ArucoTools(549, 15.0, 30, "Camera Calibration/Calib2/Calibration.npy")
-a3 = ArucoTools(549, 15.0, 30, "Camera Calibration/Calib3/Calibration.npy")
-a4 = ArucoTools(100,  9.5, 20, "Camera Calibration/Calib4/Calibration.npy")
+a1 = ArucoTools(522, 11, 30, "Camera Calibration/Drone1/Calibration.npy", 1)
+a2 = ArucoTools(522, 11, 30, "Camera Calibration/Drone2/Calibration.npy", 2)
+a3 = ArucoTools(522, 11, 30, "Camera Calibration/Drone3/Calibration.npy", 3)
+a4 = ArucoTools(100, 9.5, 20, "Camera Calibration/Drone4/Calibration.npy", 4)
 
-tello1 = TelloObject("10.3.141.169", 11112,  26, 111, 10, a1)
-tello2 = TelloObject("10.3.141.67",  11113,   0, 150, 10, a2)
-tello3 = TelloObject("10.3.141.117", 11114, -26, 111, 10, a3)
-# tello4 = TelloObject("10.3.141.211", 11115,   0, 100, a4)
+tello1 = TelloObject("10.3.141.169", 11112,  40, 90, 10, a1, 1)
+tello2 = TelloObject("10.3.141.67",  11113,   0, 105, 10, a2, 2)
+tello3 = TelloObject("10.3.141.117", 11114, -40, 90, 10, a3, 3)
+tello4 = TelloObject("10.3.141.211", 11115,   0, 100, 0, a4, 4)
 
-SC = SwarmControl([tello1, tello2, tello3])
+
+SC = SwarmControl([tello1, tello2, tello3, tello4])
 SC.do_for_all("getBattery()")
 
-sleep(2)
+run = True
 
-SC.do_for_all_in_threads("startCam")
+if run:
+    sleep(2)
 
-sleep(2)
+    SC.do_for_all_in_threads("startCam")
 
-SC.do_for_all_in_threads("takeoff")
+    sleep(2)
 
-sleep(1)
+    SC.do_for_all_in_threads("takeoff")
 
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
+    sleep(1)
 
-thread1 = threading.Thread(target=rotate_func, args=(tello1, 64, 52, 180), name="tello1 rotate")
-thread2 = threading.Thread(target=rotate_func, args=(tello2,  0, 52, 180), name="tello2 rotate")
-thread3 = threading.Thread(target=rotate_func, args=(tello3,-64, 52, 180), name="tello3 rotate")
+    while cv2.waitKey(50) != ord("q"):
+        bias = tello4.trackLoop()
+        tello1.trackLoop(bias)
+        tello2.trackLoop(bias)
+        tello3.trackLoop(bias)
+ 
+    SC.do_for_all_in_threads("streamOff")
+    SC.do_for_all_in_threads("kill")
 
-thread1.start()
-thread2.start()
-thread3.start()
-
-thread1.join()
-thread2.join()
-thread3.join()
-
-thread1 = threading.Thread(target=rotate_self, args=(tello1, 180), name="tello1 rotate")
-thread2 = threading.Thread(target=rotate_self, args=(tello2, 180), name="tello2 rotate")
-thread3 = threading.Thread(target=rotate_self, args=(tello3, 180), name="tello3 rotate")
-
-thread1.start()
-thread2.start()
-thread3.start()
-
-thread1.join()
-thread2.join()
-thread3.join()
-
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
-
-SC.do_for_all_in_threads("kill")
+else:
+    SC.do_for_all_in_threads("streamOff")
