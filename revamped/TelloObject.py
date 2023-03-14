@@ -7,13 +7,17 @@ import datetime as dt
 
 class TelloObject:
 
-    def __init__(self, address : str, vport : int, angle, distance, hight, arucoTool : ArucoTools, num, isLeader = False):
+    def __init__(self, address : str, vport : int, angle, distance, hight, arucoTool : ArucoTools, num, searchCW, isLeader = False, bias_dev = 1):
         # connection vals
         self._vport = vport
         self._address = address
         
         self.num = num
         self._isLeader = isLeader
+        self.bias_dev = bias_dev
+        
+        self.target_reached = False
+        
         # location vals
         self._angle = angle
         self._distance = distance
@@ -21,8 +25,11 @@ class TelloObject:
         
         self._arucoTool = arucoTool
         self._FrameCounter = 0
-        self._nlc = 0
         
+        # no leader counter
+        self._nlc = 0
+        self._searchCW = searchCW
+        self.si = 10
         
         self._tello = Tello(address)
         self._tello.connect()
@@ -31,6 +38,9 @@ class TelloObject:
         self._tello.streamon()
         
     
+    def stop(self):
+        self._tello.send_rc_control(0,0,0,0)
+    
     def startCam(self):
         self.cam = VCS.VideoCapture("udp://" + self._address + ":" + str(self._vport))
         self.title = "TELLO-" + self._address
@@ -38,11 +48,15 @@ class TelloObject:
     def takeoff(self):
         self._tello.takeoff()
         pass
+    
+    def upup(self):
+        self._tello.move_up(100)
 
     def streamOff(self):
         self._tello.streamoff()
 
     def kill(self):
+        self._tello.send_rc_control(0,0,0,0)
         self._tello.land()
         self.cam.release()
         
@@ -64,6 +78,12 @@ class TelloObject:
         ud = int(ud)
         cw = int(cw)
 
+        # save img to path
+        filename = 'video/' + str(self.num) + '/' + str(self._FrameCounter) + '.jpg'
+        cv2.imwrite(filename, img)
+
+        self._FrameCounter += 1
+
         if status == -9 and self._isLeader:
             print ("target aruco not found")
             self._tello.send_rc_control(lr, fb, ud, cw)
@@ -75,23 +95,24 @@ class TelloObject:
             print ("target aruco not found")
             self._nlc += 1
             
-            if self._nlc > 5 and self._nlc < 20:
-                self._tello.send_rc_control(lr, fb, ud, cw + 12)
+            if self._nlc > self.si and self._nlc < 3 * self.si:
+                self._tello.send_rc_control(lr, fb, ud, cw + self._searchCW)
 
-            elif self._nlc > 20 and self._nlc < 50:
-                self._tello.send_rc_control(lr, fb, ud, cw - 12)
+            elif self._nlc > 3 * self.si and self._nlc < 7 * self.si:
+                self._tello.send_rc_control(lr, fb, ud + 21, cw - self._searchCW)
             
-            elif self._nlc > 50 and self._nlc < 65:
-                self._tello.send_rc_control(lr, fb, ud, cw + 12)
+            elif self._nlc > 7 * self.si and self._nlc < 9*self.si:
+                self._tello.send_rc_control(lr, fb, ud, cw + self._searchCW)
                 
-            elif self._nlc > 65:
+            elif self._nlc > 9*self.si:
                 self._tello.send_rc_control(lr, fb, ud, cw)
-                self._nlc = 5
+                self._nlc = 0
                 
             else:
                 self._tello.send_rc_control(lr, fb, ud, cw)
-                frame = cv2.resize(input_frame, (720, 480))
-                cv2.imshow(self.title, frame)
+            
+            frame = cv2.resize(input_frame, (720, 480))
+            cv2.imshow(str(self.num), frame)
             
             return lr, fb, ud
 
@@ -99,16 +120,14 @@ class TelloObject:
         self._nlc = 0
 
         self._tello.send_rc_control(lr, fb, ud, cw)
-        filename = './video/' + str(self.num) + '/' + str(self._FrameCounter) + '.jpg'
-
-        self._FrameCounter += 1
         
-        cv2.imwrite(filename, img)
+        if status == 5:
+            self.target_reached = True
 
         img = cv2.resize(img, (720, 480))
         cv2.imshow(self.title, img)
 
-        return lr, fb, ud
+        return int(lr/self.bias_dev), int(fb/self.bias_dev), int(ud/self.bias_dev)
 
     
     # Util -> polar coordinate to rectangular coordinate

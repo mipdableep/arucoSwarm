@@ -13,15 +13,18 @@ detector = cv2.aruco.ArucoDetector(dictionary, detectorParams)
 
 class ArucoTools:
 
-    def __init__(self, TargetID, TargetSize, clip, calibPath, num):
+    def __init__(self, TargetID, TargetSize, clip, calibPath, num, dist = 120):
         self._TargetID = TargetID
         self._TargetSize = TargetSize
         self.num = num
         
-        with open(calibPath, 'rb') as f:
-            self._camMatrix = np.load(f)
-            self._camDist = np.load(f)
+        self.dist = dist
         
+        fs = cv2.FileStorage(calibPath, cv2.FILE_STORAGE_READ)
+
+        self._camMatrix = fs.getNode("camera_matrix").mat()
+        self._camDist = fs.getNode("distortion_coefficients").mat()
+
         self._CLIP = clip
         self._YAW_CLIP = 100
         self._directionCalib = {"LR" : -0.5,
@@ -39,8 +42,10 @@ class ArucoTools:
 
         return [lr, fb, ud]
 
-    def arucofunc(self, img:cv2.Mat, distance, angle, hight, bias):
+    def arucofunc(self, image:cv2.Mat, distance, angle, hight, bias):
         # Detect the arucos in the image
+        img = image.copy()
+        
         markerCorners, markerIds, _ = detector.detectMarkers(img)
         # draw the markers
         cv2.aruco.drawDetectedMarkers(img, markerCorners, markerIds)
@@ -49,7 +54,7 @@ class ArucoTools:
         cw = 0
 
         if markerIds is None:
-            return -9, lr, fb, ud, cw, 0
+            return -9, lr, fb, ud, cw, image
 
         idFound = False
         targetIndex = -1
@@ -60,12 +65,12 @@ class ArucoTools:
                 targetIndex = index
         
         if not idFound:
-            return -9, lr, fb, ud, cw, 0
+            return -9, lr, fb, ud, cw, image
         
         rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(markerCorners[targetIndex], self._TargetSize, self._camMatrix, self._camDist)
 
         if rvecs is None:
-            return -9, lr, fb, ud, cw, 0
+            return -9, lr, fb, ud, cw, image
         
         rvec = rvecs[0][0]
         tvec = tvecs[0].transpose()
@@ -130,7 +135,10 @@ class ArucoTools:
         img = cv2.putText(img, ("dist: " + str(prange)), (10, 180), font, fontScale, color, thickness, cv2.LINE_AA)
         img = cv2.putText(img, ("angle: " + str(pyaw)), (10, 210), font, fontScale, color, thickness, cv2.LINE_AA)
         
-        return 0, lr, fb, ud, cw, img
+        if prange < self.dist:
+            return 5, lr, fb, ud, cw, img
+        else:
+            return 0, lr, fb, ud, cw, img
 
 
 def R2D(radians):
@@ -139,7 +147,7 @@ def R2D(radians):
 
     Args:
         radians (float) : input
-    """        
+    """
     return radians * 180. / np.pi
     
 def D2R(degree):
