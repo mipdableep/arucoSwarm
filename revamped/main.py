@@ -4,7 +4,6 @@ from TelloObject import TelloObject
 from ArucoTools import ArucoTools
 from SwarmControl import SwarmControl
 from time import sleep
-import threading
 
 # a1 = ArucoTools(522, 11, 30, "Camera Calibration/calib/calib1.yaml", 1)
 
@@ -23,32 +22,42 @@ tello3 = TelloObject("10.3.141.103", 11114, -30, 105, 0, a3, 3, 30)
 tello4 = TelloObject("10.3.141.104", 11115,   0, 100, 0, a4, 4, 0 , True, 1.4)
 
 
+
 # SC = SwarmControl([tello5, tello2, tello3, tello4])
 SC = SwarmControl([tello5, tello2, tello3, tello4])
+EXIT = False
 
 SC.do_for_all("getBattery()")
 
-if True:
-    sleep(2)
 
-    SC.do_for_all_in_threads("startCam")
+sleep(2)
 
-    sleep(2)
+SC.do_for_all_in_threads("startCam")
 
-    SC.do_for_all_in_threads("takeoff")
+sleep(2)
 
+SC.do_for_all_in_threads("takeoff")
+
+sleep(1)
+
+for i in range(3):
     sleep(1)
+    SC.do_for_all_in_threads("stop")
 
-    for i in range(3):
-        sleep(1)
-        SC.do_for_all_in_threads("stop")
 
-    while cv2.waitKey(50) != ord("q") and not tello4.target_reached:
+for i in range (1):
+    
+    while not tello4.target_reached:
         bias = tello4.trackLoop()
         tello5.trackLoop(bias)
         tello2.trackLoop(bias)
         tello3.trackLoop(bias)
+        if cv2.waitKey(50) != ord("q"):
+            EXIT = True
+            break
 
+    if EXIT:
+        break
     # TODO: check if 1 second is enough
     SC.do_for_all_in_threads("stop")
     sleep(1)
@@ -56,14 +65,19 @@ if True:
     tello4._arucoTool = a4b
     tello4.target_reached = False
 
-
     # TODO: test!!
-    for i in range(100):
+    for i in range(200):
         bias = (0, 15, 0)
         tello4._tello.send_rc_control(0,20,0,0)
         tello5.trackLoop(bias)
         tello2.trackLoop(bias)
         tello3.trackLoop(bias)
+        if cv2.waitKey(50) != ord("q"):
+            EXIT = True
+            break
+
+    if EXIT:
+        break
 
     while cv2.waitKey(50) != ord("q") and not tello4.target_reached:
         bias = tello4.trackLoop()
@@ -72,8 +86,5 @@ if True:
         tello3.trackLoop(bias)
 
 
-    SC.do_for_all_in_threads("streamOff")
-    SC.do_for_all_in_threads("kill")
-
-else:
-    SC.do_for_all_in_threads("streamOff")
+SC.do_for_all_in_threads("streamOff")
+SC.do_for_all_in_threads("kill")
