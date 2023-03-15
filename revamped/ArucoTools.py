@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+from scipy.spatial.transform import Rotation
+
 
 # Tello camera points 12 degree downwards
 cameraFixedAngle = 12
@@ -31,18 +33,40 @@ class ArucoTools:
                                 "FB" : -0.5,
                                 "UD" : -2.0,
                                 "CW" :  2.0 }
-    
 
-    def rebias (self, bias, angle):
-        [b_lr, b_fb, b_ud] = bias
 
-        lr = b_lr * np.cos(angle) - b_fb * np.sin(angle)
-        fb = b_lr * np.sin(angle) + b_fb * np.cos(angle)
-        ud = b_ud
+   
+    def calculate_location(self, image:cv2.Mat):
+        img = image.copy()
+        
+        markerCorners, markerIds, _ = detector.detectMarkers(img)
+        # draw the markers
+        cv2.aruco.drawDetectedMarkers(img, markerCorners, markerIds)
 
-        return [lr, fb, ud]
+        if markerIds is None:
+            return -9, (-1,-1,-1), image
 
-    def arucofunc(self, image:cv2.Mat, distance, angle, hight, bias):
+        idFound = False
+        targetIndex = -1
+
+        for index, id in enumerate(markerIds):
+            if id == self._TargetID:
+                idFound = True
+                targetIndex = index
+        
+        if not idFound:
+            return -9, (-1,-1,-1), image
+        
+        rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(markerCorners[targetIndex], self._TargetSize, self._camMatrix, self._camDist)
+
+        if rvecs is None:
+            return -9, (-1,-1,-1), image
+        
+        
+        
+        
+
+    def arucofunc(self, image:cv2.Mat, distance, angle, hight):
         # Detect the arucos in the image
         img = image.copy()
         
@@ -50,8 +74,7 @@ class ArucoTools:
         # draw the markers
         cv2.aruco.drawDetectedMarkers(img, markerCorners, markerIds)
         
-        lr, fb, ud = self.rebias(bias, D2R(angle))
-        cw = 0
+        lr, fb, ud, cw = 0, 0, 0, 0
 
         if markerIds is None:
             return -9, lr, fb, ud, cw, image
@@ -108,19 +131,37 @@ class ArucoTools:
         lr = np.clip(lr, -self._CLIP, self._CLIP)
         fb = np.clip(fb, -self._CLIP, self._CLIP)
         ud = np.clip(ud, -self._CLIP, self._CLIP)
-        cw = np.clip(cw, -self._CLIP, self._CLIP)
-        
-        
-        bias = self.rebias (bias, D2R(pyaw))
-        lr += bias[0]
-        fb += bias[1]
-        ud += bias[2]
         
         cw = np.clip(cw, -self._YAW_CLIP, self._YAW_CLIP)
         
-        print("drone", self.num, ":rc -  ", " ",)
+        draw_img(img, lr, fb, ud, cw, prange, pyaw)
         
-        # font
+        if prange < self.dist:
+            return 5, lr, fb, ud, cw, img
+        else:
+            return 0, lr, fb, ud, cw, img
+
+    def extract_6_dof_from_vecs(rvec, tvec):
+        rmat, _ = cv2.Rodrigues(rvec)
+        rmat = np.matrix(rmat)
+        euler_angles = Rotation.from_matrix(rmat).as_euler("xyz", degrees=True)
+        
+        pitch = euler_angles[0]
+        if pitch > 0: 
+            pitch = 180-pitch
+        else:
+            pitch = -pitch - 180
+        yaw = euler_angles[1]
+        roll = euler_angles[2]
+        # TODO: check if the axis are correct
+        R = {"pitch":pitch, "yaw":yaw, "roll":roll}
+        T = {"lr":tvec[0], "fb":tvec[1], "ud":tvec[2]}
+        
+        return R, T
+
+def draw_img(img, lr, fb, ud, cw, prange, pyaw):
+    
+    # font
         font = cv2.FONT_HERSHEY_SIMPLEX
         fontScale = int(1)
         color = (0, 0, 255)
@@ -130,16 +171,10 @@ class ArucoTools:
         img = cv2.putText(img, ("L/R : " + str(lr)), (10,  30), font, fontScale, color, thickness, cv2.LINE_AA)
         img = cv2.putText(img, ("F/B : " + str(fb)), (10,  60), font, fontScale, color, thickness, cv2.LINE_AA)
         img = cv2.putText(img, ("U/D : " + str(ud)), (10,  90), font, fontScale, color, thickness, cv2.LINE_AA)
-        img = cv2.putText(img, ("CCW : " + str(cw)), (10, 120), font, fontScale, color, thickness, cv2.LINE_AA)
-        
+        img = cv2.putText(img, ("CCW : " + str(cw)), (10, 120), font, fontScale, color, thickness, cv2.LINE_AA)        
         img = cv2.putText(img, ("dist: " + str(prange)), (10, 180), font, fontScale, color, thickness, cv2.LINE_AA)
         img = cv2.putText(img, ("angle: " + str(pyaw)), (10, 210), font, fontScale, color, thickness, cv2.LINE_AA)
-        
-        if prange < self.dist:
-            return 5, lr, fb, ud, cw, img
-        else:
-            return 0, lr, fb, ud, cw, img
-
+    
 
 def R2D(radians):
     """
