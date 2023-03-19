@@ -4,3 +4,8 @@ videocap/*
 .idea
 cmake-build-debug
 revamped/__pycache__/
+Camera Calibration/Calib1/*.jpg
+Camera Calibration/Calib2/*.jpg
+Camera Calibration/Calib3/*.jpg
+Camera Calibration/Calib4/*.jpg
+.gitignore
