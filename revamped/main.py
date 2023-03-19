@@ -15,17 +15,17 @@ def rotate_self (tello : TelloObject, ang):
 def move_up (tello : TelloObject, up):
     tello._tello.move_up (up)
 
-a1 = ArucoTools(685, 17.0, 30, "Camera Calibration/Drone1/Calibration.npy")
-a2 = ArucoTools(685, 17.0, 30, "Camera Calibration/Drone2/Calibration.npy")
-a3 = ArucoTools(685, 17.0, 30, "Camera Calibration/Drone3/Calibration.npy")
-a4 = ArucoTools(685, 17.0, 30, "Camera Calibration/Drone4/Calibration.npy")
+a1 = ArucoTools(685, 17.0, 30, "Camera Calibration/Calib1/Calibration.npy")
+a2 = ArucoTools(685, 17.0, 30, "Camera Calibration/Calib2/Calibration.npy")
+a3 = ArucoTools(685, 17.0, 30, "Camera Calibration/Calib3/Calibration.npy")
+a4 = ArucoTools(685, 17.0, 30, "Camera Calibration/Calib4/Calibration.npy")
 
 tello1 = TelloObject("10.3.141.101", 11112, [0,0,0], a1)
 tello2 = TelloObject("10.3.141.102", 11113, [0,0,0], a2)
 tello3 = TelloObject("10.3.141.103", 11114, [0,0,0], a3)
 tello4 = TelloObject("10.3.141.104", 11115, [0,0,0], a4)
 
-SC = SwarmControl([tello1, tello2, tello3])
+SC = SwarmControl([tello1, tello2, tello3, tello4])
 SC.do_for_all("getBattery()")
 
 sleep(2)
@@ -38,7 +38,7 @@ SC.do_for_all_in_threads("takeoff")
 
 sleep(1)
 
-move_up_cm = 80
+move_up_cm = 100
 
 thread1 = threading.Thread(target=move_up, args=(tello1, move_up_cm), name="tello1 move up")
 thread2 = threading.Thread(target=move_up, args=(tello2, move_up_cm), name="tello2 move up")
@@ -57,30 +57,57 @@ thread4.join()
 
 sleep(2)
 
-a1._TargetID = 685
-a2._TargetID = 685
-a3._TargetID = 685
-a4._TargetID = 685
-tello1._position = [ 30, -30, -140]
-tello2._position = [-30, -30, -140]
-tello3._position = [  0, -30, -100]
+t1r, t2r, t3r, t4r = -1, -1, -1, -1
+while cv2.waitKey(50) != ord("q") and ((t1r == -1 or t2r == -1 or t3r == -1 or t4r == -1) or (t1r > 3 or t2r > 3 or t3r > 3 or t4r > 3)):
+    t1r = tello1.search_aruco (685)
+    t2r = tello2.search_aruco (685)
+    t3r = tello3.search_aruco (685)
+    t4r = tello4.search_aruco (685)
+
+center = np.array([0, 0, 0], dtype=np.float64)
+
+for tello in [tello1, tello2, tello3, tello4]:
+    center += np.array(tello._arucoTool.pos, dtype=np.float64)
+
+center /= 4
+
+def angTello(tello : TelloObject):
+    return np.arctan2(center[0] - tello._arucoTool.pos[0], center[2] - tello._arucoTool.pos[2])
+
+tellos = [tello1, tello2, tello3, tello4]
+tellos = sorted(tellos, key=angTello)
+
+center[1] = -30
+
+ang = np.pi / 4
+for tello in tellos:
+    tello._position = center + np.array([42*np.sin(ang), 0, 42*np.cos(ang)])
+    ang += np.pi / 2
 
 while cv2.waitKey(50) != ord("q"):
     tello1.trackLoop()
     tello2.trackLoop()
     tello3.trackLoop()
+    tello4.trackLoop()
 
-thread1 = threading.Thread(target=rotate_self, args=(tello1, 192), name="tello1 rotate")
-thread2 = threading.Thread(target=rotate_self, args=(tello2, 168), name="tello2 rotate")
-thread3 = threading.Thread(target=rotate_self, args=(tello3, 180), name="tello3 rotate")
+dist = np.sqrt(center[0] ** 2 + center[2] ** 2)
+center = [0, -30, -150]
 
-thread1.start()
-thread2.start()
-thread3.start()
+ang = np.pi / 4
+for tello in tellos:
+    tello._position = center + np.array([42*np.sin(ang), 0, 42*np.cos(ang)])
+    ang += np.pi / 2
 
-thread1.join()
-thread2.join()
-thread3.join()
+while cv2.waitKey(50) != ord("q"):
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    tello4.trackLoop()
+
+
+SC.do_for_all_in_threads("kill")
+
+exit(0)
 
 sleep(2)
 

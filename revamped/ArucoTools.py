@@ -23,8 +23,8 @@ class ArucoTools:
         
         self._CLIP = clip
         self._YAW_CLIP = 100
-        self._directionCalib = {"LR" :  0.5,
-                                "FB" :  0.5,
+        self._directionCalib = {"LR" :  0.4,
+                                "FB" :  0.4,
                                 "UD" :  1.0,
                                 "CW" :  2.0 }
     
@@ -103,6 +103,11 @@ class ArucoTools:
         ty = position[1]
         tz = position[0] * np.sin(-yaw) + position[2] * np.cos(-yaw)
 
+        self.error = np.sqrt((tx - mx)**2 + (ty - my)**2 + (tz - mz)**2)
+        self.pos = [mx * np.cos(yaw) - mz * np.sin(yaw),
+                    my,
+                    mx * np.sin(yaw) + mz * np.cos(yaw)]
+
         if cyaw > 10:
             cyaw = 2 * cyaw - 10
 
@@ -125,11 +130,13 @@ class ArucoTools:
         
         cw = np.clip(cw, -self._YAW_CLIP, self._YAW_CLIP)
 
+        '''
         print ('--------------------------------------')
         print ('LR : ' + str(lr))
         print ('FB : ' + str(fb))
         print ('UD : ' + str(ud))
         print ('CCW: ' + str(cw))
+        '''
         
         return 0, lr, fb, ud, cw, img
 

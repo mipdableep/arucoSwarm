@@ -38,6 +38,32 @@ class TelloObject:
         
     def getBattery(self):
         print(self._tello.get_battery())
+    
+
+    def search_aruco(self, arucoID):
+        ret, input_frame = self.cam.read()
+        if not ret:
+            print ('Error retriving video stream')
+            return -1
+        
+        self._arucoTool._TargetID = arucoID
+        status, lr, fb, ud, cw, img = self._arucoTool.arucofunc(input_frame, self._position, [0, 0, 0])
+
+        if status == -9:
+            print ("target aruco not found")
+            self._tello.send_rc_control(0, 0, 0, 40)
+            frame = cv2.resize(input_frame, (720, 480))
+            cv2.imshow(self.title, frame)
+            return -1
+
+        img = cv2.resize(img, (720, 480))
+        cv2.imshow(self.title, img)
+
+        self._tello.send_rc_control(0, 0, 0, int(cw))
+
+        return np.abs(cw)
+    
+
 
     def trackLoop(self, bias=[0,0,0]):
 
