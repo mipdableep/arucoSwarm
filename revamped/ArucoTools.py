@@ -23,9 +23,9 @@ class ArucoTools:
         
         self._CLIP = clip
         self._YAW_CLIP = 100
-        self._directionCalib = {"LR" : -0.5,
-                                "FB" : -0.5,
-                                "UD" : -2.0,
+        self._directionCalib = {"LR" :  0.5,
+                                "FB" :  0.5,
+                                "UD" :  1.0,
                                 "CW" :  2.0 }
     
 
@@ -38,13 +38,13 @@ class ArucoTools:
 
         return [lr, fb, ud]
 
-    def arucofunc(self, img:cv2.Mat, distance, angle, hight, bias):
+    def arucofunc(self, img:cv2.Mat, position : np.array, bias):
         # Detect the arucos in the image
         markerCorners, markerIds, _ = detector.detectMarkers(img)
         # draw the markers
         cv2.aruco.drawDetectedMarkers(img, markerCorners, markerIds)
         
-        lr, fb, ud = self.rebias(bias, D2R(angle))
+        lr, fb, ud = bias
         cw = 0
 
         if markerIds is None:
@@ -93,21 +93,43 @@ class ArucoTools:
         cpitch_bais = np.sqrt(cy ** 2 + cz ** 2) * np.sin(D2R(cameraFixedAngle))
         cyaw = R2D(np.arctan2(cx, cz))
 
-        # directional commands and vals
-        lr = self._directionCalib["LR"] * ((pyaw - angle))
-        fb = self._directionCalib["FB"] * (distance - prange)
-        ud = self._directionCalib["UD"] * (hight + cy + cpitch_bais)
-        cw = self._directionCalib["CW"] * (cyaw)
-        
-        for i in [lr, fb, ud]:
-            i = np.clip(i, -self._CLIP, self._CLIP)
+        yaw = np.arctan2(px, pz)
 
-        bias = self.rebias (bias, D2R(pyaw))
-        lr += bias[0]
-        fb += bias[1]
-        ud += bias[2]
+        mx = -cx
+        my = -cy - cpitch_bais
+        mz = -cz
+
+        tx = position[0] * np.cos(-yaw) - position[2] * np.sin(-yaw)
+        ty = position[1]
+        tz = position[0] * np.sin(-yaw) + position[2] * np.cos(-yaw)
+
+        if cyaw > 10:
+            cyaw = 2 * cyaw - 10
+
+        # directional commands and vals
+        lr = self._directionCalib["LR"] * (tx - mx)
+        fb = self._directionCalib["FB"] * (tz - mz)
+        ud = self._directionCalib["UD"] * (my - ty)
+        cw = self._directionCalib["CW"] * (cyaw)
+
+        xy_norm = np.sqrt(lr**2 + fb**2)
+
+        if (xy_norm > self._CLIP):
+            xy_clip = self._CLIP / xy_norm
+            lr = lr * xy_clip
+            fb = fb * xy_clip
+
+        lr = np.clip(int(lr), -self._CLIP, self._CLIP)
+        fb = np.clip(int(fb), -self._CLIP, self._CLIP)
+        ud = np.clip(int(ud), -self._CLIP, self._CLIP)
         
         cw = np.clip(cw, -self._YAW_CLIP, self._YAW_CLIP)
+
+        print ('--------------------------------------')
+        print ('LR : ' + str(lr))
+        print ('FB : ' + str(fb))
+        print ('UD : ' + str(ud))
+        print ('CCW: ' + str(cw))
         
         return 0, lr, fb, ud, cw, img
 

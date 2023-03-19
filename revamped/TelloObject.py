@@ -7,16 +7,13 @@ import datetime as dt
 
 class TelloObject:
 
-    def __init__(self, address : str, vport : int, angle, distance, hight, arucoTool : ArucoTools):
+    def __init__(self, address : str, vport : int, position : np.array, arucoTool : ArucoTools):
         # connection vals
         self._vport = vport
         self._address = address
         
         # location vals
-        self._angle = angle
-        self._distance = distance
-        self._hight = hight
-        
+        self._position = position
         self._arucoTool = arucoTool
         
         self._tello = Tello(address)
@@ -50,7 +47,7 @@ class TelloObject:
             print ('Error retriving video stream')
             return lr, fb, ud
     
-        status, lr, fb, ud, cw, img = self._arucoTool.arucofunc(input_frame, self._distance, self._angle, self._hight, bias)
+        status, lr, fb, ud, cw, img = self._arucoTool.arucofunc(input_frame, self._position, bias)
         
         lr = int(lr)
         fb = int(fb)
@@ -88,7 +85,7 @@ class TelloObject:
 
     
     # Util -> polar coordinate to rectangular coordinate
-    def rect (angle, radius):
+    def rect (self, angle, radius):
         return np.array([radius * np.cos(angle), radius * np.sin(angle)])
 
 
