@@ -12,11 +12,10 @@ cross = (5, 7)  # <--- CHANGE HERE
 size = 8.0      # <--- CHANGE HERE
 
 # Folder to find all the images to process
-path = 'Camera Calibration/Drone3'      # <--- CHANGE HERE
+path = 'Camera Calibration/Calib4'      # <--- CHANGE HERE
 
 # Do you want some fancy output ?
 debug = False
-
 
 
 ######################## Do not change ########################
