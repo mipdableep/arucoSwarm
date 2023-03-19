@@ -44,7 +44,7 @@ class ArucoTools:
         cv2.aruco.drawDetectedMarkers(img, markerCorners, markerIds)
 
         if markerIds is None:
-            return -9, (-1,-1,-1), image
+            return -9, None, None, image
 
         idFound = False
         targetIndex = -1
@@ -55,15 +55,23 @@ class ArucoTools:
                 targetIndex = index
         
         if not idFound:
-            return -9, (-1,-1,-1), image
+            return -9, None, None, image
         
         rvecs, tvecs, _ = cv2.aruco.estimatePoseSingleMarkers(markerCorners[targetIndex], self._TargetSize, self._camMatrix, self._camDist)
 
         if rvecs is None:
-            return -9, (-1,-1,-1), image
+            return -9, None, None, image
         
         
+        rvec = rvecs[0][0]
+        # print("\n\n\n", rvec)
+
+        tvec = tvecs[0]
         
+        cv2.drawFrameAxes(img, self._camMatrix, self._camDist, rvec, tvec, 3.5, 2)
+
+        R, T = self.extract_6_dof_from_vecs(rvec, tvec)
+        return 0, R , T, img
         
 
     def arucofunc(self, image:cv2.Mat, distance, angle, hight):
@@ -134,14 +142,24 @@ class ArucoTools:
         
         cw = np.clip(cw, -self._YAW_CLIP, self._YAW_CLIP)
         
-        draw_img(img, lr, fb, ud, cw, prange, pyaw)
+        self.draw_img(img, lr, fb, ud, cw, prange, pyaw)
         
         if prange < self.dist:
             return 5, lr, fb, ud, cw, img
         else:
             return 0, lr, fb, ud, cw, img
 
-    def extract_6_dof_from_vecs(rvec, tvec):
+    def extract_6_dof_from_vecs(self, rvec, tvec):
+        """
+        extract 6 dof into euler angles and dist dicts
+
+        Args:
+            rvec : rotation vector
+            tvec : translation vector
+
+        Returns:
+            rotation, translation dicts
+        """
         rmat, _ = cv2.Rodrigues(rvec)
         rmat = np.matrix(rmat)
         euler_angles = Rotation.from_matrix(rmat).as_euler("xyz", degrees=True)
@@ -159,7 +177,7 @@ class ArucoTools:
         
         return R, T
 
-def draw_img(img, lr, fb, ud, cw, prange, pyaw):
+    def draw_img(self, img, lr, fb, ud, cw, prange, pyaw):
     
     # font
         font = cv2.FONT_HERSHEY_SIMPLEX

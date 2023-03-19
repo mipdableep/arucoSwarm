@@ -5,7 +5,7 @@ from ArucoTools import ArucoTools
 
 class TelloObject:
 
-    def __init__(self, address:str, vport:int, arucoTool:ArucoTools, num, ABS_POS = (0,0,0)):
+    def __init__(self, address:str, vport:int, arucoTool:ArucoTools, num, ABS_POS):
         # connection vals
         self._vport = vport
         self._address = address
@@ -14,11 +14,11 @@ class TelloObject:
         
         self.target_reached = False
         
-        # location vals
+        # location vals in relation to the middle point
         self._ABS_POS = ABS_POS
         
-        
-        self._retErr = (-1,-1,-1)
+        # for navigation between functions
+        self.Last_R_dict = None
         
         self._arucoTool = arucoTool
         self._FrameCounter = 0
@@ -63,7 +63,17 @@ class TelloObject:
             print ('Error retriving video stream')
             return self._retErr
         
-        status, location, img = self._arucoTool.arucofunc(input_frame, self._distance, self._angle, self._hight)
+        status, R, T, img = self._arucoTool.calculate_location(input_frame)
+        
+        if status == -9:
+            cv2.imshow(str(self.num), img)
+            return -9, None
+        
+        cv2.imshow(str(self.num), img)
+        
+        self.Last_R_dict = R
+        
+        return 0, T
 
 
 
