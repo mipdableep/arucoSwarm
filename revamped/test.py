@@ -1,16 +1,10 @@
 import cv2
 from scipy.spatial.transform import Rotation
 import numpy as np
+from ArucoTools import ArucoTools
 
 cap = cv2.VideoCapture()
 cap.open(0)
-
-fs = cv2.FileStorage("/home/fares/rbd/projects/aruco_swarm/arucoSwarm/calib/webcam.yaml", cv2.FILE_STORAGE_READ)
-
-camMatrix = fs.getNode("Camera_Matrix").mat()
-print (camMatrix)
-camDist = fs.getNode("Distortion_Coefficients").mat()
-print (camDist)
 
 # setup
 dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
@@ -19,6 +13,29 @@ detectorParams = cv2.aruco.DetectorParameters()
 # Setup Aruco detector
 detector = cv2.aruco.ArucoDetector(dictionary, detectorParams)
 run = True
+
+a1 = ArucoTools("/home/fares/rbd/projects/aruco_swarm/arucoSwarm/calib/webcam.yaml", 1)
+a1.set_target(529, 20)
+
+while run:
+    _, image = cap.read()
+    if not _:
+        continue
+    img = image.copy()
+    
+    status, R, T, img = a1.calculate_location(img)
+    
+    if status == -9:
+        image = cv2.resize(image, (720, 480))
+        cv2.imshow("1", image)
+        cv2.waitKey(20)
+        continue
+    
+    print ("R:  ", R)
+    print ("T:  ", T)
+    cv2.imshow("1", img)
+
+exit()
 while (run):
 
     key = cv2.waitKey(25)

@@ -2,10 +2,11 @@ import cv2
 from djitellopy import Tello
 import VCS
 from ArucoTools import ArucoTools
+import math
 
 class TelloObject:
 
-    def __init__(self, address:str, vport:int, arucoTool:ArucoTools, num, ABS_POS):
+    def __init__(self, address:str, vport:int, arucoTool:ArucoTools, num, ABS_POS, startCam = True):
         # connection vals
         self._vport = vport
         self._address = address
@@ -17,8 +18,7 @@ class TelloObject:
         # location vals in relation to the middle point
         self._ABS_POS = ABS_POS
         
-        # for navigation between functions
-        self.Last_R_dict = None
+        self._last_target_detected = 0
         
         self._arucoTool = arucoTool
         self._FrameCounter = 0
@@ -27,7 +27,9 @@ class TelloObject:
         self._tello.connect()
         self._tello.set_network_ports(8890, vport)
         self._tello.set_video_bitrate(Tello.BITRATE_1MBPS)
-        self._tello.streamon()
+        
+        if startCam:
+            self._tello.streamon()
     
     def stop(self):
         self._tello.send_rc_control(0,0,0,0)
@@ -39,9 +41,6 @@ class TelloObject:
     def takeoff(self):
         self._tello.takeoff()
         pass
-    
-    def upup(self):
-        self._tello.move_up(100)
 
     def streamOff(self):
         self._tello.streamoff()
@@ -54,26 +53,53 @@ class TelloObject:
     def getBattery(self):
         print(self.num, ": ", self._tello.get_battery())
 
+     
+    def find_target(self):
+        status, R, T = self.get_location(True)
+        
+        if status == -9 and self._last_target_detected > 5:
+            self._tello.send_rc_control(0,0,0,40)
+            self._last_target_detected += 1
+            return False
+        
+        if status == -9:
+            self._tello.send_rc_control(0,0,0,0)
+            self._last_target_detected += 1
+            return False
+        
+        self._last_target_detected = 0
+        
+        yaw = R["yaw"]
+        lr = T["lr"]
+        fb = T["fb"]
+        
+        wanted_yaw = math.atan2(lr, fb) * (180/math.pi)
+        
+        cw = wanted_yaw - yaw
+        
+        self._tello.send_rc_control(0,0,0,cw)
+        return True
 
-    def get_location(self):
+
+    def get_location(self, imshow = False):
         
         ret, input_frame = self.cam.read()
 
         if not ret:
             print ('Error retriving video stream')
-            return self._retErr
+            return -9, None, None
         
         status, R, T, img = self._arucoTool.calculate_location(input_frame)
         
         if status == -9:
+            if imshow:
+                cv2.imshow(str(self.num), input_frame)
+            return -9, None, None
+        
+        if imshow:
             cv2.imshow(str(self.num), img)
-            return -9, None
         
-        cv2.imshow(str(self.num), img)
-        
-        self.Last_R_dict = R
-        
-        return 0, T
+        return 0, R, T
 
 
 

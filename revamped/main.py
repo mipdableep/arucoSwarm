@@ -5,80 +5,50 @@ from ArucoTools import ArucoTools
 from SwarmControl import SwarmControl
 from time import sleep
 
+"""
+a1 = ArucoTools("Camera Calibration/calib/calib1.yaml", 1)
+a2 = ArucoTools("Camera Calibration/calib/calib2.yaml", 2)
+a3 = ArucoTools("Camera Calibration/calib/calib3.yaml", 3)
+a4 = ArucoTools("Camera Calibration/calib/calib4.yaml", 4)
+a5 = ArucoTools("Camera Calibration/calib/calib5.yaml", 5)
 
-a5 =  ArucoTools(522, 11, 30, "Camera Calibration/calib/calib5.yaml", 5)
-a2 =  ArucoTools(522, 11, 30, "Camera Calibration/calib/calib2.yaml", 2)
-a3 =  ArucoTools(522, 11, 30, "Camera Calibration/calib/calib3.yaml", 3)
+tello1 = TelloObject("10.3.141.101", 11111,  a1, 1, None)
+tello2 = TelloObject("10.3.141.102", 11112,  a2, 2, None)
+tello3 = TelloObject("10.3.141.103", 11113,  a3, 3, None)
+tello4 = TelloObject("10.3.141.104", 11114,  a4, 4, None)
+tello5 = TelloObject("10.3.141.105", 11115,  a5, 5, None)
+"""
 
-# cross distances and angles
-tello2 = TelloObject("10.3.141.102", 11113,   0, 140, 0, a2, 2, 30)
-tello3 = TelloObject("10.3.141.103", 11114, -30, 105, 0, a3, 3, 30)
-tello5 = TelloObject("10.3.141.105", 11112,  30, 105, 0, a5, 5, 30)
+a5 = ArucoTools("Camera Calibration/calib/calib5.yaml", 5)
+tello5 = TelloObject("10.3.141.105", 11115,  a5, 5, None)
 
 
 
-# SC = SwarmControl([tello5, tello2, tello3, tello4])
-SC = SwarmControl([tello5, tello2, tello3, tello4])
+# SC = SwarmControl([tello1, tello2, tello3, tello4, tello5])
+SC = SwarmControl([tello5])
 EXIT = False
 
 SC.do_for_all("getBattery()")
 
-
-sleep(2)
-
-SC.do_for_all_in_threads("startCam")
-
 sleep(2)
 
 SC.do_for_all_in_threads("takeoff")
+SC.do_for_all_in_threads("stop")
+SC.do_for_all_in_threads("startCam")
 
 sleep(1)
 
-for i in range(3):
-    sleep(1)
-    SC.do_for_all_in_threads("stop")
+SC.do_movement_command_for_all_in_threads("move_up", (75,))
+sleep(1)
 
+SC.all_find_target(665, 17.5)
 
-for i in range (1):
-    
-    while not tello4.target_reached:
-        bias = tello4.trackLoop()
-        tello5.trackLoop(bias)
-        tello2.trackLoop(bias)
-        tello3.trackLoop(bias)
-        if cv2.waitKey(50) != ord("q"):
-            EXIT = True
-            break
-
-    if EXIT:
-        break
-    # TODO: check if 1 second is enough
-    SC.do_for_all_in_threads("stop")
-    sleep(1)
-    SC.do_for_all_in_threads("upup")
-    tello4._arucoTool = a4b
-    tello4.target_reached = False
-
-    # TODO: test!!
-    for i in range(200):
-        bias = (0, 15, 0)
-        tello4._tello.send_rc_control(0,20,0,0)
-        tello5.trackLoop(bias)
-        tello2.trackLoop(bias)
-        tello3.trackLoop(bias)
-        if cv2.waitKey(50) != ord("q"):
-            EXIT = True
-            break
-
-    if EXIT:
-        break
-
-    while cv2.waitKey(50) != ord("q") and not tello4.target_reached:
-        bias = tello4.trackLoop()
-        tello5.trackLoop(bias)
-        tello2.trackLoop(bias)
-        tello3.trackLoop(bias)
-
+SC.do_movement_command_for_all_in_threads("move_forward", (150,))
 
 SC.do_for_all_in_threads("streamOff")
 SC.do_for_all_in_threads("kill")
+
+exit(0)
+
+# tello obj for command string copy (delete)
+tello5._tello.rotate_clockwise()
