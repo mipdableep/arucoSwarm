@@ -7,6 +7,10 @@ class SwarmControl:
     def __init__(self, drones : list) -> None:
         self._drones = drones
 
+    def set_dist(self, right, left):
+        self.rightPos = right
+        self.leftPos = left
+
     def all_find_target(self, target_id, target_size):
         """
         find the set aruco target for all drones
@@ -34,7 +38,56 @@ class SwarmControl:
         # stop all movment
         self.do_for_all_in_threads("stop")
         return True
+    
+    def go_into_formation(self, leader, right, left):        
+        s, R, T = leader.get_location()
+        while s == -9:
+            s, R, T = leader.get_location()
+        
+        leader_pos = {"lr":T["lr"], "fb":T["fb"], "ud":T["ud"]}
+        # TODO write th rest for formation
+        ret = True
+        
+        while False in [leader.target_reached, right.target_reached, left.target_reached]:
+            leader.trackLoop (leader_pos)
+            right.trackLoop ({"lr":leader_pos["lr"] + self.rightPos[0],
+                            "fb":leader_pos["fb"] + self.rightPos[1],
+                            "ud":leader_pos["ud"]})
+            
+            left.trackLoop ({"lr":leader_pos["lr"] + self.leftPos[0],
+                            "fb":leader_pos["fb"] + self.leftPos[1],
+                            "ud":leader_pos["ud"]})
+            if cv2.waitKey(20) != ord('q'):
+                ret = False
+        
+        leader.target_reached, right.target_reached, left.target_reached = False, False, False
+        
+        return ret
 
+    def go_to_target(self,target , leader, right, left):
+        
+        ret = True
+        
+        while False in [leader.target_reached, right.target_reached, left.target_reached]:
+            s, R, T = leader.get_location()
+            while s == -9:
+                s, R, T = leader.get_location()
+            leader_pos = {"lr":T["lr"], "fb":T["fb"], "ud":T["ud"]}
+            
+            bias = leader.trackLoop (target)
+            right.trackLoop ({"lr":leader_pos["lr"] + self.rightPos[0],
+                            "fb":leader_pos["fb"] + self.rightPos[1],
+                            "ud":leader_pos["ud"]}, bias)
+            
+            left.trackLoop ({"lr":leader_pos["lr"] + self.leftPos[0],
+                            "fb":leader_pos["fb"] + self.leftPos[1],
+                            "ud":leader_pos["ud"]}, bias)
+            if cv2.waitKey(20) != ord('q'):
+                ret = False
+        
+        leader.target_reached, right.target_reached, left.target_reached = False, False, False
+        
+        return ret
 
     def do_for_all_in_threads(self, method_str:str):
         threads = []

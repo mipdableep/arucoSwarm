@@ -20,48 +20,21 @@ tello5 = TelloObject("10.3.141.105", 11115,  a5, 5, None)
 """
 
 a3 = ArucoTools("Camera Calibration/calib/calib3.yaml", 3)
-tello3 = TelloObject("10.3.141.103", 11113,  a3, 3, None)
+tello3 = TelloObject("10.3.141.103", 11113,  a3, 3, None, True)
 
-
-# SC = SwarmControl([tello1, tello2, tello3, tello4, tello5])
-SC = SwarmControl([tello3])
-sleep(1)
-SC.do_for_all("getBattery()")
-
+a3.set_target(665, 20)
+tello3.getBattery()
+sleep(3)
+tello3.startCam()
 sleep(2)
-
-SC.do_for_all_in_threads("startCam")
-
-sleep(2)
-
-tello3._arucoTool.set_target(685,17)
+tello3.takeoff()
 
 while cv2.waitKey(20) != ord('q'):
-    s, R, T = tello3.get_location(True)
-    cv2.waitKey(20)
-    if s == -9:
-        continue
+    tello3.trackLoop({"lr":0, "fb":100, "ud":0})
 
-    yaw = R["yaw"]
-    lr = T["lr"]
-    fb = T["fb"]
-    
-    wanted_yaw = math.atan2(lr, fb) * (180/math.pi)
-    
-    cw = int(wanted_yaw - yaw) * -1
-    
-    # print (R, T, "   wanted yaw: ", wanted_yaw, "  cw: ", cw)
-    print ("wanted yaw: ", wanted_yaw, "  cw: ", cw)
-    # print ("cw: ", cw)
-    
-if False:
-    SC.do_for_all("takeoff")
-    SC.do_movement_command_for_all_in_threads("rotate_clockwise", (180,))
-    SC.do_movement_command_for_all_in_threads("move_forward", (75,))
-    SC.do_for_all("kill_no_cam")
-
-sleep(1)
-SC.do_for_all_in_threads("streamOff")
+tello3.stop()
+tello3.streamOff()
+tello3.kill()
 
 
 # SC.do_tello_command_for_all_in_threads("reboot")

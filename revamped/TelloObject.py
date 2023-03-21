@@ -3,10 +3,11 @@ from djitellopy import Tello
 import VCS
 from ArucoTools import ArucoTools
 import math
+import numpy as np
 
 class TelloObject:
 
-    def __init__(self, address:str, vport:int, arucoTool:ArucoTools, num, ABS_POS, startCam = True):
+    def __init__(self, address:str, vport:int, arucoTool:ArucoTools, num, ABS_POS, isLeader = False, startCam = True):
         # connection vals
         self._vport = vport
         self._address = address
@@ -14,7 +15,7 @@ class TelloObject:
         self.num = num
         
         self.target_reached = False
-        
+        self.isLeader = isLeader
         # location vals in relation to the middle point
         self._ABS_POS = ABS_POS
         
@@ -82,11 +83,11 @@ class TelloObject:
         
         wanted_yaw = math.atan2(lr, fb) * (180/math.pi)
     
-        cw = int(wanted_yaw - yaw) * -1
+        cw = int((wanted_yaw - yaw) * -1.7)
         
         self._tello.send_rc_control(0,0,0,cw)
         
-        if abs(cw) < 8:
+        if abs(cw) < 5:
             self._counter += 1
         else:
             self._counter = 0
@@ -124,31 +125,58 @@ class TelloObject:
 
 
 
-    def trackLoop(self):
+    def trackLoop(self, target = {"lr":0, "fb":0, "ud":0}, bias = [0, 0]):
 
-        ret, input_frame = self.cam.read()
-
-        if not ret:
-            print ('Error retriving video stream')
-            return lr, fb, ud
-    
-        status, lr, fb, ud, cw, img = self._arucoTool.arucofunc(input_frame, self._distance, self._angle, self._hight)
+        status, R, T = self.get_location(True)
         
-        lr = int(lr)
-        fb = int(fb)
-        ud = int(ud)
-        cw = int(cw)
+        if status == -9:
+            self._tello.send_rc_control(0,0,0,0)
+            print ("cant calculate moment")
+            return [0,0]
+        
+        yaw = R["yaw"]
+        lr = T["lr"]
+        fb = T["fb"]
+        ud = T["ud"]
+        
+        if not self.isLeader:
+            # calc lr, fb before rotation
+            lr_to_rotate = target["lr"] - lr + bias[0]
+            fb_to_rotate = target["fb"] - fb + bias[1]
+            
+            # rotate lr, fb
+            XY_vec = np.array([lr_to_rotate, fb_to_rotate])
+            
+            c, s = np.cos(-yaw), np.sin(-yaw)
+            rotationMat = np.array(((c, -s), (s, c)))
+            
+            XY_vec_rotate = np.matmul(rotationMat, XY_vec)
+            
+            RClr = XY_vec_rotate[0]
+            RCfb = XY_vec_rotate[1]
+        
+        # if leader ignore bias and rotation
+        else:
+            RClr = target["lr"] - lr
+            RCfb = -(target["fb"] - fb)
+            print (fb)
 
-        # save img to path
-        filename = 'video/' + str(self.num) + '/' + str(self._FrameCounter) + '.jpg'
-        cv2.imwrite(filename, img)
+        # calc ud
+        RCud = target["ud"] - ud
+        # calc cw
+        wanted_yaw = math.atan2(lr, fb) * (180/math.pi)
+        RCcw = (wanted_yaw - yaw) * -1.7
+        
+        RClr = int(np.clip(RClr/5, -25, 25))
+        RCfb = int(np.clip(RCfb/5, -25, 25))
+        RCud = int(np.clip(RCud/5, -25, 25))
+        RCcw = int(np.clip(RCcw, -50, 50))
 
         self._FrameCounter += 1
 
-        self._tello.send_rc_control(lr, fb, ud, cw)
+        self._tello.send_rc_control(RClr, RCfb, RCud, RCcw)
         
-        if status == 5:
+        if abs(RClr) < 7 and abs(RCfb) < 7 and abs(RCud) < 7:
             self.target_reached = True
 
-        img = cv2.resize(img, (720, 480))
-        cv2.imshow(str(self.num), img)
+        return [RClr, RCfb]

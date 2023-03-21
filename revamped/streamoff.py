@@ -16,16 +16,16 @@ a5 = ArucoTools("Camera Calibration/calib/calib5.yaml", 5)
 tello5 = TelloObject("10.3.141.105", 11115,  a5, 5, None)
 """
 
+a2 = ArucoTools("Camera Calibration/calib/calib2.yaml", 2)
+tello2 = TelloObject("10.3.141.102", 11112,  a2, 2, None)
 a3 = ArucoTools("Camera Calibration/calib/calib3.yaml", 3)
 tello3 = TelloObject("10.3.141.103", 11113,  a3, 3, None)
-# a4 = ArucoTools("Camera Calibration/calib/calib4.yaml", 4)
-# tello4 = TelloObject("10.3.141.104", 11114,  a4, 4, None)
-# a5 = ArucoTools("Camera Calibration/calib/calib5.yaml", 5)
-# tello5 = TelloObject("10.3.141.105", 11115,  a5, 5, None)
+a5 = ArucoTools("Camera Calibration/calib/calib5.yaml", 5)
+tello5 = TelloObject("10.3.141.105", 11115,  a5, 5, None)
 
 
 # SC = SwarmControl([tello1, tello2, tello3, tello4, tello5])
-SC = SwarmControl([tello3])
+SC = SwarmControl([tello2, tello3, tello5])
 sleep(1)
 SC.do_for_all("getBattery()")
 
@@ -39,7 +39,7 @@ sleep(1)
 SC.do_for_all_in_threads("streamOff")
 
 
-SC.do_tello_command_for_all_in_threads("reboot")
+# SC.do_tello_command_for_all_in_threads("reboot")
 
 
 exit()
