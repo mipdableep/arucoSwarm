@@ -1,5 +1,6 @@
 import threading
 import TelloObject
+import cv2
 
 class SwarmControl:
 
@@ -25,10 +26,14 @@ class SwarmControl:
         while False in target_found_list:
             for index, tello in enumerate(self._drones):
                 target_found_list[index] = tello.find_target()
+            if cv2.waitKey(20) == ord('q'):
+                self.do_for_all_in_threads("stop")
+                return False
+            print(target_found_list)
         
         # stop all movment
         self.do_for_all_in_threads("stop")
-
+        return True
 
 
     def do_for_all_in_threads(self, method_str:str):
@@ -38,13 +43,14 @@ class SwarmControl:
             thread = threading.Thread(target=method)
             threads.append(thread)
             thread.start()
+            print("created thread")
 
         # Wait for all threads to finish
         for thread in threads:
             thread.join()
     
     
-    def do_movement_command_for_all_in_threads(self, movement_cmd, amount):
+    def do_tello_command_for_all_in_threads(self, movement_cmd, args = ()):
         """
         sync movment commands (such as move_* or rotate)
 
@@ -55,7 +61,7 @@ class SwarmControl:
         threads = []
         for tello in self._drones:
             method = getattr(tello._tello, movement_cmd)
-            thread = threading.Thread(target=method, args=(amount))
+            thread = threading.Thread(target=method, args=args)
             threads.append(thread)
             thread.start()
 

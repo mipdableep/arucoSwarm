@@ -14,8 +14,8 @@ detectorParams = cv2.aruco.DetectorParameters()
 detector = cv2.aruco.ArucoDetector(dictionary, detectorParams)
 run = True
 
-a1 = ArucoTools("/home/fares/rbd/projects/aruco_swarm/arucoSwarm/calib/webcam.yaml", 1)
-a1.set_target(529, 20)
+a1 = ArucoTools("/home/fares/rbd/tools/calib/webcam.yaml", 1)
+a1.set_target(685, 20)
 
 while run:
     _, image = cap.read()
@@ -31,9 +31,12 @@ while run:
         cv2.waitKey(20)
         continue
     
-    print ("R:  ", R)
-    print ("T:  ", T)
+    print ("R:  ", R, "   T:  ", T)
+    # print ("T:  ", T)
+    image = cv2.resize(img, (720, 480))
     cv2.imshow("1", img)
+    cv2.waitKey(20)
+    
 
 exit()
 while (run):

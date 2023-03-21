@@ -1,10 +1,10 @@
-import cv2
-import numpy as np
-import djitellopy
 from TelloObject import TelloObject
 from ArucoTools import ArucoTools
 from SwarmControl import SwarmControl
 from time import sleep
+import cv2
+import math
+
 
 """
 a1 = ArucoTools("Camera Calibration/calib/calib1.yaml", 1)
@@ -21,17 +21,11 @@ tello5 = TelloObject("10.3.141.105", 11115,  a5, 5, None)
 
 a3 = ArucoTools("Camera Calibration/calib/calib3.yaml", 3)
 tello3 = TelloObject("10.3.141.103", 11113,  a3, 3, None)
-# a4 = ArucoTools("Camera Calibration/calib/calib4.yaml", 4)
-# tello4 = TelloObject("10.3.141.104", 11114,  a4, 4, None)
-# a5 = ArucoTools("Camera Calibration/calib/calib5.yaml", 5)
-# tello5 = TelloObject("10.3.141.105", 11115,  a5, 5, None)
 
 
 # SC = SwarmControl([tello1, tello2, tello3, tello4, tello5])
-# SC = SwarmControl([tello3, tello4])
 SC = SwarmControl([tello3])
-EXIT = False
-
+sleep(1)
 SC.do_for_all("getBattery()")
 
 sleep(2)
@@ -40,33 +34,38 @@ SC.do_for_all_in_threads("startCam")
 
 sleep(2)
 
-SC.do_for_all_in_threads("stop")
-SC.do_for_all_in_threads("takeoff")
-SC.do_for_all_in_threads("stop")
+tello3._arucoTool.set_target(685,17)
 
+while cv2.waitKey(20) != ord('q'):
+    s, R, T = tello3.get_location(True)
+    cv2.waitKey(20)
+    if s == -9:
+        continue
+
+    yaw = R["yaw"]
+    lr = T["lr"]
+    fb = T["fb"]
+    
+    wanted_yaw = math.atan2(lr, fb) * (180/math.pi)
+    
+    cw = int(wanted_yaw - yaw) * -1
+    
+    # print (R, T, "   wanted yaw: ", wanted_yaw, "  cw: ", cw)
+    print ("wanted yaw: ", wanted_yaw, "  cw: ", cw)
+    # print ("cw: ", cw)
+    
 if False:
+    SC.do_for_all("takeoff")
     SC.do_movement_command_for_all_in_threads("rotate_clockwise", (180,))
     SC.do_movement_command_for_all_in_threads("move_forward", (75,))
+    SC.do_for_all("kill_no_cam")
 
-sleep(2)
-
-SC.do_tello_command_for_all_in_threads("move_up", (75,))
 sleep(1)
-
-arr = SC.all_find_target(685, 17.5)
-
-if not arr:
-    SC.do_for_all_in_threads("streamOff")
-    SC.do_for_all_in_threads("kill")
-    exit(0)
-
-
-SC.do_tello_command_for_all_in_threads("move_forward", (150,))
-
 SC.do_for_all_in_threads("streamOff")
-SC.do_for_all_in_threads("kill")
 
-exit(0)
 
-# tello obj for command string copy (delete)
-T = djitellopy.Tello()
+# SC.do_tello_command_for_all_in_threads("reboot")
+
+
+exit()
+# tello5._tello.

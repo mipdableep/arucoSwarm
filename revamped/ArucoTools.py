@@ -26,12 +26,11 @@ class ArucoTools:
 
         self._camMatrix = fs.getNode("camera_matrix").mat()
         self._camDist = fs.getNode("distortion_coefficients").mat()
-        if self._camMatrix == None:
+        
+        if self._camMatrix is None:
             self._camMatrix = fs.getNode("Camera_Matrix").mat()
-            print (self._camMatrix)
             self._camDist = fs.getNode("Distortion_Coefficients").mat()
-            print (self._camDist)
-
+        
 
 
     def set_target(self, target_id, target_size):
@@ -103,6 +102,13 @@ class ArucoTools:
         rmat = np.matrix(rmat)
         euler_angles = Rotation.from_matrix(rmat).as_euler("xyz", degrees=True)
         
+        # print("1 ", tvec)
+        tvec = (tvec * -rmat)
+        # print("2 ", tvec)
+        tvec = np.array(tvec[0])
+        # print("3 ", tvec)
+        
+        
         pitch = euler_angles[0]
         if pitch > 0: 
             pitch = 180-pitch
@@ -110,9 +116,8 @@ class ArucoTools:
             pitch = -pitch - 180
         yaw = euler_angles[1]
         roll = euler_angles[2]
-        # TODO: check if the axis are correct
-        R = {"pitch":pitch, "yaw":yaw, "roll":roll}
-        T = {"lr":tvec[0], "fb":tvec[1], "ud":tvec[2]}
+        R = {"pitch":int(pitch), "yaw":int(yaw), "roll":int(roll)}
+        T = {"lr":int(tvec[0][0]), "fb":int(tvec[0][2]), "ud":int(tvec[0][1])}
         
         return R, T
 

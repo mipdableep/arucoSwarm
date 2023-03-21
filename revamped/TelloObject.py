@@ -19,9 +19,11 @@ class TelloObject:
         self._ABS_POS = ABS_POS
         
         self._last_target_detected = 0
+        self._counter = 0
         
         self._arucoTool = arucoTool
         self._FrameCounter = 0
+        self.yaw_dev = 2
         
         self._tello = Tello(address)
         self._tello.connect()
@@ -37,6 +39,7 @@ class TelloObject:
     def startCam(self):
         self.cam = VCS.VideoCapture("udp://" + self._address + ":" + str(self._vport))
         self.title = "TELLO-" + self._address
+        self._tello.send_rc_control(0,0,0,0)
 
     def takeoff(self):
         self._tello.takeoff()
@@ -49,6 +52,10 @@ class TelloObject:
         self._tello.send_rc_control(0,0,0,0)
         self._tello.land()
         self.cam.release()
+        
+    def kill_no_cam(self):
+        self._tello.send_rc_control(0,0,0,0)
+        self._tello.land()
         
     def getBattery(self):
         print(self.num, ": ", self._tello.get_battery())
@@ -74,11 +81,23 @@ class TelloObject:
         fb = T["fb"]
         
         wanted_yaw = math.atan2(lr, fb) * (180/math.pi)
-        
-        cw = wanted_yaw - yaw
+    
+        cw = int(wanted_yaw - yaw) * -1
         
         self._tello.send_rc_control(0,0,0,cw)
-        return True
+        
+        if abs(cw) < 8:
+            self._counter += 1
+        else:
+            self._counter = 0
+        
+        print (self.num, " counter:  ", self._counter)
+        
+        if self._counter > 20:
+            return True
+        else:
+            return False
+        
 
 
     def get_location(self, imshow = False):
