@@ -7,9 +7,9 @@ from SwarmControl import SwarmControl
 from time import sleep
 import threading
 
-a1 = ArucoTools(30, "Camera Calibration/Calib1/Calibration.npy")
-a3 = ArucoTools(30, "Camera Calibration/Calib3/Calibration.npy")
-a5 = ArucoTools(30, "Camera Calibration/Calib3/Calibration.npy")
+a1 = ArucoTools(30, "Camera Calibration/calib/calib1.yaml")
+a3 = ArucoTools(30, "Camera Calibration/calib/calib3.yaml")
+a5 = ArucoTools(30, "Camera Calibration/calib/calib5.yaml")
 
 t1 = TelloObject("10.3.141.101", 11111, a1, 1)
 t5 = TelloObject("10.3.141.103", 11113, a3, 2)
@@ -43,6 +43,9 @@ SC.find_aruco_all(665, 17.5)
 SC.set_formation(SC._formation_2L, t1, t5, t3, [0, 250, 40])
 SC.move_to_target()
 
+SC.find_aruco_all(625, 20)
+SC.set_formation(SC._formation_1L, t3, t1, t5, [0, 200, 20])
+SC.move_to_target()
 
 SC.find_aruco_all(615, 20)
 SC.set_formation(SC._formation_1L, t5, t3, t1, [0, 400, 40])

@@ -17,9 +17,12 @@ class ArucoTools:
         self._TargetID = -1
         self._TargetSize = -1
         
-        with open(calibPath, 'rb') as f:
-            self._camMatrix = np.load(f)
-            self._camDist = np.load(f)
+        fs = cv2.FileStorage(calibPath, cv2.FILE_STORAGE_READ)
+        self._camMatrix = fs.getNode("camera_matrix").mat()
+        self._camDist = fs.getNode("distortion_coefficients").mat()
+        if self._camMatrix is None:
+            self._camMatrix = fs.getNode("Camera_Matrix").mat()
+            self._camDist = fs.getNode("Distortion_Coefficients").mat()
         
         self._CLIP = clip
         self._YAW_CLIP = 100
