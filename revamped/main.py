@@ -16,6 +16,7 @@ t5 = TelloObject("10.3.141.103", 11113, a3, 2)
 t3 = TelloObject("10.3.141.105", 11115, a5, 5)
 
 SC = SwarmControl([t1, t5, t3])
+d1, d2, d3 = SC._allDrones[0], SC._allDrones[1], SC._allDrones[2]
 SC.do_for_all("getBattery")
 sleep(2)
 SC.do_for_all_in_threads("startCam")
@@ -24,35 +25,35 @@ SC.do_for_all_in_threads("takeoff")
 sleep(1)
 SC.do_tello_command_for_all_in_threads("move_up", (70,))
 sleep(2)
-
+# TODO:check all again!!!!
 # !first target
 SC.find_aruco_all(605, 20)
-SC.set_formation(SC._formation_1L, t1, t5, t3, [-100, 200, 40])
+SC.set_formation(SC._formation_1L, d1, d2, d3, [-100, 200, 40])
 SC.move_to_target()
 
-SC.set_formation(SC._formation_1L, t1, t5, t3, [0, 200, 40])
+SC.set_formation(SC._formation_1L, d1, d2, d3, [0, 200, 40])
 SC.move_to_target()
 
 
 SC.find_aruco_all(685, 20)
-SC.set_formation(SC._formation_1L, t3, t1, t5, [0, 200, 40])
+SC.set_formation(SC._formation_1L, d3, d1, d2, [0, 200, 40])
 SC.move_to_target()
 
 
 SC.find_aruco_all(665, 17.5)
-SC.set_formation(SC._formation_2L, t1, t5, t3, [0, 250, 40])
+SC.set_formation(SC._formation_2L, d1, d2, t3, [0, 250, 40])
 SC.move_to_target()
 
 SC.find_aruco_all(625, 20)
-SC.set_formation(SC._formation_1L, t3, t1, t5, [0, 200, 20])
+SC.set_formation(SC._formation_1L, d2, d3, d1, [0, 200, 20])
 SC.move_to_target()
 
 SC.find_aruco_all(615, 20)
-SC.set_formation(SC._formation_1L, t5, t3, t1, [0, 400, 40])
+SC.set_formation(SC._formation_1L, d2, d3, d1, [0, 400, 40])
 SC.move_to_target()
-SC.set_formation(SC._formation_1L, t5, t3, t1, [0, 250, 40])
+SC.set_formation(SC._formation_1L, d2, d3, d1, [0, 250, 40])
 SC.move_to_target()
-SC.set_formation(SC._formation_1L, t5, t3, t1, [0, 150, 40])
+SC.set_formation(SC._formation_1L, d2, d3, d1, [0, 150, 40])
 SC.move_to_target()
 
 
