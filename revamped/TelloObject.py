@@ -7,7 +7,7 @@ import datetime as dt
 
 class TelloObject:
 
-    def __init__(self, address : str, vport : int, position : np.array, arucoTool : ArucoTools):
+    def __init__(self, address : str, vport : int, position : np.array, arucoTool : ArucoTools, num):
         # connection vals
         self._vport = vport
         self._address = address
@@ -15,6 +15,9 @@ class TelloObject:
         # location vals
         self._position = position
         self._arucoTool = arucoTool
+        
+        self.num = num
+        self.title = str(self.num)
         
         self._tello = Tello(address)
         self._tello.connect()
@@ -25,11 +28,13 @@ class TelloObject:
     
     def startCam(self):
         self.cam = VCS.VideoCapture("udp://" + self._address + ":" + str(self._vport))
-        self.title = "TELLO-" + self._address
 
     def takeoff(self):
         self._tello.takeoff()
         pass
+
+    def stop(self):
+        self._tello.send_rc_control(0,0,0,0)
 
     def kill(self):
         self._tello.streamoff()
@@ -37,7 +42,7 @@ class TelloObject:
         self.cam.release()
         
     def getBattery(self):
-        print(self._tello.get_battery())
+        print(self.num, " : ", self._tello.get_battery())
     
 
     def search_aruco(self, arucoID):
@@ -107,7 +112,7 @@ class TelloObject:
         img = cv2.resize(img, (720, 480))
         cv2.imshow(self.title, img)
 
-        return lr, fb, ud
+        return (lr < 5 and fb < 5 and ud < 5)
 
     
     # Util -> polar coordinate to rectangular coordinate

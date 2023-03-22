@@ -28,6 +28,9 @@ class ArucoTools:
                                 "UD" :  1.0,
                                 "CW" :  2.0 }
     
+    def set_target(self, target_id, target_size):
+        self._TargetID = target_id
+        self._TargetSize = target_size
 
     def rebias (self, bias, angle):
         [b_lr, b_fb, b_ud] = bias
