@@ -7,13 +7,13 @@ import datetime as dt
 
 class TelloObject:
 
-    def __init__(self, address : str, vport : int, position : np.array, arucoTool : ArucoTools, num):
+    def __init__(self, address : str, vport : int, arucoTool : ArucoTools, num):
         # connection vals
         self._vport = vport
         self._address = address
         
         # location vals
-        self._position = position
+        self._position = [0,0,0]
         self._arucoTool = arucoTool
         
         self.num = num
@@ -44,14 +44,15 @@ class TelloObject:
     def getBattery(self):
         print(self.num, " : ", self._tello.get_battery())
     
-
-    def search_aruco(self, arucoID):
+    def printHeight(self):
+        print(self.num, " : ", self._tello.get_height())
+    
+    def search_aruco(self):
         ret, input_frame = self.cam.read()
         if not ret:
             print ('Error retriving video stream')
             return -1
         
-        self._arucoTool._TargetID = arucoID
         status, lr, fb, ud, cw, img = self._arucoTool.arucofunc(input_frame, self._position, [0, 0, 0])
 
         if status == -9:

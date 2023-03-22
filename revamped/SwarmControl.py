@@ -50,19 +50,50 @@ class SwarmControl:
         t1._position = [tip_pos[0] + self._formation["t1"][0], -tip_pos[2], -tip_pos[1] + self._formation["t1"][1]]
         t2._position = [tip_pos[0] + self._formation["t2"][0], -tip_pos[2], -tip_pos[1] + self._formation["t2"][1]]
         t3._position = [tip_pos[0] + self._formation["t3"][0], -tip_pos[2], -tip_pos[1] + self._formation["t3"][1]]
+        
+    def find_aruco_all(self, target_id, target_size):
+        
+        self.set_target_all(target_id, target_size)
+        ret = False
+        while cv2.waitKey(50) != ord("q"):
+            t1r = self._allDrones[0].search_aruco()
+            t2r = self._allDrones[1].search_aruco()
+            t3r = self._allDrones[2].search_aruco()
+            print ([t1r, t2r, t3r])
+            if not((t1r == -1 or t2r == -1 or t3r == -1) or (t1r > 3 or t2r > 3 or t3r > 3)):
+                ret = True
+                break
+        if ret:
+            return True
+        else:
+            print("HERE")
+            self.exit()
+            return False
+    
+    def move_to_target(self):
+        done = [False for i in self._allDrones]
+        
+        while cv2.waitKey(50) != ord("q"):
+            for index, i in enumerate(self._allDrones):
+                done[index] = i.trackLoop()
+            if False not in done:
+                return True
+        self.exit()
+        return False
 
     def exit(self):
+        print("\n\nEXITING\n\n")
         self.do_for_all_in_threads("stop")
         self.do_for_all_in_threads("kill")
+        exit()
 
-    def do_for_all_in_threads(self, method_str:str):
+    def do_for_all_in_threads(self, method_str:str, arg = tuple()):
         threads = []
         for tello in self._drones:
             method = getattr(tello, method_str)
-            thread = threading.Thread(target=method)
+            thread = threading.Thread(target=method, args= arg)
             threads.append(thread)
             thread.start()
-            print("created thread")
 
         # Wait for all threads to finish
         for thread in threads:

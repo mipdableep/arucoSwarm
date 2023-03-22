@@ -13,9 +13,9 @@ detector = cv2.aruco.ArucoDetector(dictionary, detectorParams)
 
 class ArucoTools:
 
-    def __init__(self, TargetID, TargetSize, clip, calibPath):
-        self._TargetID = TargetID
-        self._TargetSize = TargetSize
+    def __init__(self, clip, calibPath):
+        self._TargetID = -1
+        self._TargetSize = -1
         
         with open(calibPath, 'rb') as f:
             self._camMatrix = np.load(f)
