@@ -12,21 +12,21 @@ from os import mkdir, path
 
 # If you calibrate tello, you can uncomment these lines
 
-tello = Tello("10.3.141.211")
+tello = Tello("10.3.141.105")
 tello.connect()
 
 tello.set_network_ports(9980, 11112)
 tello.set_video_bitrate(Tello.BITRATE_1MBPS)
 tello.streamon()
 
-webcam = VideoCapture("udp://10.3.141.211:11112")
+webcam = VideoCapture("udp://10.3.141.105:11112")
 
 
 # Open the default camera
 # webcam = VideoCapture(0)
 
 # Save folder
-folder = 'Camera Calibration/Calib4'
+folder = 'Camera Calibration/Calib5'
 
 # Chess board crosses
 cross = (5, 7)

@@ -15,17 +15,21 @@ def rotate_self (tello : TelloObject, ang):
 def move_up (tello : TelloObject, up):
     tello._tello.move_up (up)
 
-a1 = ArucoTools(685, 17.0, 30, "Camera Calibration/Calib1/Calibration.npy")
-a2 = ArucoTools(685, 17.0, 30, "Camera Calibration/Calib2/Calibration.npy")
-a3 = ArucoTools(685, 17.0, 30, "Camera Calibration/Calib3/Calibration.npy")
-a4 = ArucoTools(685, 17.0, 30, "Camera Calibration/Calib4/Calibration.npy")
+a1 = ArucoTools(685, 17.25, 30, "Camera Calibration/Calib1/Calibration.npy")
+a2 = ArucoTools(685, 17.25, 30, "Camera Calibration/Calib2/Calibration.npy")
+a3 = ArucoTools(685, 17.25, 30, "Camera Calibration/Calib5/Calibration.npy")
+# a4 = ArucoTools(685, 17.25, 30, "Camera Calibration/Calib4/Calibration.npy")
+# a5 = ArucoTools(685, 17.25, 30, "Camera Calibration/Calib5/Calibration.npy")
 
 tello1 = TelloObject("10.3.141.101", 11112, [0,0,0], a1)
 tello2 = TelloObject("10.3.141.102", 11113, [0,0,0], a2)
-tello3 = TelloObject("10.3.141.103", 11114, [0,0,0], a3)
-tello4 = TelloObject("10.3.141.104", 11115, [0,0,0], a4)
+tello3 = TelloObject("10.3.141.105", 11114, [0,0,0], a3)
+# tello4 = TelloObject("10.3.141.104", 11115, [0,0,0], a4)
+# tello5 = TelloObject("10.3.141.105", 11116, [0,0,0], a5)
 
-SC = SwarmControl([tello1, tello2, tello3, tello4])
+############################ START UP ################################
+
+SC = SwarmControl([tello1, tello2, tello3])
 SC.do_for_all("getBattery()")
 
 sleep(2)
@@ -38,240 +42,452 @@ SC.do_for_all_in_threads("takeoff")
 
 sleep(1)
 
-move_up_cm = 100
+############################ MOVE UP ################################
+
+move_up_cm = 50
 
 thread1 = threading.Thread(target=move_up, args=(tello1, move_up_cm), name="tello1 move up")
 thread2 = threading.Thread(target=move_up, args=(tello2, move_up_cm), name="tello2 move up")
 thread3 = threading.Thread(target=move_up, args=(tello3, move_up_cm), name="tello3 move up")
-thread4 = threading.Thread(target=move_up, args=(tello4, move_up_cm), name="tello4 move up")
 
 thread1.start()
 thread2.start()
 thread3.start()
-thread4.start()
 
 thread1.join()
 thread2.join()
 thread3.join()
-thread4.join()
 
-sleep(2)
+sleep(1)
 
-t1r, t2r, t3r, t4r = -1, -1, -1, -1
-while cv2.waitKey(50) != ord("q") and ((t1r == -1 or t2r == -1 or t3r == -1 or t4r == -1) or (t1r > 3 or t2r > 3 or t3r > 3 or t4r > 3)):
-    t1r = tello1.search_aruco (685)
-    t2r = tello2.search_aruco (685)
-    t3r = tello3.search_aruco (685)
-    t4r = tello4.search_aruco (685)
+############################ TARGET 1 ################################
 
-center = np.array([0, 0, 0], dtype=np.float64)
+a1._TargetID = 685
+a2._TargetID = 685
+a3._TargetID = 685
 
-for tello in [tello1, tello2, tello3, tello4]:
-    center += np.array(tello._arucoTool.pos, dtype=np.float64)
+tello1._position = [-40, -30, -125]
+tello2._position = [ 40, -30, -125]
+tello3._position = [  0, -30, -190]
 
-center /= 4
-
-def angTello(tello : TelloObject):
-    return np.arctan2(center[0] - tello._arucoTool.pos[0], center[2] - tello._arucoTool.pos[2])
-
-tellos = [tello1, tello2, tello3, tello4]
-tellos = sorted(tellos, key=angTello)
-
-center[1] = -30
-
-ang = np.pi / 4
-for tello in tellos:
-    tello._position = center + np.array([42*np.sin(ang), 0, 42*np.cos(ang)])
-    ang += np.pi / 2
-
-while cv2.waitKey(50) != ord("q"):
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
     tello1.trackLoop()
     tello2.trackLoop()
     tello3.trackLoop()
-    tello4.trackLoop()
+    keyPressed = cv2.waitKey(50)
 
-dist = np.sqrt(center[0] ** 2 + center[2] ** 2)
-center = [0, -30, -150]
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
 
-ang = np.pi / 4
-for tello in tellos:
-    tello._position = center + np.array([42*np.sin(ang), 0, 42*np.cos(ang)])
-    ang += np.pi / 2
+sleep(1)
 
-while cv2.waitKey(50) != ord("q"):
+############################ ROTATE 120 CW ################################
+
+tello1._position = [  0, -30, -100]
+tello2._position = [ 40, -30, -165]
+tello3._position = [-40, -30, -165]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
     tello1.trackLoop()
     tello2.trackLoop()
     tello3.trackLoop()
-    tello4.trackLoop()
+    keyPressed = cv2.waitKey(50)
 
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+sleep(1)
+
+tello1._position = [ 40, -30, -125]
+tello2._position = [  0, -30, -190]
+tello3._position = [-40, -30, -125]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+sleep(1)
+
+
+############################ TARGET 2 ################################
+
+a1._TargetID = 605
+a2._TargetID = 605
+a3._TargetID = 605
+
+thread1 = threading.Thread(target=rotate_self, args=(tello1, 146), name="tello1 rotate")
+thread2 = threading.Thread(target=rotate_self, args=(tello2, 120), name="tello2 rotate")
+thread3 = threading.Thread(target=rotate_self, args=(tello3,  94), name="tello3 rotate")
+
+thread1.start()
+thread2.start()
+thread3.start()
+
+thread1.join()
+thread2.join()
+thread3.join()
+
+tello1._position = [-40, -30, -360]
+tello2._position = [ 40, -30, -360]
+tello3._position = [  0, -30, -425]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+sleep(1)
+
+tello1._position = [-40, -30, -230]
+tello2._position = [ 40, -30, -230]
+tello3._position = [  0, -30, -295]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+sleep(1)
+
+tello1._position = [-40, -30, -100]
+tello2._position = [ 40, -30, -100]
+tello3._position = [  0, -30, -165]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+############################ ROTATE 180 CW ################################
+
+tello1._position = [  0, -30, -100]
+tello2._position = [ 40, -30, -165]
+tello3._position = [-40, -30, -165]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+sleep(1)
+
+tello1._position = [ 40, -30, -125]
+tello2._position = [  0, -30, -190]
+tello3._position = [-40, -30, -125]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+sleep(1)
+
+tello1._position = [ 40, -30, -165]
+tello2._position = [-40, -30, -165]
+tello3._position = [  0, -30, -100]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+sleep(1)
+
+############################ TARGET 3 ################################
+
+a1._TargetID = 625
+a2._TargetID = 625
+a3._TargetID = 625
+
+thread1 = threading.Thread(target=rotate_self, args=(tello1, 190), name="tello1 rotate")
+thread2 = threading.Thread(target=rotate_self, args=(tello2, 170), name="tello2 rotate")
+thread3 = threading.Thread(target=rotate_self, args=(tello3, 180), name="tello3 rotate")
+
+thread1.start()
+thread2.start()
+thread3.start()
+
+thread1.join()
+thread2.join()
+thread3.join()
+
+tello1._position = [-40, -30, -750]
+tello2._position = [ 40, -30, -750]
+tello3._position = [  0, -30, -815]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+tello1._position = [-40, -30, -650]
+tello2._position = [ 40, -30, -650]
+tello3._position = [  0, -30, -715]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+tello1._position = [-40, -30, -550]
+tello2._position = [ 40, -30, -550]
+tello3._position = [  0, -30, -615]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+tello1._position = [-40, -30, -450]
+tello2._position = [ 40, -30, -450]
+tello3._position = [  0, -30, -515]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+tello1._position = [-40, -30, -350]
+tello2._position = [ 40, -30, -350]
+tello3._position = [  0, -30, -415]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+tello1._position = [-40, -30, -250]
+tello2._position = [ 40, -30, -250]
+tello3._position = [  0, -30, -315]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+tello1._position = [-40, -30, -125]
+tello2._position = [ 40, -30, -125]
+tello3._position = [  0, -30, -190]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+############################ ROTATE 120 CCW ################################
+
+tello1._position = [-40, -30, -100]
+tello2._position = [  0, -30, -165]
+tello3._position = [ 40, -30, -165]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+sleep(1)
+
+tello1._position = [  0, -30, -190]
+tello2._position = [-40, -30, -125]
+tello3._position = [ 40, -30, -125]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+sleep(1)
+
+
+############################ TARGET 4 ################################
+
+a1._TargetID = 665
+a2._TargetID = 665
+a3._TargetID = 665
+
+thread1 = threading.Thread(target=rotate_self, args=(tello1, 240), name="tello1 rotate")
+thread2 = threading.Thread(target=rotate_self, args=(tello2, 214), name="tello2 rotate")
+thread3 = threading.Thread(target=rotate_self, args=(tello3, 266), name="tello3 rotate")
+
+thread1.start()
+thread2.start()
+thread3.start()
+
+thread1.join()
+thread2.join()
+thread3.join()
+
+tello1._position = [-40 + 100, -30, -360]
+tello2._position = [ 40 + 100, -30, -360]
+tello3._position = [  0 + 100, -30, -425]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+sleep(1)
+
+tello1._position = [-40 + 50, -30, -230]
+tello2._position = [ 40 + 50, -30, -230]
+tello3._position = [  0 + 50, -30, -295]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
+
+sleep(1)
+
+tello1._position = [-40, -30, -100]
+tello2._position = [ 40, -30, -100]
+tello3._position = [  0, -30, -165]
+
+keyPressed = 0
+while keyPressed != ord("q") and keyPressed != ord("a"):
+    # bias = tello4.trackLoop()
+    tello1.trackLoop()
+    tello2.trackLoop()
+    tello3.trackLoop()
+    keyPressed = cv2.waitKey(50)
+
+if keyPressed == ord("a"):
+    SC.do_for_all_in_threads("kill")
+    exit(1)
 
 SC.do_for_all_in_threads("kill")
 
 exit(0)
-
-sleep(2)
-
-a1._TargetID = 665
-a2._TargetID = 665
-a3._TargetID = 665
-tello1._position = [-30, -30, -360]
-tello2._position = [ 30, -30, -360]
-tello3._position = [  0, -30, -400]
-
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
-
-sleep(1)
-
-a1._TargetID = 665
-a2._TargetID = 665
-a3._TargetID = 665
-tello1._position = [-30, -30, -230]
-tello2._position = [ 30, -30, -230]
-tello3._position = [  0, -30, -270]
-
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
-
-a1._TargetID = 665
-a2._TargetID = 665
-a3._TargetID = 665
-tello1._position = [-30, -30, -100]
-tello2._position = [ 30, -30, -100]
-tello3._position = [  0, -30, -140]
-
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
-
-a1._TargetID = 665
-a2._TargetID = 665
-a3._TargetID = 665
-tello1._position = [-30, -40, -120]
-tello2._position = [  0, -40,  -80]
-tello3._position = [ 30, -40, -120]
-
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
-
-a1._TargetID = 665
-a2._TargetID = 665
-a3._TargetID = 665
-tello1._position = [  0, -40, -140]
-tello2._position = [-30, -40, -100]
-tello3._position = [ 30, -40, -100]
-
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
-
-thread1 = threading.Thread(target=rotate_self, args=(tello1, 240), name="tello1 rotate")
-thread2 = threading.Thread(target=rotate_self, args=(tello2, 230), name="tello2 rotate")
-thread3 = threading.Thread(target=rotate_self, args=(tello3, 250), name="tello3 rotate")
-
-thread1.start()
-thread2.start()
-thread3.start()
-
-thread1.join()
-thread2.join()
-thread3.join()
-
-sleep(2)
-
-a1._TargetID = 594
-a2._TargetID = 594
-a3._TargetID = 594
-tello1._position = [-30, -30, -360]
-tello2._position = [ 30, -30, -360]
-tello3._position = [  0, -30, -400]
-
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
-
-sleep(1)
-
-a1._TargetID = 594
-a2._TargetID = 594
-a3._TargetID = 594
-tello1._position = [-30, -30, -230]
-tello2._position = [ 30, -30, -230]
-tello3._position = [  0, -30, -270]
-
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
-
-a1._TargetID = 594
-a2._TargetID = 594
-a3._TargetID = 594
-tello1._position = [-30, -30, -100]
-tello2._position = [ 30, -30, -100]
-tello3._position = [  0, -30, -140]
-
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
-
-a1._TargetID = 594
-a2._TargetID = 594
-a3._TargetID = 594
-tello1._position = [-60, -30, -100]
-tello2._position = [ 60, -30, -100]
-tello3._position = [  0, -30, -180]
-
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
-
-'''
-thread1 = threading.Thread(target=rotate_self, args=(tello1, 200), name="tello1 rotate")
-thread2 = threading.Thread(target=rotate_self, args=(tello2, 180), name="tello2 rotate")
-thread3 = threading.Thread(target=rotate_self, args=(tello3, 160), name="tello3 rotate")
-
-thread1.start()
-thread2.start()
-thread3.start()
-
-thread1.join()
-thread2.join()
-thread3.join()
-
-a1._TargetID = 546
-a2._TargetID = 546
-a3._TargetID = 546
-
-tello1._hight = 0
-tello2._hight = 0
-tello3._hight = 0
-
-while cv2.waitKey(50) != ord("q"):
-    # bias = tello4.trackLoop()
-    tello1.trackLoop()
-    tello2.trackLoop()
-    tello3.trackLoop()
-'''
-
-SC.do_for_all_in_threads("kill")
