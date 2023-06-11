@@ -2,9 +2,14 @@ import cv2
 from scipy.spatial.transform import Rotation
 import numpy as np
 from ArucoTools import ArucoTools
+import djitellopy
+
+t = djitellopy.Tello()
+t.connect()
+t.streamon()
 
 cap = cv2.VideoCapture()
-cap.open(0)
+cap.open("udp://0.0.0.0:11111")
 
 # setup
 dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_ARUCO_ORIGINAL)
@@ -14,8 +19,8 @@ detectorParams = cv2.aruco.DetectorParameters()
 detector = cv2.aruco.ArucoDetector(dictionary, detectorParams)
 run = True
 
-a1 = ArucoTools("/home/fares/rbd/tools/calib/webcam.yaml", 1)
-a1.set_target(685, 20)
+a1 = ArucoTools("/home/fares/rbd/tools/calib/drone1.yaml", 1)
+a1.set_target(635, 20)
 
 while run:
     _, image = cap.read()
